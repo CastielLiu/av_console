@@ -41,7 +41,7 @@ public:
 
 	void closeEvent(QCloseEvent *event); // Overloaded function
 	void showNoMasterMessage();
-  void changeToCmdDir();
+    bool changeToCmdDir();
 
 public Q_SLOTS:
 	/******************************************
@@ -51,8 +51,8 @@ public Q_SLOTS:
 	void on_button_connect_clicked(bool check );
 	void on_checkbox_use_environment_stateChanged(int state);
 
-  void updateLoggingView(); // no idea why this can't connect automatically
-  void updatePathPlanningLoggingView();
+    void updateLoggingView(); // no idea why this can't connect automatically
+    void updatePathPlanningLoggingView();
 
 private Q_SLOTS:
     void on_button_roscore_clicked();
@@ -64,12 +64,16 @@ private Q_SLOTS:
     void on_pushButton_pathPlanning_clicked(bool checked);
     void showLog_in_pathPlanning(const QString& msg);
 
+    void on_pushButton_openRoadNet_clicked();
+
+    void on_pushButton_driverlessStart_clicked(bool checked);
+
 private:
     Ui::MainWindow ui;
     QNode qnode;
     RecordPath *m_pathRecorder;
     bool m_nodeInited;
-    QString m_pathFileDir;
+    QString m_pathFileDir; //
 
 };
 

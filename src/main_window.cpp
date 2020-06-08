@@ -47,11 +47,6 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
 
     ui.view_logging->setModel(qnode.loggingModel());
     QObject::connect(&qnode, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
-
-    if ( ui.checkbox_remember_settings->isChecked() )
-    {
-        on_button_connect_clicked(true);
-    }
 }
 
 MainWindow::~MainWindow() {}
@@ -97,7 +92,6 @@ void MainWindow::on_button_connect_clicked(bool check )
 			ui.button_connect->setEnabled(false);
 			ui.line_edit_master->setReadOnly(true);
 			ui.line_edit_host->setReadOnly(true);
-			ui.line_edit_topic->setReadOnly(true);
 		}
 	}
     qnode.log(QNode::Info,"connect to ros master ok!");
@@ -137,8 +131,7 @@ void MainWindow::ReadSettings() {
     ui.line_edit_master->setText(master_url);
     ui.line_edit_host->setText(host_url);
     //ui.line_edit_topic->setText(topic_name);
-    bool remember = settings.value("remember_settings", false).toBool();
-    ui.checkbox_remember_settings->setChecked(remember);
+
     bool checked = settings.value("use_environment_variables", false).toBool();
     ui.checkbox_use_environment->setChecked(checked);
     if ( checked ) {
@@ -147,7 +140,7 @@ void MainWindow::ReadSettings() {
     	//ui.line_edit_topic->setEnabled(false);
     }
     m_pathFileDir = settings.value("pathFileDir","").toString();
-    //qDebug() << "read " << m_pathFileDir;
+
 }
 
 void MainWindow::WriteSettings() {
@@ -158,9 +151,8 @@ void MainWindow::WriteSettings() {
     settings.setValue("use_environment_variables",QVariant(ui.checkbox_use_environment->isChecked()));
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
-    settings.setValue("remember_settings",QVariant(ui.checkbox_remember_settings->isChecked()));
     settings.setValue("pathFileDir",m_pathFileDir);
-    //qDebug() << "write " << m_pathFileDir;
+
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -210,25 +202,34 @@ void av_console::MainWindow::on_pushButton_rtk_clicked(bool checked)
     }
 }
 
-void av_console::MainWindow::changeToCmdDir()
+bool av_console::MainWindow::changeToCmdDir()
 {
   static bool parsed = false;
   static QDir cmdDir;
   if(parsed)
   {
     QDir::setCurrent(cmdDir.absolutePath()); //切换目录
-    return;
+    return true;
   }
 
   FILE * fp =  popen("rospack find av_console", "r");
   char buf[50] ;
   fscanf(fp,"%s",buf);
   pclose(fp);
+  if(std::string(buf).find("home") == std::string::npos)
+  {
+      //qnode.log(qnode.Error, std::string(buf));
+      qnode.log(qnode.Error,"change to cmd directory failed!");
+      return false;
+  }
+
   cmdDir = QDir::current();//获取当前工作目录
   cmdDir.cd(QString(buf));      //修改目录，仅修改了目录名，未切换
   cmdDir.cd("cmd");
   QDir::setCurrent(cmdDir.absolutePath()); //切换目录
+
   parsed = true;
+  return true;
 }
 
 void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
@@ -247,7 +248,7 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
         if(m_pathRecorder->pathPointsSize() < 10)
         {
           m_pathRecorder->log("WARN","path points is too few!");
-          return;
+          return ;
         }
 
         if(m_pathFileDir.isEmpty())
@@ -292,4 +293,58 @@ void av_console::MainWindow::updatePathPlanningLoggingView()
   ui.listView_pathPlanning->scrollToBottom();
 }
 
+void av_console::MainWindow::on_pushButton_openRoadNet_clicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+                                "open roadnet file", m_pathFileDir, "TXT(*txt)");
+    if(fileName.isEmpty())
+        return;
+/*
+    QStringList list = fileName.split('/');
+    QString name = *(list.end()-1);
+    qDebug() << fileName << "\t" << name;
+    ui.lineEdit_roadNet->setText(name);
+*/
+    ui.lineEdit_roadNet->setText(fileName);
+    m_pathFileDir = fileName;
+}
 
+void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
+{
+    if(checked)
+    {
+        bool ok;
+        float speed = ui.lineEdit_driverlessSpeed->text().toFloat(&ok);
+        if(!ok)
+        {
+            speed = 10.0;
+            ui.lineEdit_driverlessSpeed->setText("10.0");
+        }
+        QString fileName = ui.lineEdit_roadNet->text();
+        if(fileName.isEmpty())
+        {
+            QMessageBox msgBox;
+            msgBox.setText("No Roadnet File.");
+            msgBox.exec();
+            ui.pushButton_driverlessStart->setChecked(false);
+            return;
+        }
+        if(!changeToCmdDir())
+        {
+            ui.pushButton_driverlessStart->setChecked(false);
+            return;
+        }
+
+        std::stringstream cmd;
+        cmd << "gnome-terminal -x './driverless.sh "
+            << fileName.toStdString() << " " << speed << "'";
+        std::cout  << cmd.str() << std::endl;
+        system(cmd.str().c_str());
+
+        ui.pushButton_driverlessStart->setText("Stop");
+    }
+    else
+    {
+        ui.pushButton_driverlessStart->setText("Start");
+    }
+}
