@@ -346,6 +346,8 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
     }
     else
     {
+        changeToCmdDir();
+        system("gnome-terminal -e './stop_driverless.sh' ");
         ui.pushButton_driverlessStart->setText("Start");
     }
 }

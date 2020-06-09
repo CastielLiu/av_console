@@ -1,9 +1,6 @@
 #!/bin/sh
 
-basepath=$(cd `dirname $0`; pwd)
-
-rtkpath=${basepath}/../rtcm3.2
-
+rtkpath=$(cd `rospack find av_console`/../rtcm3.2; pwd)
 #echo ${rtkpath}
 
 cd ${rtkpath}
