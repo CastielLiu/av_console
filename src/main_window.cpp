@@ -248,6 +248,7 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
         if(m_pathRecorder->pathPointsSize() < 10)
         {
           m_pathRecorder->log("WARN","path points is too few!");
+          ui.pushButton_pathPlanning->setText("Start");
           return ;
         }
 
@@ -336,7 +337,7 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         }
 
         std::stringstream cmd;
-        cmd << "gnome-terminal -x './driverless.sh "
+        cmd << "gnome-terminal -e './driverless.sh "
             << fileName.toStdString() << " " << speed << "'";
         std::cout  << cmd.str() << std::endl;
         system(cmd.str().c_str());
