@@ -16,6 +16,8 @@
 #include "ui_main_window.h"
 #include "qnode.hpp"
 #include "recordpath.hpp"
+#include <QFileInfo>
+#include<ctime>
 
 /*****************************************************************************
 ** Namespace

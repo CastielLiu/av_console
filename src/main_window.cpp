@@ -321,8 +321,8 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
             speed = 10.0;
             ui.lineEdit_driverlessSpeed->setText("10.0");
         }
-        QString fileName = ui.lineEdit_roadNet->text();
-        if(fileName.isEmpty())
+        QString roadnet_file = ui.lineEdit_roadNet->text();
+        if(roadnet_file.isEmpty())
         {
             QMessageBox msgBox;
             msgBox.setText("No Roadnet File.");
@@ -330,15 +330,55 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
             ui.pushButton_driverlessStart->setChecked(false);
             return;
         }
+
         if(!changeToCmdDir())
         {
             ui.pushButton_driverlessStart->setChecked(false);
             return;
         }
 
+        //询问是否保存日志文件
+        QFileInfo roadnetFileInfo(roadnet_file);
+        QDir roadnetDir(roadnetFileInfo.absolutePath());//文件所在目录
+
+        QString question = tr("Save log file in ") + roadnetFileInfo.absolutePath() + tr(" ?");
+        QMessageBox msgBox(QMessageBox::Question, tr("Start driverless"), question,
+                           QMessageBox::YesAll|QMessageBox::Yes|QMessageBox::Cancel);
+        msgBox.button(QMessageBox::YesAll)->setText(tr("Run and save"));
+        msgBox.button(QMessageBox::Yes)->setText(tr("Run without save"));
+        msgBox.button(QMessageBox::Cancel)->setText(tr("Cancel"));
+        msgBox.setDefaultButton(QMessageBox::Yes);
+
+        int button = msgBox.exec();
+        //若点击了叉号，则放弃操作 Cancel
+        //std::cout  << std::hex << button << std::endl;
+        if(button == QMessageBox::Cancel)
+        {
+            ui.pushButton_driverlessStart->setChecked(false);
+            return;
+        }
+        else if(button == QMessageBox::YesAll) // saveLog
+        {
+            //新建日志目录，启动记录程序
+            std::stringstream logFilePath;
+            std::time_t time = std::time(0);
+            logFilePath << "driverless_data/"
+                        << std::put_time(std::localtime(&time),"%Y-%m-%d-%H-%M-%S");
+
+            roadnetDir.mkpath(tr(logFilePath.str().c_str()));
+
+            std::stringstream cmd;
+            cmd << "gnome-terminal -e './save_log.sh "
+                << roadnetDir.absolutePath().toStdString() << "\/" << logFilePath.str()
+                << "\/" << roadnetFileInfo.baseName().toStdString()
+                <<"_log.txt'";
+            std::cout  << cmd.str() << std::endl;
+            system(cmd.str().c_str());
+        }
+
         std::stringstream cmd;
         cmd << "gnome-terminal -e './driverless.sh "
-            << fileName.toStdString() << " " << speed << "'";
+            << roadnet_file.toStdString() << " " << speed << "'";
         std::cout  << cmd.str() << std::endl;
         system(cmd.str().c_str());
 

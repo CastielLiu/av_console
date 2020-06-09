@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 2.8.0)
 project(av_console)
-#add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ##############################################################################
 # Catkin
