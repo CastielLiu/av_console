@@ -69,6 +69,7 @@ private Q_SLOTS:
     void on_pushButton_openRoadNet_clicked();
 
     void on_pushButton_driverlessStart_clicked(bool checked);
+    void on_tabWidget_currentChanged(int index);
 
 private:
     Ui::MainWindow ui;

@@ -29,7 +29,8 @@ namespace av_console {
 
 QNode::QNode(int argc, char** argv ) :
 	init_argc(argc),
-	init_argv(argv)
+	init_argv(argv),
+	is_init(false)
 	{}
 
 QNode::~QNode() {
@@ -50,6 +51,7 @@ bool QNode::init() {
 	// Add your ros communications here.
 	chatter_publisher = n.advertise<std_msgs::String>("chatter", 1000);
 	start();
+	is_init = true;
 	return true;
 }
 
@@ -66,6 +68,7 @@ bool QNode::init(const std::string &master_url, const std::string &host_url) {
 	// Add your ros communications here.
 	chatter_publisher = n.advertise<std_msgs::String>("chatter", 1000);
 	start();
+	is_init = true;
 	return true;
 }
 

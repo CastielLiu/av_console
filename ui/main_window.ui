@@ -23,7 +23,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout">
     <item>
-     <widget class="QTabWidget" name="tab_manager">
+     <widget class="QTabWidget" name="tabWidget">
       <property name="minimumSize">
        <size>
         <width>100</width>

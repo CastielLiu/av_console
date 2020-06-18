@@ -58,6 +58,7 @@ public:
 
 	QStringListModel* loggingModel() { return &logging_model; }
 	void log( const LogLevel &level, const std::string &msg);
+	bool initialed(){return is_init;}
 
 Q_SIGNALS:
   void loggingUpdated();
@@ -68,6 +69,7 @@ private:
 	char** init_argv;
 	ros::Publisher chatter_publisher;
     QStringListModel logging_model;
+	bool is_init;
 };
 
 }  // namespace av_console

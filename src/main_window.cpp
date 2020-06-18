@@ -42,7 +42,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
 
     ReadSettings();
     setWindowIcon(QIcon(":/images/icon.png"));
-    ui.tab_manager->setCurrentIndex(0); // ensure the first tab is showing - qt-designer should have this already hardwired, but often loses it (settings?).
+    ui.tabWidget->setCurrentIndex(0); // ensure the first tab is showing - qt-designer should have this already hardwired, but often loses it (settings?).
     QObject::connect(&qnode, SIGNAL(rosShutdown()), this, SLOT(close()));
 
     ui.view_logging->setModel(qnode.loggingModel());
@@ -390,4 +390,12 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         system("gnome-terminal -e './stop_driverless.sh' ");
         ui.pushButton_driverlessStart->setText("Start");
     }
+}
+
+void av_console::MainWindow::on_tabWidget_currentChanged(int index)
+{
+    if(qnode.initialed())
+        return;
+    ui.tabWidget->setCurrentIndex(0);
+    ui.statusbar->showMessage("please connect to master firstly!",3000);
 }
