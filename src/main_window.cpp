@@ -207,7 +207,9 @@ void av_console::MainWindow::on_pushButton_rtk_clicked(bool checked)
     }
 }
 
-bool av_console::MainWindow::changeToCmdDir()
+//mode=true  ros 工作空间目录
+//mode=false 应用程序所在目录 default
+bool av_console::MainWindow::changeToCmdDir(bool mode)
 {
   static bool parsed = false;
   static QDir cmdDir;
@@ -217,21 +219,33 @@ bool av_console::MainWindow::changeToCmdDir()
     return true;
   }
 
-  FILE * fp =  popen("rospack find av_console", "r");
-  char buf[50] ;
-  fscanf(fp,"%s",buf);
-  pclose(fp);
-  if(std::string(buf).find("home") == std::string::npos)
+  QString cmdPath;
+  if(mode)
   {
-      //qnode.log(qnode.Error, std::string(buf));
-      qnode.log(qnode.Error,"change to cmd directory failed!");
-      return false;
+      char buf[50] ;
+      FILE * fp =  popen("rospack find av_console", "r");
+      fscanf(fp,"%s",buf);
+      pclose(fp);
+      if(std::string(buf).find("home") == std::string::npos)
+      {
+          //qnode.log(qnode.Error, std::string(buf));
+          qnode.log(qnode.Error,"change to cmd directory failed!");
+          return false;
+      }
+      cmdPath = tr(buf);
+  }
+  else
+  {
+      //可执行程序所在目录
+      //std::cout << QCoreApplication::applicationDirPath().toStdString() << std::endl;
+      cmdPath = QCoreApplication::applicationDirPath();
   }
 
   cmdDir = QDir::current();//获取当前工作目录
-  cmdDir.cd(QString(buf));      //修改目录，仅修改了目录名，未切换
-  cmdDir.cd("cmd");
+  cmdDir.cd(cmdPath);      //修改目录，仅修改了目录名，未切换
+  cmdDir.cd("../cmd");
   QDir::setCurrent(cmdDir.absolutePath()); //切换目录
+  qnode.log(qnode.Info,cmdDir.absolutePath().toStdString());
 
   parsed = true;
   return true;

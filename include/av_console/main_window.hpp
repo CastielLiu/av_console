@@ -43,7 +43,7 @@ public:
 
 	void closeEvent(QCloseEvent *event); // Overloaded function
 	void showNoMasterMessage();
-    bool changeToCmdDir();
+    bool changeToCmdDir(bool mode=false);
 
 public Q_SLOTS:
 	/******************************************

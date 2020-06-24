@@ -1,0 +1,3 @@
+[submodule "av_console_app"]
+	path = av_console_app
+	url = https://github.com/CastielLiu/av_console_app.git
