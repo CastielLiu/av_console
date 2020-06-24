@@ -122,7 +122,8 @@ void MainWindow::on_actionAbout_triggered() {
 
 
 void MainWindow::ReadSettings() {
-    QSettings settings("Qt-Ros Package", "av_console");
+    //目录,文件名,linux保存在~/.config
+    QSettings settings("av_console", "av_console");
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("windowState").toByteArray());
     QString master_url = settings.value("master_url",QString("http://127.0.0.1:11311/")).toString();
@@ -132,7 +133,7 @@ void MainWindow::ReadSettings() {
     ui.line_edit_host->setText(host_url);
     //ui.line_edit_topic->setText(topic_name);
 
-    bool checked = settings.value("use_environment_variables", false).toBool();
+    bool checked = settings.value("use_environment_variables", true).toBool();
     ui.checkbox_use_environment->setChecked(checked);
     if ( checked ) {
     	ui.line_edit_master->setEnabled(false);
@@ -140,19 +141,23 @@ void MainWindow::ReadSettings() {
     	//ui.line_edit_topic->setEnabled(false);
     }
     m_pathFileDir = settings.value("pathFileDir","").toString();
+    ui.lineEdit_roadNet->setText(m_pathFileDir);
 
+    int speedIndex = settings.value("speedIndex","0").toInt();
+    ui.comboBox_driverSpeed->setCurrentIndex(speedIndex);
 }
 
 void MainWindow::WriteSettings() {
-    QSettings settings("Qt-Ros Package", "av_console");
+    QSettings settings("av_console", "av_console");
+
     settings.setValue("master_url",ui.line_edit_master->text());
     settings.setValue("host_url",ui.line_edit_host->text());
     //settings.setValue("topic_name",ui.line_edit_topic->text());
     settings.setValue("use_environment_variables",QVariant(ui.checkbox_use_environment->isChecked()));
-    settings.setValue("geometry", saveGeometry());
-    settings.setValue("windowState", saveState());
+    settings.setValue("geometry", saveGeometry()); //保存各窗口尺寸
+    settings.setValue("windowState", saveState()); //保存各窗口位置
     settings.setValue("pathFileDir",m_pathFileDir);
-
+    settings.setValue("speedIndex",QString::number(ui.comboBox_driverSpeed->currentIndex()));
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -236,11 +241,16 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
 {
     if(checked)
     {
-        ui.pushButton_pathPlanning->setText("Stop And Save");
         m_pathRecorder = new RecordPath();
         ui.listView_pathPlanning->setModel(m_pathRecorder->loggingModel());
         connect(m_pathRecorder, SIGNAL(loggingUpdated()), this, SLOT(updatePathPlanningLoggingView()));
-        m_pathRecorder->start();
+        if(!m_pathRecorder->start())
+        {
+            changeToCmdDir();
+            system("gnome-terminal -e ./gps.sh");
+            m_pathRecorder->log("INFO","No Location Message Published, Starting GPS Automatically.");
+        }
+        ui.pushButton_pathPlanning->setText("Stop And Save");
     }
     else
     {
@@ -314,12 +324,22 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
 {
     if(checked)
     {
+        if(!qnode.initialed())
+        {
+            ui.pushButton_driverlessStart->setChecked(false);
+            QMessageBox msgBox;
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.setText("Please Connect Firstly.");
+            msgBox.exec();
+            return;
+        }
+
         bool ok;
-        float speed = ui.lineEdit_driverlessSpeed->text().toFloat(&ok);
+        float speed = ui.comboBox_driverSpeed->currentText().toFloat(&ok);
         if(!ok)
         {
             speed = 10.0;
-            ui.lineEdit_driverlessSpeed->setText("10.0");
+            //ui.lineEdit_driverlessSpeed->setText("10.0");
         }
         QString roadnet_file = ui.lineEdit_roadNet->text();
         if(roadnet_file.isEmpty())

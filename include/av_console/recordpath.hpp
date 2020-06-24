@@ -43,17 +43,24 @@ private:
     gpsPoint last_point_;
     float sample_distance_;
     ros::Subscriber sub_gps_;
+    std::string odom_topic_;
+
     std::vector<gpsPoint> path_points_;
     QStringListModel logging_model;
+
+    size_t  row_num_;
+    gpsPoint current_point_;
+
 Q_SIGNALS:
     void loggingUpdated();
 
 public:
-    RecordPath(){}
-    virtual ~RecordPath(){}
-    void start();
+    RecordPath();
+    virtual ~RecordPath();
+    bool start();
     void stop();
     void RecordPathToFile();
+    std::string odomTopic(){return odom_topic_;}
     QStringListModel* loggingModel() { return &logging_model; }
     bool savePathPoints(const std::string& file_name);
     size_t pathPointsSize(){return path_points_.size();}

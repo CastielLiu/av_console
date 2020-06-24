@@ -1,13 +1,29 @@
 #include "../include/av_console/recordpath.hpp"
 
-void RecordPath::start()
+RecordPath::RecordPath():
+    odom_topic_("/ll2utm_odom"),
+    row_num_(0)
+{
+}
+
+RecordPath::~RecordPath()
+{
+    path_points_.clear();
+}
+
+//若不存在发布者，返回错误，外部自主启动发布者
+bool RecordPath::start()
 {
     ros::NodeHandle nh;
     ros::NodeHandle private_nh("~");
 
     private_nh.param<float>("sample_distance",sample_distance_,0.1);
-    sub_gps_ = nh.subscribe("/ll2utm_odom" ,1,&RecordPath::gps_callback,this);
+    sub_gps_ = nh.subscribe(odom_topic_ ,1,&RecordPath::gps_callback,this);
+
     path_points_.reserve(5000);
+    if(sub_gps_.getNumPublishers() == 0)
+        return false;
+    return true;
 }
 
 void RecordPath::stop()
@@ -17,8 +33,7 @@ void RecordPath::stop()
 
 void RecordPath::gps_callback(const nav_msgs::Odometry::ConstPtr& msg)
 {
-  static size_t  row_num = 0;
-  static gpsPoint current_point ;
+  gpsPoint current_point;
   current_point.x = msg->pose.pose.position.x;
   current_point.y = msg->pose.pose.position.y;
   current_point.yaw = msg->pose.covariance[0];
@@ -30,7 +45,7 @@ void RecordPath::gps_callback(const nav_msgs::Odometry::ConstPtr& msg)
     last_point_ = current_point;
 
     std::stringstream msg;
-    msg << ++row_num << "\t" << std::fixed << std::setprecision(2)
+    msg << ++row_num_ << "\t" << std::fixed << std::setprecision(2)
         << current_point.x << "\t"
         << current_point.y << "\t"
         << current_point.yaw*180.0/M_PI;
