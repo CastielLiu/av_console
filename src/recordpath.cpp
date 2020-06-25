@@ -1,4 +1,4 @@
-#include "../include/av_console/recordpath.hpp"
+#include "../include/recordpath.hpp"
 
 RecordPath::RecordPath():
     odom_topic_("/ll2utm_odom"),

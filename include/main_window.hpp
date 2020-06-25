@@ -44,6 +44,7 @@ public:
 	void closeEvent(QCloseEvent *event); // Overloaded function
 	void showNoMasterMessage();
     bool changeToCmdDir(bool mode=false);
+    void initSensorStatusWidget();
 
 public Q_SLOTS:
 	/******************************************
@@ -55,6 +56,8 @@ public Q_SLOTS:
 
     void updateLoggingView(); // no idea why this can't connect automatically
     void updatePathPlanningLoggingView();
+
+    void sensorStatusChanged(int,bool);
 
 private Q_SLOTS:
     void on_button_roscore_clicked();
@@ -76,7 +79,7 @@ private:
     QNode qnode;
     RecordPath *m_pathRecorder;
     bool m_nodeInited;
-    QString m_pathFileDir; //
+    QString m_pathFileDir;
 
 };
 

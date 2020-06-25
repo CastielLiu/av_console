@@ -11,7 +11,7 @@
 
 #include <QtGui>
 #include <QApplication>
-#include "../include/av_console/main_window.hpp"
+#include "../include/main_window.hpp"
 
 /*****************************************************************************
 ** Main

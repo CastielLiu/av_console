@@ -14,7 +14,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <iostream>
-#include "../include/av_console/main_window.hpp"
+#include "../include/main_window.hpp"
 #include "unistd.h"
 #include "iostream"
 #include "cstdio"
@@ -47,6 +47,46 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
 
     ui.view_logging->setModel(qnode.loggingModel());
     QObject::connect(&qnode, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
+    initSensorStatusWidget();
+}
+
+void MainWindow::initSensorStatusWidget()
+{
+    ui.widget_rtkStatus->setChecked(false);
+    ui.widget_rtkStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
+    ui.widget_rtkStatus->setClickedDisable();
+
+    ui.widget_camera1Status->setChecked(false);
+    ui.widget_camera1Status->setButtonStyle(ImageSwitch::ButtonStyle_4);
+    ui.widget_camera1Status->setClickedDisable();
+
+    ui.widget_esrStatus->setChecked(false);
+    ui.widget_esrStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
+    ui.widget_esrStatus->setClickedDisable();
+
+    ui.widget_gpsStatus->setChecked(false);
+    ui.widget_gpsStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
+    ui.widget_gpsStatus->setClickedDisable();
+
+    ui.widget_lidarStatus->setChecked(false);
+    ui.widget_lidarStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
+    ui.widget_lidarStatus->setClickedDisable();
+
+    connect(&qnode,SIGNAL(sensorStatusChanged(int,bool)),this,SLOT(sensorStatusChanged(int,bool)));
+}
+void MainWindow::sensorStatusChanged(int sensor_id, bool status)
+{
+    //qDebug() <<"sensorStatusChanged  " <<  sensor_id << "\t " << status;
+    if(qnode.Sensor_Camera1 == sensor_id)
+        ui.widget_camera1Status->setChecked(status);
+    else if(qnode.Sensor_Rtk == sensor_id)
+        ui.widget_rtkStatus->setChecked(status);
+    else if(qnode.Sensor_Lidar == sensor_id)
+        ui.widget_lidarStatus->setChecked(status);
+    else if(qnode.Sensor_Gps == sensor_id)
+        ui.widget_gpsStatus->setChecked(status);
+    else if(qnode.Sensor_Esr == sensor_id)
+        ui.widget_esrStatus->setChecked(status);
 }
 
 MainWindow::~MainWindow() {}
@@ -96,6 +136,8 @@ void MainWindow::on_button_connect_clicked(bool check )
 	}
     qnode.log(QNode::Info,"connect to ros master ok!");
     m_nodeInited = true;
+
+
 }
 
 
@@ -171,7 +213,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void av_console::MainWindow::on_button_roscore_clicked()
 {
-    if ( ros::master::check() )
+    if ( ros::master::check())
     {
         ui.statusbar->showMessage("roscore is already running...",1000);
         return ;
