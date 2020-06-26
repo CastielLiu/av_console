@@ -1,7 +1,7 @@
 #!/bin/sh
 
-rtkpath=$(cd `rospack find av_console`/../rtcm3.2; pwd)
-#echo ${rtkpath}
+rtkpath=$(cd `rospack find driverless`/../rtcm3.2; pwd)
+echo ${rtkpath}
 
 cd ${rtkpath}
 

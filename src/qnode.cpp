@@ -99,10 +99,11 @@ void QNode::gpsFix_callback(const sensor_msgs::NavSatFix::ConstPtr& gps_fix)
 {
     //qDebug() << "gpsFix_callback ";
     double time = ros::Time::now().toSec();
-    gps.last_update_time = time;
 
-    if(gps_fix->status.status > 8)
+    if(gps_fix->status.status == 56)
         rtk.last_update_time = time;
+    if(gps_fix->status.status > 16)
+        gps.last_update_time = time;
 }
 
 void QNode::lidar_callback(const sensor_msgs::PointCloud2::ConstPtr& )
