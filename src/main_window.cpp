@@ -205,7 +205,17 @@ void MainWindow::WriteSettings() {
 void MainWindow::closeEvent(QCloseEvent *event)
 {
 	WriteSettings();
-	QMainWindow::closeEvent(event);
+    int button = QMessageBox::question(this,"Confirm Exit",
+                                       "Are you sure to exit?",
+                                       QMessageBox::Yes|QMessageBox::No,
+                                       QMessageBox::No);
+    if(button == QMessageBox::Yes)
+    {
+        event->accept();
+        QMainWindow::closeEvent(event);
+    }
+    else
+        event->ignore();
 }
 
 }  // namespace av_console
@@ -340,6 +350,9 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
                     continue;
 
             }
+            std::string file_dir =
+                 fileName.toStdString().substr(0,fileName.toStdString().find_last_of("/"));
+            m_pathRecorder->generateParkingPointsFile(file_dir);
             m_pathRecorder->savePathPoints(fileName.toStdString());
             delete m_pathRecorder;
             m_pathRecorder = NULL;

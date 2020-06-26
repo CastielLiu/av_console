@@ -41,7 +41,6 @@ public:
 	void ReadSettings(); // Load up qt program settings at startup
 	void WriteSettings(); // Save qt program settings when closing
 
-	void closeEvent(QCloseEvent *event); // Overloaded function
 	void showNoMasterMessage();
     bool changeToCmdDir(bool mode=false);
     void initSensorStatusWidget();
@@ -56,21 +55,16 @@ public Q_SLOTS:
 
     void updateLoggingView(); // no idea why this can't connect automatically
     void updatePathPlanningLoggingView();
-
     void sensorStatusChanged(int,bool);
+    void closeEvent(QCloseEvent *event);
 
 private Q_SLOTS:
     void on_button_roscore_clicked();
-
     void on_pushButton_gps_clicked(bool checked);
-
     void on_pushButton_rtk_clicked(bool checked);
-
     void on_pushButton_pathPlanning_clicked(bool checked);
     void showLog_in_pathPlanning(const QString& msg);
-
     void on_pushButton_openRoadNet_clicked();
-
     void on_pushButton_driverlessStart_clicked(bool checked);
     void on_tabWidget_currentChanged(int index);
 

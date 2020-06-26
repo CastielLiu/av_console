@@ -49,6 +49,6 @@ file(GLOB_RECURSE QT_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINK
 ##############################################################################
 
 add_executable(av_console ${QT_SOURCES} ${QT_RESOURCES_CPP} ${QT_FORMS_HPP} ${QT_MOC_HPP})
-target_link_libraries(av_console ${QT_LIBRARIES} ${catkin_LIBRARIES})
+target_link_libraries(av_console ${QT_LIBRARIES} ${catkin_LIBRARIES} /usr/local/lib/libtinyxml2.a)
 install(TARGETS av_console RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 

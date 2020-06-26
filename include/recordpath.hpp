@@ -63,6 +63,7 @@ public:
     std::string odomTopic(){return odom_topic_;}
     QStringListModel* loggingModel() { return &logging_model; }
     bool savePathPoints(const std::string& file_name);
+    bool generateParkingPointsFile(const std::string& dir);
     size_t pathPointsSize(){return path_points_.size();}
     void log( const std::string &level, const std::string &msg);
 };

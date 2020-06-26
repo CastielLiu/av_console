@@ -125,3 +125,48 @@ void RecordPath::log( const std::string &level, const std::string &msg)
   logging_model.setData(logging_model.index(logging_model.rowCount()-1),new_row);
   Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
+
+#include<tinyxml2.h>
+bool RecordPath::generateParkingPointsFile(const std::string& dir)
+{
+    std::string file = dir + "/parking_points.xml";
+    tinyxml2::XMLDocument doc;
+    //1.添加声明
+    tinyxml2::XMLDeclaration* declaration = doc.NewDeclaration();
+    doc.InsertFirstChild(declaration); //在最前插入声明
+
+    //2.创建根节点
+    tinyxml2::XMLElement* root = doc.NewElement("ParkingPoints");
+    doc.InsertEndChild(root);  //在最后插入根节点
+
+    //3.创建子节点,并插入父节点
+    tinyxml2::XMLElement* descriptionEle = doc.NewElement("Description");
+    root->InsertEndChild(descriptionEle);
+
+    tinyxml2::XMLElement* idElement = doc.NewElement("id");
+    descriptionEle->InsertEndChild(idElement);
+    idElement->InsertEndChild(doc.NewText("the sequence of the parking point"));
+
+    tinyxml2::XMLElement* indexElement = doc.NewElement("index");
+    descriptionEle->InsertEndChild(indexElement);
+    indexElement->InsertEndChild(doc.NewText("the parking point position in global path"));
+
+    tinyxml2::XMLElement* durationElement = doc.NewElement("duration");
+    descriptionEle->InsertEndChild(durationElement);
+    durationElement->InsertEndChild(doc.NewText("parking time(s), 0 for destination"));
+
+    tinyxml2::XMLElement* addEle = doc.NewElement("add");
+    descriptionEle->InsertEndChild(addEle);
+    addEle->InsertEndChild(doc.NewText("To add a parking point manually, please follow the format below"));
+
+    tinyxml2::XMLElement* pointElement = doc.NewElement("ParkingPoint");
+    root->InsertEndChild(pointElement); //在最后插入节点
+
+    //4.为子节点增加属性
+    pointElement->SetAttribute("id", 0);
+    pointElement->SetAttribute("index", path_points_.size());
+    pointElement->SetAttribute("duration", 0);
+
+    //6.保存xml文件
+    doc.SaveFile(file.c_str());
+}
