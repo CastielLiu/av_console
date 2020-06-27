@@ -126,47 +126,90 @@ void RecordPath::log( const std::string &level, const std::string &msg)
   Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
+/*@brief 生成路径信息文件
+ *1. parking points
+ *2. turn
+ *@param file_name 文件
+ */
 #include<tinyxml2.h>
-bool RecordPath::generateParkingPointsFile(const std::string& dir)
+bool RecordPath::generatePathInfoFile(const std::string& file_name)
 {
-    std::string file = dir + "/parking_points.xml";
     tinyxml2::XMLDocument doc;
     //1.添加声明
     tinyxml2::XMLDeclaration* declaration = doc.NewDeclaration();
     doc.InsertFirstChild(declaration); //在最前插入声明
 
     //2.创建根节点
-    tinyxml2::XMLElement* root = doc.NewElement("ParkingPoints");
-    doc.InsertEndChild(root);  //在最后插入根节点
+    tinyxml2::XMLElement* pathInfoNode = doc.NewElement("PathInfo");
+    doc.InsertEndChild(pathInfoNode);  //在最后插入根节点
 
-    //3.创建子节点,并插入父节点
-    tinyxml2::XMLElement* descriptionEle = doc.NewElement("Description");
-    root->InsertEndChild(descriptionEle);
+    { //ParkingPoints
+    tinyxml2::XMLElement* parkingPointsNode = doc.NewElement("ParkingPoints");
+    pathInfoNode->InsertEndChild(parkingPointsNode);
+
+    // 创建Description子节点,并插入父节点
+    tinyxml2::XMLElement* discriptionNode = doc.NewElement("Description");
+    parkingPointsNode->InsertEndChild(discriptionNode);
 
     tinyxml2::XMLElement* idElement = doc.NewElement("id");
-    descriptionEle->InsertEndChild(idElement);
+    discriptionNode->InsertEndChild(idElement);
     idElement->InsertEndChild(doc.NewText("the sequence of the parking point"));
 
     tinyxml2::XMLElement* indexElement = doc.NewElement("index");
-    descriptionEle->InsertEndChild(indexElement);
+    discriptionNode->InsertEndChild(indexElement);
     indexElement->InsertEndChild(doc.NewText("the parking point position in global path"));
 
     tinyxml2::XMLElement* durationElement = doc.NewElement("duration");
-    descriptionEle->InsertEndChild(durationElement);
+    discriptionNode->InsertEndChild(durationElement);
     durationElement->InsertEndChild(doc.NewText("parking time(s), 0 for destination"));
 
     tinyxml2::XMLElement* addEle = doc.NewElement("add");
-    descriptionEle->InsertEndChild(addEle);
+    discriptionNode->InsertEndChild(addEle);
     addEle->InsertEndChild(doc.NewText("To add a parking point manually, please follow the format below"));
 
+    //创建ParkingPoint节点
     tinyxml2::XMLElement* pointElement = doc.NewElement("ParkingPoint");
-    root->InsertEndChild(pointElement); //在最后插入节点
+    parkingPointsNode->InsertEndChild(pointElement); //在最后插入节点
 
-    //4.为子节点增加属性
+    //为节点增加属性
     pointElement->SetAttribute("id", 0);
-    pointElement->SetAttribute("index", path_points_.size());
+    pointElement->SetAttribute("index", path_points_.size()-1);
     pointElement->SetAttribute("duration", 0);
+    }
 
+    {//TurnRanges
+    tinyxml2::XMLElement* turnRangesNode = doc.NewElement("TurnRanges");
+    pathInfoNode->InsertEndChild(turnRangesNode);
+
+    //创建Description子节点,并插入父节点
+    tinyxml2::XMLElement* discriptionNode = doc.NewElement("Description");
+    turnRangesNode->InsertEndChild(discriptionNode);
+
+    tinyxml2::XMLElement* typeElement = doc.NewElement("type");
+    discriptionNode->InsertEndChild(typeElement);
+    typeElement->InsertEndChild(doc.NewText("-1: left turn, 0: none, 1: right turn"));
+
+    tinyxml2::XMLElement* startElement = doc.NewElement("start");
+    discriptionNode->InsertEndChild(startElement);
+    startElement->InsertEndChild(doc.NewText("the start index of turn"));
+
+    tinyxml2::XMLElement* endElement = doc.NewElement("end");
+    discriptionNode->InsertEndChild(endElement);
+    endElement->InsertEndChild(doc.NewText("the end index of turn"));
+
+    tinyxml2::XMLElement* addEle = doc.NewElement("add");
+    discriptionNode->InsertEndChild(addEle);
+    addEle->InsertEndChild(doc.NewText("To add a turn range manually, please follow the format below"));
+
+    //创建TurnRange节点
+    tinyxml2::XMLElement* turnRangeNode = doc.NewElement("TurnRange");
+    turnRangesNode->InsertEndChild(turnRangeNode);
+
+    //添加属性,起步左转
+    turnRangeNode->SetAttribute("type", -1);
+    turnRangeNode->SetAttribute("start", 0);
+    turnRangeNode->SetAttribute("end", 50);
+    }
     //6.保存xml文件
-    doc.SaveFile(file.c_str());
+    doc.SaveFile(file_name.c_str());
 }

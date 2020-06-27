@@ -350,9 +350,9 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
                     continue;
 
             }
-            std::string file_dir =
-                 fileName.toStdString().substr(0,fileName.toStdString().find_last_of("/"));
-            m_pathRecorder->generateParkingPointsFile(file_dir);
+            std::string pathInfoFile =
+            fileName.toStdString().substr(0,fileName.toStdString().find_last_of(".")) + "_info.xml";
+            m_pathRecorder->generatePathInfoFile(pathInfoFile);
             m_pathRecorder->savePathPoints(fileName.toStdString());
             delete m_pathRecorder;
             m_pathRecorder = NULL;
