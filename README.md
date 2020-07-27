@@ -1,3 +1,17 @@
+# 自动驾驶控制台
+## dependencies
+- tinyxml2 xml解析器
+
+```bash
+git clone https://github.com/leethomason/tinyxml2.git
+cd tinyxml2 && sudo make install
+```
+
+```c++
+#include<tinyxml2.h>
+```
+
+
 2020.6.25 添加传感器状态指示灯
 1. 若传感器驱动为官方驱动则订阅传感器消息判断传感器是否正在工作，对于更新频率比较高的传感器，需要限定更新间隔以减少资源消耗
 2. 若传感器驱动为用户自定义驱动，则定时发布自诊断信息，av_cosole订阅传感器诊断信息判断其是否正在工作
