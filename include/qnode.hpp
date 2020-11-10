@@ -1,26 +1,16 @@
-/**
- * @file /include/av_console/qnode.hpp
- *
- * @brief Communications central!
- *
- * @date February 2011
- **/
-/*****************************************************************************
-** Ifdefs
-*****************************************************************************/
 
 #ifndef av_console_QNODE_HPP_
 #define av_console_QNODE_HPP_
+#include "structs.hpp"
 
-/*****************************************************************************
-** Includes
-*****************************************************************************/
-
-// To workaround boost/qt4 problems that won't be bugfixed. Refer to
-//    https://bugreports.qt.io/browse/QTBUG-22829
-#ifndef Q_MOC_RUN
+#ifndef Q_MOC_RUN    //避免Qt的Moc工具对Boost的代码进行Moc
 #include <ros/ros.h>
+#include <actionlib/client/simple_action_client.h>
+#include <actionlib/server/simple_action_server.h>
+#include <driverless/DoDriverlessTaskAction.h>
 #endif
+
+#include <thread>
 #include <string>
 #include <QThread>
 #include <QDebug>
@@ -29,56 +19,26 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <diagnostic_msgs/DiagnosticStatus.h>
 
-/*****************************************************************************
-** Namespaces
-*****************************************************************************/
-
 namespace av_console {
-
-typedef struct Sensor
-{
-    bool status;
-    double last_update_time;
-    Sensor()
-    {
-        status = false;
-        last_update_time = 0;
-    }
-} sensor_t;
-
-/*****************************************************************************
-** Class
-*****************************************************************************/
 
 class QNode : public QThread {
     Q_OBJECT
 public:
+    typedef actionlib::SimpleActionClient<driverless::DoDriverlessTaskAction> DoDriverlessTaskClient;
+
 	QNode(int argc, char** argv );
 	virtual ~QNode();
 	bool init();
 	bool init(const std::string &master_url, const std::string &host_url);
+    void roscoreThread() {system("roscore");}
+    void initActionlibClient();
 	void run();
 
-	enum LogLevel {
-	         Debug,
-	         Info,
-	         Warn,
-	         Error,
-	         Fatal
-	 };
+    enum LogLevel {Debug, Info,Warn,Error,Fatal};
 
 	QStringListModel* loggingModel() { return &logging_model; }
 	void log( const LogLevel &level, const std::string &msg);
 	bool initialed(){return is_init;}
-
-    enum SensorId
-    {
-        Sensor_Gps =   0,
-        Sensor_Lidar = 1,
-        Sensor_Esr =   2,
-        Sensor_Camera1=3,
-        Sensor_Rtk    =4,
-    };
 
 private:
     void startSensorCheck();
@@ -89,7 +49,6 @@ private:
 
 Q_SIGNALS:
   void loggingUpdated();
-  void rosShutdown();
   void sensorStatusChanged(int sensorId,bool status);
 
 private:
@@ -105,6 +64,8 @@ private:
     ros::Subscriber lidar_sub;
     ros::Subscriber diagnostic_sub;
     ros::Timer      sensorStatus_timer;
+
+    DoDriverlessTaskClient* ac_;
 
 };
 

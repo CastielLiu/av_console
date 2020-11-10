@@ -1,14 +1,3 @@
-/**
- * @file /src/main_window.cpp
- *
- * @brief Implementation for the qt gui.
- *
- * @date February 2011
- **/
-/*****************************************************************************
-** Includes
-*****************************************************************************/
-
 
 #include <QtGui>
 #include <QMessageBox>
@@ -20,36 +9,26 @@
 #include "cstdio"
 #include "QDir"
 
-/*****************************************************************************
-** Namespaces
-*****************************************************************************/
-
 namespace av_console {
-
 using namespace Qt;
-
-/*****************************************************************************
-** Implementation [MainWindow]
-*****************************************************************************/
 
 MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
     QMainWindow(parent),
     qnode(argc,argv),
     m_nodeInited(false)
 {
-	ui.setupUi(this); // Calling this incidentally connects all ui's triggers to on_...() callbacks in this class.
-    QObject::connect(ui.actionAbout_Qt, SIGNAL(triggered(bool)), qApp, SLOT(aboutQt())); // qApp is a global variable for the application
-
+    ui.setupUi(this);
+    QObject::connect(ui.actionAbout_Qt, SIGNAL(triggered(bool)), qApp, SLOT(aboutQt()));
     ReadSettings();
     setWindowIcon(QIcon(":/images/icon.png"));
-    ui.tabWidget->setCurrentIndex(0); // ensure the first tab is showing - qt-designer should have this already hardwired, but often loses it (settings?).
-    QObject::connect(&qnode, SIGNAL(rosShutdown()), this, SLOT(close()));
+    ui.tabWidget->setCurrentIndex(0);
 
     ui.view_logging->setModel(qnode.loggingModel());
     QObject::connect(&qnode, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
     initSensorStatusWidget();
 }
 
+/*初始化传感器状态显示控件*/
 void MainWindow::initSensorStatusWidget()
 {
     ui.widget_rtkStatus->setChecked(false);
@@ -77,35 +56,26 @@ void MainWindow::initSensorStatusWidget()
 void MainWindow::sensorStatusChanged(int sensor_id, bool status)
 {
     //qDebug() <<"sensorStatusChanged  " <<  sensor_id << "\t " << status;
-    if(qnode.Sensor_Camera1 == sensor_id)
+    if(Sensor_Camera1 == sensor_id)
         ui.widget_camera1Status->setChecked(status);
-    else if(qnode.Sensor_Rtk == sensor_id)
+    else if(Sensor_Rtk == sensor_id)
         ui.widget_rtkStatus->setChecked(status);
-    else if(qnode.Sensor_Lidar == sensor_id)
+    else if(Sensor_Lidar == sensor_id)
         ui.widget_lidarStatus->setChecked(status);
-    else if(qnode.Sensor_Gps == sensor_id)
+    else if(Sensor_Gps == sensor_id)
         ui.widget_gpsStatus->setChecked(status);
-    else if(qnode.Sensor_Esr == sensor_id)
+    else if(Sensor_Esr == sensor_id)
         ui.widget_esrStatus->setChecked(status);
 }
 
 MainWindow::~MainWindow() {}
 
-/*****************************************************************************
-** Implementation [Slots]
-*****************************************************************************/
-
-void MainWindow::showNoMasterMessage() {
+void MainWindow::showNoMasterMessage()
+{
 	QMessageBox msgBox;
 	msgBox.setText("Couldn't find the ros master.");
 	msgBox.exec();
-    //close();
 }
-
-/*
- * These triggers whenever the button is clicked, regardless of whether it
- * is already checked or not.
- */
 
 void MainWindow::on_button_connect_clicked(bool check )
 {
@@ -113,7 +83,7 @@ void MainWindow::on_button_connect_clicked(bool check )
     {
         if ( !qnode.init() )
         {
-			showNoMasterMessage();
+            qnode.log(QNode::Info,"roscore is not running. please wait a moment and reconnect.");
             return;
         }
         else
@@ -136,8 +106,6 @@ void MainWindow::on_button_connect_clicked(bool check )
 	}
     qnode.log(QNode::Info,"connect to ros master ok!");
     m_nodeInited = true;
-
-
 }
 
 
@@ -154,8 +122,9 @@ void MainWindow::on_checkbox_use_environment_stateChanged(int state) {
 }
 
 
-void MainWindow::updateLoggingView() {
-        ui.view_logging->scrollToBottom();
+void MainWindow::updateLoggingView()
+{
+   ui.view_logging->scrollToBottom();
 }
 
 void MainWindow::on_actionAbout_triggered() {
@@ -220,16 +189,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 }  // namespace av_console
 
-
-void av_console::MainWindow::on_button_roscore_clicked()
-{
-    if ( ros::master::check())
-    {
-        ui.statusbar->showMessage("roscore is already running...",1000);
-        return ;
-    }
-    system("gnome-terminal -x roscore");
-}
 
 void av_console::MainWindow::on_pushButton_gps_clicked(bool checked)
 {

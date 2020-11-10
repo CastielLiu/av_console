@@ -40,17 +40,23 @@ QNode::QNode(int argc, char** argv ) :
     sensors[Sensor_Esr] = &esr;
 }
 
-QNode::~QNode() {
-    if(ros::isStarted()) {
+QNode::~QNode()
+{
+    if(ros::isStarted())
+    {
       ros::shutdown(); // explicitly needed since we use ros::start();
       ros::waitForShutdown();
     }
 	wait();
 }
 
-bool QNode::init() {
+bool QNode::init()
+{
 	ros::init(init_argc,init_argv,"av_console");
-	if ( ! ros::master::check() ) {
+    if ( ! ros::master::check() )
+    {
+        std::thread t(&QNode::roscoreThread, this);
+        t.detach();
 		return false;
 	}
 	ros::start(); // explicitly needed since our nodehandle is going out of scope.
@@ -60,7 +66,8 @@ bool QNode::init() {
 	return true;
 }
 
-bool QNode::init(const std::string &master_url, const std::string &host_url) {
+bool QNode::init(const std::string &master_url, const std::string &host_url)
+{
 	std::map<std::string,std::string> remappings;
 	remappings["__master"] = master_url;
 	remappings["__hostname"] = host_url;
@@ -69,19 +76,26 @@ bool QNode::init(const std::string &master_url, const std::string &host_url) {
 		return false;
 	}
 	ros::start(); // explicitly needed since our nodehandle is going out of scope.
-
 	start();
 	is_init = true;
 	return true;
 }
 
+/*QThread 线程函数，start后开始执行*/
 void QNode::run()
 {
+    initActionlibClient();
     startSensorCheck();
     ros::spin();
+}
 
-	std::cout << "Ros shutdown, proceeding to close the gui." << std::endl;
-	Q_EMIT rosShutdown(); // used to signal the gui for a shutdown (useful to roslaunch)
+void QNode::initActionlibClient()
+{
+    //ac_ = new DoDriverlessTaskClient("do_driverless_task", true); // true -> don't need ros::spin()
+    DoDriverlessTaskClient("do_driverless_task", true);
+    this->log(Info, "waiting for /do_driverless_task server...");
+    //ac_->waitForServer();
+    this->log(Info, "/do_driverless_task server started.");
 }
 
 /*===================传感器状态监测相关函数================*/

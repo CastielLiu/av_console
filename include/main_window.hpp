@@ -59,7 +59,6 @@ public Q_SLOTS:
     void closeEvent(QCloseEvent *event);
 
 private Q_SLOTS:
-    void on_button_roscore_clicked();
     void on_pushButton_gps_clicked(bool checked);
     void on_pushButton_rtk_clicked(bool checked);
     void on_pushButton_pathPlanning_clicked(bool checked);

@@ -1,27 +1,11 @@
-/**
- * @file /src/main.cpp
- *
- * @brief Qt based gui.
- *
- * @date November 2010
- **/
-/*****************************************************************************
-** Includes
-*****************************************************************************/
 
 #include <QtGui>
 #include <QApplication>
 #include "../include/main_window.hpp"
 
-/*****************************************************************************
-** Main
-*****************************************************************************/
+int main(int argc, char **argv)
+{
 
-int main(int argc, char **argv) {
-
-    /*********************
-    ** Qt
-    **********************/
     QApplication app(argc, argv);
     av_console::MainWindow w(argc,argv);
     w.show();
