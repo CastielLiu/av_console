@@ -44,7 +44,7 @@
       </property>
       <widget class="QWidget" name="tab_status">
        <attribute name="title">
-        <string>Main Window</string>
+        <string>Driverless</string>
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_15" stretch="5,2">
         <item>
@@ -379,7 +379,7 @@ padding: 0 3px 0 3px;
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_12">
                <item>
-                <widget class="QPushButton" name="button_connect">
+                <widget class="QPushButton" name="pushButton_connect">
                  <property name="enabled">
                   <bool>true</bool>
                  </property>
@@ -504,6 +504,11 @@ padding: 0 3px 0 3px;
                   <widget class="QComboBox" name="comboBox_driverSpeed">
                    <item>
                     <property name="text">
+                     <string>3</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
                      <string>5</string>
                     </property>
                    </item>
@@ -565,10 +570,20 @@ padding: 0 3px 0 3px;
                   </widget>
                  </item>
                  <item>
-                  <widget class="QComboBox" name="comboBox">
+                  <widget class="QComboBox" name="comboBox_taskType">
                    <item>
                     <property name="text">
                      <string>Drive</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Reverse+</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Reverse-</string>
                     </property>
                    </item>
                   </widget>
@@ -598,7 +613,13 @@ padding: 0 3px 0 3px;
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="label_12">
+                  <widget class="QPushButton" name="pushButton_showTask">
+                   <property name="maximumSize">
+                    <size>
+                     <width>30</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="text">
                     <string/>
                    </property>

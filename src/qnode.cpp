@@ -1,14 +1,3 @@
-/**
- * @file /src/qnode.cpp
- *
- * @brief Ros communication central!
- *
- * @date February 2011
- **/
-
-/*****************************************************************************
-** Includes
-*****************************************************************************/
 
 #include <ros/ros.h>
 #include <ros/network.h>
@@ -17,20 +6,15 @@
 #include <sstream>
 #include "../include/qnode.hpp"
 
-/*****************************************************************************
-** Namespaces
-*****************************************************************************/
-
 namespace av_console {
-
-/*****************************************************************************
-** Implementation
-*****************************************************************************/
 
 QNode::QNode(int argc, char** argv ) :
 	init_argc(argc),
 	init_argv(argv),
-	is_init(false)
+    is_init(false),
+    as_online_(false),
+    task_state_(Idle),
+    ac_(nullptr)
 {
     sensors.resize(5);
     sensors[Sensor_Gps] = &gps;
@@ -42,6 +26,11 @@ QNode::QNode(int argc, char** argv ) :
 
 QNode::~QNode()
 {
+    if(ac_ != nullptr)
+    {
+        delete ac_;
+        ac_ = nullptr;
+    }
     if(ros::isStarted())
     {
       ros::shutdown(); // explicitly needed since we use ros::start();
@@ -59,10 +48,23 @@ bool QNode::init()
         t.detach();
 		return false;
 	}
-	ros::start(); // explicitly needed since our nodehandle is going out of scope.
+    is_init = true;
 
-	start();
-	is_init = true;
+    //subscribe sensor msg to listen its status.
+    ros::NodeHandle nh;
+    gps_sub = nh.subscribe("/gps_fix",1,&QNode::gpsFix_callback,this);
+    lidar_sub =  nh.subscribe("/pandar_points",1,&QNode::lidar_callback,this);
+    diagnostic_sub = nh.subscribe("/sensors/diagnostic",10,&QNode::diagnostic_callback,this);
+    sensorStatus_timer = nh.createTimer(ros::Duration(1), &QNode::sensorStatusTimer_callback,this);
+
+    if(ac_ != nullptr)
+    {
+        delete ac_;
+        ac_ = nullptr;
+    }
+
+    ac_ = new DoDriverlessTaskClient("/driverless/do_driverless_task", true); // true -> don't need ros::spin()
+
 	return true;
 }
 
@@ -72,11 +74,10 @@ bool QNode::init(const std::string &master_url, const std::string &host_url)
 	remappings["__master"] = master_url;
 	remappings["__hostname"] = host_url;
 	ros::init(remappings,"av_console");
-	if ( ! ros::master::check() ) {
+    if ( ! ros::master::check())
 		return false;
-	}
 	ros::start(); // explicitly needed since our nodehandle is going out of scope.
-	start();
+    start();
 	is_init = true;
 	return true;
 }
@@ -84,31 +85,61 @@ bool QNode::init(const std::string &master_url, const std::string &host_url)
 /*QThread 线程函数，start后开始执行*/
 void QNode::run()
 {
-    initActionlibClient();
-    startSensorCheck();
-    ros::spin();
+    ros::AsyncSpinner spinner(5);
+    spinner.start(); //非阻塞
+
+    while(ros::ok() && ros::master::check())
+    {
+        //std::cout << ac_->getState().toString() << std::endl;
+        ros::Duration(1.0).sleep();
+    }
+    if(!ros::master::check())
+    {
+        log(Warn, "Ros Master is shutdown. You Must Reconnect Before Any Task!");
+        Q_EMIT rosmasterOffline();
+        is_init = false;
+    }
 }
 
-void QNode::initActionlibClient()
+bool QNode::serverConnected()
 {
-    //ac_ = new DoDriverlessTaskClient("do_driverless_task", true); // true -> don't need ros::spin()
-    DoDriverlessTaskClient("do_driverless_task", true);
-    this->log(Info, "waiting for /do_driverless_task server...");
-    //ac_->waitForServer();
-    this->log(Info, "/do_driverless_task server started.");
+    return ac_->isServerConnected();
+
+}
+
+void QNode::cancleAllGoals()
+{
+    std::cout << "cancleAllGoals" << std::endl;
+    ac_->cancelAllGoals();
+}
+
+void QNode::requestDriverlessTask(const driverless::DoDriverlessTaskGoal& goal)
+{
+    ac_->sendGoal(goal, boost::bind(&QNode::taskDoneCallback,this,_1,_2),
+                        boost::bind(&QNode::taskActivedCallback,this),
+                        boost::bind(&QNode::taskFeedbackCallback,this,_1));
+}
+
+void QNode::taskFeedbackCallback(const driverless::DoDriverlessTaskFeedbackConstPtr& fd)
+{
+    qDebug() << "taskFeedbackCallback ";
+}
+
+void QNode::taskDoneCallback(const actionlib::SimpleClientGoalState& state,
+                             const driverless::DoDriverlessTaskResultConstPtr& res)
+{
+    qDebug() << "taskDoneCallback ";
+    Q_EMIT taskStateChanged(Driverless_Complete);
+}
+
+void QNode::taskActivedCallback()
+{
+    qDebug() << "taskActivedCallback ";
+    Q_EMIT taskStateChanged(Driverless_Running);
 }
 
 /*===================传感器状态监测相关函数================*/
 /*官方驱动则使用消息回调检测，用户自定义驱动则使用故障诊断消息检测*/
-void QNode::startSensorCheck()
-{
-    ros::NodeHandle nh;
-    gps_sub = nh.subscribe("/gps_fix",1,&QNode::gpsFix_callback,this);
-    lidar_sub =  nh.subscribe("/pandar_points",1,&QNode::lidar_callback,this);
-    diagnostic_sub = nh.subscribe("/sensors/diagnostic",10,&QNode::diagnostic_callback,this);
-    sensorStatus_timer = nh.createTimer(ros::Duration(1), &QNode::sensorStatusTimer_callback,this);
-}
-
 void QNode::gpsFix_callback(const sensor_msgs::NavSatFix::ConstPtr& gps_fix)
 {
     //qDebug() << "gpsFix_callback ";
@@ -122,7 +153,7 @@ void QNode::gpsFix_callback(const sensor_msgs::NavSatFix::ConstPtr& gps_fix)
 
 void QNode::lidar_callback(const sensor_msgs::PointCloud2::ConstPtr& )
 {
-    //qDebug() << "lidar_callback ";
+    qDebug() << "lidar_callback ";
     static int i = 0;
     if((++i)%5 == 0) //降低更新时间覆盖频率
         lidar.last_update_time = ros::Time::now().toSec();
@@ -137,6 +168,7 @@ void QNode::diagnostic_callback(const diagnostic_msgs::DiagnosticStatus::ConstPt
 }
 void QNode::sensorStatusTimer_callback(const ros::TimerEvent& )
 {
+    //qDebug() << "sensorStatusTimer_callback\r\n" ;
     static float tolerateInterval = 1.0;
     double now = ros::Time::now().toSec();
     for(size_t i=0; i<sensors.size(); ++i)
@@ -160,30 +192,34 @@ void QNode::sensorStatusTimer_callback(const ros::TimerEvent& )
 void QNode::log( const LogLevel &level, const std::string &msg) {
 	logging_model.insertRows(logging_model.rowCount(),1);
 	std::stringstream logging_model_msg;
+    double now = ros::Time::now().toSec();
+
+    logging_model_msg << std::fixed << std::setprecision(2);
+
 	switch ( level ) {
 		case(Debug) : {
 				ROS_DEBUG_STREAM(msg);
-				logging_model_msg << "[DEBUG] [" << ros::Time::now() << "]: " << msg;
+                logging_model_msg << "[DEBUG] [" << now << "]: " << msg;
 				break;
 		}
 		case(Info) : {
 				ROS_INFO_STREAM(msg);
-				logging_model_msg << "[INFO] [" << ros::Time::now() << "]: " << msg;
+                logging_model_msg << "[INFO] [" << now << "]: " << msg;
 				break;
 		}
 		case(Warn) : {
 				ROS_WARN_STREAM(msg);
-				logging_model_msg << "[INFO] [" << ros::Time::now() << "]: " << msg;
+                logging_model_msg << "[INFO] [" << now << "]: " << msg;
 				break;
 		}
 		case(Error) : {
 				ROS_ERROR_STREAM(msg);
-				logging_model_msg << "[ERROR] [" << ros::Time::now() << "]: " << msg;
+                logging_model_msg << "[ERROR] [" << now << "]: " << msg;
 				break;
 		}
 		case(Fatal) : {
 				ROS_FATAL_STREAM(msg);
-				logging_model_msg << "[FATAL] [" << ros::Time::now() << "]: " << msg;
+                logging_model_msg << "[FATAL] [" << now << "]: " << msg;
 				break;
 		}
 	}

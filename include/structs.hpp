@@ -23,7 +23,6 @@ enum SensorId
     Sensor_Rtk    =4,
 };
 
-
 }
 
 #endif // STRUCTS_HPP

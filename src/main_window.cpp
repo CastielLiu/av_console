@@ -25,6 +25,8 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
 
     ui.view_logging->setModel(qnode.loggingModel());
     QObject::connect(&qnode, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
+    QObject::connect(&qnode, SIGNAL(taskStateChanged(int)), this, SLOT(onTaskStateChanged(int)));
+    QObject::connect(&qnode, SIGNAL(rosmasterOffline()), this, SLOT(onRosmasterOffline()));
     initSensorStatusWidget();
 }
 
@@ -53,6 +55,141 @@ void MainWindow::initSensorStatusWidget()
 
     connect(&qnode,SIGNAL(sensorStatusChanged(int,bool)),this,SLOT(sensorStatusChanged(int,bool)));
 }
+
+//start driverless
+void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
+{
+    if(checked)
+    {
+        //确保qnode已经初始化
+        if(!qnode.initialed())
+        {
+            onTaskStateChanged(qnode.Idle);
+            QMessageBox msgBox;
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.setText("Please Connect Firstly.");
+            msgBox.exec();
+            return;
+        }
+
+        if(!qnode.serverConnected())
+        {
+            this->showMessgeInStatusBar("driverless server is not connected!", true);
+            onTaskStateChanged(qnode.Idle);
+            return;
+        }
+
+        bool ok;
+        float speed = ui.comboBox_driverSpeed->currentText().toFloat(&ok);
+        QString roadnet_file = ui.lineEdit_roadNet->text();
+        if(roadnet_file.isEmpty())
+        {
+            QMessageBox msgBox;
+            msgBox.setText("No Roadnet File.");
+            msgBox.exec();
+            onTaskStateChanged(qnode.Idle);
+            return;
+        }
+
+        //询问是否保存日志文件
+        QFileInfo roadnetFileInfo(roadnet_file);
+        QDir roadnetDir(roadnetFileInfo.absolutePath());//文件所在目录
+
+        QString question = tr("Save log file in ") + roadnetFileInfo.absolutePath() + tr(" ?");
+        QMessageBox msgBox(QMessageBox::Question, tr("Start driverless"), question,
+                           QMessageBox::YesAll|QMessageBox::Yes|QMessageBox::Cancel);
+        msgBox.button(QMessageBox::YesAll)->setText(tr("Run and save"));
+        msgBox.button(QMessageBox::Yes)->setText(tr("Run without save"));
+        msgBox.button(QMessageBox::Cancel)->setText(tr("Cancel"));
+        msgBox.setDefaultButton(QMessageBox::Yes);
+        int button = msgBox.exec();
+        //若点击了叉号，则放弃操作 Cancel
+        //std::cout  << std::hex << button << std::endl;
+        if(button == QMessageBox::Cancel)
+        {
+            onTaskStateChanged(qnode.Idle);
+            return;
+        }
+        else if(button == QMessageBox::YesAll) // saveLog
+        {
+        }
+
+        driverless::DoDriverlessTaskGoal goal;
+        goal.roadnet_file = roadnet_file.toStdString();
+        goal.expect_speed = speed;
+        goal.type = goal.FILE_TYPE;
+        if(ui.comboBox_taskType->currentText() == "Drive")
+            goal.task  = goal.DRIVE_TASK;
+        else if(ui.comboBox_taskType->currentText() == "Reverse+")
+        {
+            goal.task  = goal.REVERSE_TASK;
+            goal.path_filp = false;
+        }
+        else if(ui.comboBox_taskType->currentText() == "Reverse-")
+        {
+            goal.task  = goal.REVERSE_TASK;
+            goal.path_filp = true;
+        }
+
+        qnode.requestDriverlessTask(goal);
+        onTaskStateChanged(qnode.Driverless_Starting);
+    }
+    else
+    {
+        qnode.cancleAllGoals();
+        onTaskStateChanged(qnode.Idle);
+    }
+}
+
+//connect
+void MainWindow::on_pushButton_connect_clicked()
+{
+    if(ui.checkbox_use_environment->isChecked())
+    {
+        if (!qnode.init())
+        {
+            showMessgeInStatusBar("roscore is not running. please wait a moment and reconnect.", true);
+            return;
+        }
+        showMessgeInStatusBar("connect to rosmaster ok.");
+        qnode.start();
+        ui.pushButton_connect->setEnabled(false);
+
+    }
+    else
+    {
+        if(!qnode.init(ui.line_edit_master->text().toStdString(),
+                   ui.line_edit_host->text().toStdString()))
+        {
+            showNoMasterMessage();
+            return;
+        }
+        else
+        {
+            ui.pushButton_connect->setEnabled(false);
+			ui.line_edit_master->setReadOnly(true);
+			ui.line_edit_host->setReadOnly(true);
+		}
+	}
+    qnode.log(QNode::Info,"connect to ros master ok!");
+    m_nodeInited = true;
+}
+
+
+void MainWindow::on_checkbox_use_environment_stateChanged(int state)
+{
+	bool enabled;
+    if ( state == 0 )
+		enabled = true;
+    else
+		enabled = false;
+
+	ui.line_edit_master->setEnabled(enabled);
+	ui.line_edit_host->setEnabled(enabled);
+	//ui.line_edit_topic->setEnabled(enabled);
+}
+
+
 void MainWindow::sensorStatusChanged(int sensor_id, bool status)
 {
     //qDebug() <<"sensorStatusChanged  " <<  sensor_id << "\t " << status;
@@ -72,54 +209,20 @@ MainWindow::~MainWindow() {}
 
 void MainWindow::showNoMasterMessage()
 {
-	QMessageBox msgBox;
-	msgBox.setText("Couldn't find the ros master.");
-	msgBox.exec();
+    QMessageBox msgBox;
+    msgBox.setText("Couldn't find the ros master.");
+    msgBox.exec();
 }
 
-void MainWindow::on_button_connect_clicked(bool check )
+void MainWindow::showMessgeInStatusBar(const QString& msg, bool warnning)
 {
-    if ( ui.checkbox_use_environment->isChecked() )
-    {
-        if ( !qnode.init() )
-        {
-            qnode.log(QNode::Info,"roscore is not running. please wait a moment and reconnect.");
-            return;
-        }
-        else
-			ui.button_connect->setEnabled(false);
-    }
+    ui.statusbar->showMessage(msg, 3000);
+    if(warnning)
+        ui.statusbar->setStyleSheet("color: red");
     else
-    {
-        if ( !qnode.init(ui.line_edit_master->text().toStdString(),
-                   ui.line_edit_host->text().toStdString()) )
-        {
-            showNoMasterMessage();
-            return;
-        }
-        else
-        {
-			ui.button_connect->setEnabled(false);
-			ui.line_edit_master->setReadOnly(true);
-			ui.line_edit_host->setReadOnly(true);
-		}
-	}
-    qnode.log(QNode::Info,"connect to ros master ok!");
-    m_nodeInited = true;
+        ui.statusbar->setStyleSheet("color: black");
 }
 
-
-void MainWindow::on_checkbox_use_environment_stateChanged(int state) {
-	bool enabled;
-	if ( state == 0 ) {
-		enabled = true;
-	} else {
-		enabled = false;
-	}
-	ui.line_edit_master->setEnabled(enabled);
-	ui.line_edit_host->setEnabled(enabled);
-	//ui.line_edit_topic->setEnabled(enabled);
-}
 
 
 void MainWindow::updateLoggingView()
@@ -127,8 +230,9 @@ void MainWindow::updateLoggingView()
    ui.view_logging->scrollToBottom();
 }
 
-void MainWindow::on_actionAbout_triggered() {
-    QMessageBox::about(this, tr("About ..."),tr("<h2>PACKAGE_NAME Test Program 0.10</h2><p>Copyright Yujin Robot</p><p>This package needs an about description.</p>"));
+void MainWindow::on_actionAbout_triggered()
+{
+    QMessageBox::about(this, tr("About ..."),tr("SEU Automatic Vehicle Console."));
 }
 
 
@@ -322,11 +426,6 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
     }
 }
 
-void av_console::MainWindow::showLog_in_pathPlanning(const QString& msg)
-{
-
-}
-
 void av_console::MainWindow::updatePathPlanningLoggingView()
 {
   ui.listView_pathPlanning->scrollToBottom();
@@ -348,97 +447,7 @@ void av_console::MainWindow::on_pushButton_openRoadNet_clicked()
     m_pathFileDir = fileName;
 }
 
-void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
-{
-    if(checked)
-    {
-        if(!qnode.initialed())
-        {
-            ui.pushButton_driverlessStart->setChecked(false);
-            QMessageBox msgBox;
-            msgBox.setIcon(QMessageBox::Warning);
-            msgBox.setText("Please Connect Firstly.");
-            msgBox.exec();
-            return;
-        }
 
-        bool ok;
-        float speed = ui.comboBox_driverSpeed->currentText().toFloat(&ok);
-        if(!ok)
-        {
-            speed = 10.0;
-            //ui.lineEdit_driverlessSpeed->setText("10.0");
-        }
-        QString roadnet_file = ui.lineEdit_roadNet->text();
-        if(roadnet_file.isEmpty())
-        {
-            QMessageBox msgBox;
-            msgBox.setText("No Roadnet File.");
-            msgBox.exec();
-            ui.pushButton_driverlessStart->setChecked(false);
-            return;
-        }
-
-        if(!changeToCmdDir())
-        {
-            ui.pushButton_driverlessStart->setChecked(false);
-            return;
-        }
-
-        //询问是否保存日志文件
-        QFileInfo roadnetFileInfo(roadnet_file);
-        QDir roadnetDir(roadnetFileInfo.absolutePath());//文件所在目录
-
-        QString question = tr("Save log file in ") + roadnetFileInfo.absolutePath() + tr(" ?");
-        QMessageBox msgBox(QMessageBox::Question, tr("Start driverless"), question,
-                           QMessageBox::YesAll|QMessageBox::Yes|QMessageBox::Cancel);
-        msgBox.button(QMessageBox::YesAll)->setText(tr("Run and save"));
-        msgBox.button(QMessageBox::Yes)->setText(tr("Run without save"));
-        msgBox.button(QMessageBox::Cancel)->setText(tr("Cancel"));
-        msgBox.setDefaultButton(QMessageBox::Yes);
-
-        int button = msgBox.exec();
-        //若点击了叉号，则放弃操作 Cancel
-        //std::cout  << std::hex << button << std::endl;
-        if(button == QMessageBox::Cancel)
-        {
-            ui.pushButton_driverlessStart->setChecked(false);
-            return;
-        }
-        else if(button == QMessageBox::YesAll) // saveLog
-        {
-            //新建日志目录，启动记录程序
-            std::stringstream logFilePath;
-            std::time_t time = std::time(0);
-            logFilePath << "driverless_data/"
-                        << std::put_time(std::localtime(&time),"%Y-%m-%d-%H-%M-%S");
-
-            roadnetDir.mkpath(tr(logFilePath.str().c_str()));
-
-            std::stringstream cmd;
-            cmd << "gnome-terminal -e './save_log.sh "
-                << roadnetDir.absolutePath().toStdString() << "\/" << logFilePath.str()
-                << "\/" << roadnetFileInfo.baseName().toStdString()
-                <<"_log.txt'";
-            std::cout  << cmd.str() << std::endl;
-            system(cmd.str().c_str());
-        }
-
-        std::stringstream cmd;
-        cmd << "gnome-terminal -e './driverless.sh "
-            << roadnet_file.toStdString() << " " << speed << "'";
-        std::cout  << cmd.str() << std::endl;
-        system(cmd.str().c_str());
-
-        ui.pushButton_driverlessStart->setText("Stop");
-    }
-    else
-    {
-        changeToCmdDir();
-        system("gnome-terminal -e './stop_driverless.sh' ");
-        ui.pushButton_driverlessStart->setText("Start");
-    }
-}
 
 void av_console::MainWindow::on_tabWidget_currentChanged(int index)
 {
@@ -447,3 +456,46 @@ void av_console::MainWindow::on_tabWidget_currentChanged(int index)
     ui.tabWidget->setCurrentIndex(0);
     ui.statusbar->showMessage("please connect to master firstly!",3000);
 }
+
+void av_console::MainWindow::onTaskStateChanged(int state)
+{
+    if(state == qnode.Idle)
+    {
+        ui.pushButton_driverlessStart->setChecked(false);
+        ui.pushButton_driverlessStart->setText("Start");
+    }
+    else if(state == qnode.Driverless_Starting)
+    {
+        ui.pushButton_driverlessStart->setChecked(true);
+        ui.pushButton_driverlessStart->setText("Starting");
+    }
+    else if(state == qnode.Driverless_Running)
+    {
+        ui.pushButton_driverlessStart->setChecked(true);
+        ui.pushButton_driverlessStart->setText("Stop");
+    }
+    else if(state == qnode.Driverless_Complete)
+    {
+        ui.pushButton_driverlessStart->setChecked(false);
+        ui.pushButton_driverlessStart->setText("Start");
+    }
+}
+
+void av_console::MainWindow::on_comboBox_taskType_activated(const QString &arg1)
+{
+    if(arg1 == "Custom") //自定义任务形式
+    {
+        //if(m_customDialog == nullptr)
+         //   m_customDialog = new CustomTaskDialog(this);
+
+    }
+}
+
+//ros master shutdown , reEnable the connect button
+void av_console::MainWindow::onRosmasterOffline()
+{
+    ui.pushButton_connect->setEnabled(true);
+}
+
+
+
