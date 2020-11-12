@@ -117,18 +117,44 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         driverless::DoDriverlessTaskGoal goal;
         goal.roadnet_file = roadnet_file.toStdString();
         goal.expect_speed = speed;
-        goal.type = goal.FILE_TYPE;
-        if(ui.comboBox_taskType->currentText() == "Drive")
-            goal.task  = goal.DRIVE_TASK;
-        else if(ui.comboBox_taskType->currentText() == "Reverse+")
+
+        //目标类型
+        if(this->ui.comboBox_goalType->currentText() == "Path")  //路径文件
+            goal.type = goal.FILE_TYPE;
+        else if(this->ui.comboBox_goalType->currentText() == "Goal") //目标点
         {
-            goal.task  = goal.REVERSE_TASK;
-            goal.path_filp = false;
+            goal.type = goal.POSE_TYPE;
+            PoseArray path;
+            if(!loadPathPoints(roadnet_file.toStdString(), path) || path.poses.size() < 1)
+            {
+                QMessageBox msgBox;
+                msgBox.setText(QString("Load goal pose from %1 failed!").arg(roadnet_file));
+                msgBox.exec();
+                onTaskStateChanged(qnode.Idle);
+                return;
+            }
+            const Pose goal_pose = path.poses[0];
+            goal.target_pose.x = goal_pose.x;
+            goal.target_pose.y = goal_pose.y;
+            goal.target_pose.theta = goal_pose.yaw;
         }
-        else if(ui.comboBox_taskType->currentText() == "Reverse-")
+        else
+        {
+            QMessageBox::warning(this,"Unknown Road Type!", "Unknown Road Type!");
+            onTaskStateChanged(qnode.Idle);
+            return;
+        }
+        //任务类型
+        if(ui.comboBox_taskType->currentText() == "Drive") //前进
+            goal.task  = goal.DRIVE_TASK;
+        else if(ui.comboBox_taskType->currentText() == "Reverse")
         {
             goal.task  = goal.REVERSE_TASK;
-            goal.path_filp = true;
+
+            if(this->ui.pushButton_pathFilp->isChecked())
+                goal.path_filp = true;
+            else
+                goal.path_filp = false;
         }
 
         qnode.requestDriverlessTask(goal);
@@ -384,9 +410,9 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
     else
     {
         m_pathRecorder->stop();
-        if(m_pathRecorder->pathPointsSize() < 10)
+        if(m_pathRecorder->pathPointsSize() == 0)
         {
-          m_pathRecorder->log("WARN","path points is too few!");
+          m_pathRecorder->log("WARN","path points is too few !");
           ui.pushButton_pathPlanning->setText("Start");
           return ;
         }

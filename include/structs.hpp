@@ -1,5 +1,6 @@
 #ifndef STRUCTS_HPP
 #define STRUCTS_HPP
+#include <vector>
 
 namespace av_console {
 
@@ -22,6 +23,16 @@ enum SensorId
     Sensor_Camera1=3,
     Sensor_Rtk    =4,
 };
+
+typedef struct _Pose
+{
+    double x,y,yaw;
+}Pose;
+
+typedef struct _PoseArray
+{
+    std::vector<Pose> poses;
+}PoseArray;
 
 }
 

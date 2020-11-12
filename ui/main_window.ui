@@ -464,6 +464,20 @@ padding: 0 3px 0 3px;
                   </widget>
                  </item>
                  <item>
+                  <widget class="QLabel" name="label_12">
+                   <property name="text">
+                    <string>Path type</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_11">
+                   <property name="text">
+                    <string>Task type</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QLabel" name="label_4">
                    <property name="minimumSize">
                     <size>
@@ -482,13 +496,6 @@ padding: 0 3px 0 3px;
                    </property>
                   </widget>
                  </item>
-                 <item>
-                  <widget class="QLabel" name="label_11">
-                   <property name="text">
-                    <string>Task type</string>
-                   </property>
-                  </widget>
-                 </item>
                 </layout>
                </item>
                <item>
@@ -498,6 +505,34 @@ padding: 0 3px 0 3px;
                    <property name="readOnly">
                     <bool>true</bool>
                    </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="comboBox_goalType">
+                   <item>
+                    <property name="text">
+                     <string>Path</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Goal</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="comboBox_taskType">
+                   <item>
+                    <property name="text">
+                     <string>Drive</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Reverse</string>
+                    </property>
+                   </item>
                   </widget>
                  </item>
                  <item>
@@ -569,25 +604,6 @@ padding: 0 3px 0 3px;
                    </item>
                   </widget>
                  </item>
-                 <item>
-                  <widget class="QComboBox" name="comboBox_taskType">
-                   <item>
-                    <property name="text">
-                     <string>Drive</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>Reverse+</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>Reverse-</string>
-                    </property>
-                   </item>
-                  </widget>
-                 </item>
                 </layout>
                </item>
                <item>
@@ -606,14 +622,14 @@ padding: 0 3px 0 3px;
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="label_5">
+                  <widget class="QLabel" name="label_13">
                    <property name="text">
-                    <string>km/h</string>
+                    <string/>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="pushButton_showTask">
+                  <widget class="QPushButton" name="pushButton_pathFilp">
                    <property name="maximumSize">
                     <size>
                      <width>30</width>
@@ -621,7 +637,14 @@ padding: 0 3px 0 3px;
                     </size>
                    </property>
                    <property name="text">
-                    <string/>
+                    <string>flip</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_5">
+                   <property name="text">
+                    <string>km/h</string>
                    </property>
                   </widget>
                  </item>
