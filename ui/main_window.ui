@@ -639,6 +639,12 @@ padding: 0 3px 0 3px;
                    <property name="text">
                     <string>flip</string>
                    </property>
+                   <property name="checkable">
+                    <bool>true</bool>
+                   </property>
+                   <property name="checked">
+                    <bool>false</bool>
+                   </property>
                   </widget>
                  </item>
                  <item>

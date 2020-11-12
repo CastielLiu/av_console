@@ -51,6 +51,8 @@ private Q_SLOTS:
 
 
 
+    void on_pushButton_pathFilp_clicked(bool checked);
+
 private:
     Ui::MainWindow ui;
     QNode qnode;

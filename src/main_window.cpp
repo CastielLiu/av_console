@@ -524,4 +524,10 @@ void av_console::MainWindow::onRosmasterOffline()
 }
 
 
-
+void av_console::MainWindow::on_pushButton_pathFilp_clicked(bool checked)
+{
+    if(checked)
+        ui.pushButton_pathFilp->setStyleSheet("color: red");
+    else
+        ui.pushButton_pathFilp->setStyleSheet("color: black");
+}
