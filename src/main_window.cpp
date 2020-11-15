@@ -27,7 +27,11 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
     QObject::connect(&qnode, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
     QObject::connect(&qnode, SIGNAL(taskStateChanged(int)), this, SLOT(onTaskStateChanged(int)));
     QObject::connect(&qnode, SIGNAL(rosmasterOffline()), this, SLOT(onRosmasterOffline()));
+    QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
+
+
     initSensorStatusWidget();
+    launchDrivelessNode();
 }
 
 /*初始化传感器状态显示控件*/
@@ -65,7 +69,7 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         if(!qnode.initialed())
         {
             onTaskStateChanged(qnode.Idle);
-            QMessageBox msgBox;
+            QMessageBox msgBox(this);
             msgBox.setIcon(QMessageBox::Warning);
             msgBox.setText("Please Connect Firstly.");
             msgBox.exec();
@@ -84,7 +88,7 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         QString roadnet_file = ui.lineEdit_roadNet->text();
         if(roadnet_file.isEmpty())
         {
-            QMessageBox msgBox;
+            QMessageBox msgBox(this);
             msgBox.setText("No Roadnet File.");
             msgBox.exec();
             onTaskStateChanged(qnode.Idle);
@@ -97,7 +101,8 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
 
         QString question = tr("Save log file in ") + roadnetFileInfo.absolutePath() + tr(" ?");
         QMessageBox msgBox(QMessageBox::Question, tr("Start driverless"), question,
-                           QMessageBox::YesAll|QMessageBox::Yes|QMessageBox::Cancel);
+                           QMessageBox::YesAll|QMessageBox::Yes|QMessageBox::Cancel, this);
+
         msgBox.button(QMessageBox::YesAll)->setText(tr("Run and save"));
         msgBox.button(QMessageBox::Yes)->setText(tr("Run without save"));
         msgBox.button(QMessageBox::Cancel)->setText(tr("Cancel"));
@@ -150,8 +155,7 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         else if(ui.comboBox_taskType->currentText() == "Reverse")
         {
             goal.task  = goal.REVERSE_TASK;
-
-            if(this->ui.pushButton_pathFilp->isChecked())
+            if(this->ui.checkBox_pathFilp->checkState() == Qt::Checked)
                 goal.path_filp = true;
             else
                 goal.path_filp = false;
@@ -218,7 +222,7 @@ void MainWindow::on_checkbox_use_environment_stateChanged(int state)
 
 void MainWindow::sensorStatusChanged(int sensor_id, bool status)
 {
-    //qDebug() <<"sensorStatusChanged  " <<  sensor_id << "\t " << status;
+    qDebug() <<"sensorStatusChanged  " <<  sensor_id << "\t " << status;
     if(Sensor_Camera1 == sensor_id)
         ui.widget_camera1Status->setChecked(status);
     else if(Sensor_Rtk == sensor_id)
@@ -248,8 +252,6 @@ void MainWindow::showMessgeInStatusBar(const QString& msg, bool warnning)
     else
         ui.statusbar->setStyleSheet("color: black");
 }
-
-
 
 void MainWindow::updateLoggingView()
 {
@@ -310,6 +312,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
                                        QMessageBox::No);
     if(button == QMessageBox::Yes)
     {
+        killDriverlessNode();
         event->accept();
         QMainWindow::closeEvent(event);
     }
@@ -523,11 +526,8 @@ void av_console::MainWindow::onRosmasterOffline()
     ui.pushButton_connect->setEnabled(true);
 }
 
-
-void av_console::MainWindow::on_pushButton_pathFilp_clicked(bool checked)
+void av_console::MainWindow::onTimeout()
 {
-    if(checked)
-        ui.pushButton_pathFilp->setStyleSheet("color: red");
-    else
-        ui.pushButton_pathFilp->setStyleSheet("color: black");
+
 }
+

@@ -29,6 +29,13 @@ public:
     void initSensorStatusWidget();
     void showMessgeInStatusBar(const QString& msg, bool warnning=false);
 
+    void launchDrivelessNode(){
+        system("gnome-terminal -e \"roslaunch driverless driverless.launch\"");
+    }
+    void killDriverlessNode(){
+        system("gnome-terminal -e \"rosnode kill /driverless_node\"");
+    }
+
 public Q_SLOTS:
 	void on_actionAbout_triggered();
 	void on_checkbox_use_environment_stateChanged(int state);
@@ -48,10 +55,7 @@ private Q_SLOTS:
     void on_comboBox_taskType_activated(const QString &arg1);
     void onTaskStateChanged(int state);
     void onRosmasterOffline();
-
-
-
-    void on_pushButton_pathFilp_clicked(bool checked);
+    void onTimeout();
 
 private:
     Ui::MainWindow ui;
@@ -59,6 +63,8 @@ private:
     RecordPath *m_pathRecorder;
     bool m_nodeInited;
     QString m_pathFileDir;
+
+    QTimer mTimer;
     //CustomTaskDialog* m_customDialog;
 
 };

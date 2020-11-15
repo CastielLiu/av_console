@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>761</width>
-    <height>557</height>
+    <width>954</width>
+    <height>588</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,7 +26,7 @@
      <widget class="QTabWidget" name="tabWidget">
       <property name="minimumSize">
        <size>
-        <width>100</width>
+        <width>0</width>
         <height>0</height>
        </size>
       </property>
@@ -34,13 +34,19 @@
        <bool>false</bool>
       </property>
       <property name="styleSheet">
-       <string notr="true"/>
+       <string notr="true">QTabBar::tab{min-height: 35px; min-width:150px; font: 14pt &quot;Sans Serif&quot;}</string>
       </property>
       <property name="locale">
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
        <number>0</number>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>16</width>
+        <height>16</height>
+       </size>
       </property>
       <widget class="QWidget" name="tab_status">
        <attribute name="title">
@@ -80,7 +86,7 @@ padding: 0 3px 0 3px;
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>60</height>
+              <height>0</height>
              </size>
             </property>
             <property name="styleSheet">
@@ -98,7 +104,7 @@ padding: 0 3px 0 3px;
 </string>
             </property>
             <property name="title">
-             <string>Sensors</string>
+             <string>Sensors Status</string>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_14">
              <item>
@@ -107,8 +113,8 @@ padding: 0 3px 0 3px;
                 <widget class="ImageSwitch" name="widget_rtkStatus" native="true">
                  <property name="minimumSize">
                   <size>
-                   <width>15</width>
-                   <height>15</height>
+                   <width>0</width>
+                   <height>0</height>
                   </size>
                  </property>
                  <property name="maximumSize">
@@ -143,8 +149,8 @@ padding: 0 3px 0 3px;
                 <widget class="ImageSwitch" name="widget_gpsStatus" native="true">
                  <property name="minimumSize">
                   <size>
-                   <width>15</width>
-                   <height>15</height>
+                   <width>0</width>
+                   <height>0</height>
                   </size>
                  </property>
                  <property name="maximumSize">
@@ -179,8 +185,8 @@ padding: 0 3px 0 3px;
                 <widget class="ImageSwitch" name="widget_esrStatus" native="true">
                  <property name="minimumSize">
                   <size>
-                   <width>15</width>
-                   <height>15</height>
+                   <width>0</width>
+                   <height>0</height>
                   </size>
                  </property>
                  <property name="maximumSize">
@@ -215,8 +221,8 @@ padding: 0 3px 0 3px;
                 <widget class="ImageSwitch" name="widget_lidarStatus" native="true">
                  <property name="minimumSize">
                   <size>
-                   <width>15</width>
-                   <height>15</height>
+                   <width>0</width>
+                   <height>0</height>
                   </size>
                  </property>
                  <property name="maximumSize">
@@ -251,8 +257,8 @@ padding: 0 3px 0 3px;
                 <widget class="ImageSwitch" name="widget_camera1Status" native="true">
                  <property name="minimumSize">
                   <size>
-                   <width>15</width>
-                   <height>15</height>
+                   <width>0</width>
+                   <height>0</height>
                   </size>
                  </property>
                  <property name="maximumSize">
@@ -283,7 +289,7 @@ padding: 0 3px 0 3px;
            <widget class="QGroupBox" name="groupBox">
             <property name="maximumSize">
              <size>
-              <width>250</width>
+              <width>16677215</width>
               <height>16777215</height>
              </size>
             </property>
@@ -392,7 +398,7 @@ padding: 0 3px 0 3px;
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>30</height>
+                   <height>0</height>
                   </size>
                  </property>
                  <property name="toolTip">
@@ -400,6 +406,9 @@ padding: 0 3px 0 3px;
                  </property>
                  <property name="statusTip">
                   <string/>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">font: 14pt &quot;Sans Serif&quot;;</string>
                  </property>
                  <property name="text">
                   <string>connect</string>
@@ -415,7 +424,7 @@ padding: 0 3px 0 3px;
            <widget class="QGroupBox" name="groupBox_2">
             <property name="maximumSize">
              <size>
-              <width>250</width>
+              <width>16677215</width>
               <height>16777215</height>
              </size>
             </property>
@@ -437,26 +446,29 @@ padding: 0 3px 0 3px;
 </string>
             </property>
             <property name="title">
-             <string>Driverless</string>
+             <string>Task</string>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_12">
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout">
+              <layout class="QHBoxLayout" name="horizontalLayout" stretch="2,2,1">
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_9">
                  <item>
                   <widget class="QLabel" name="label_3">
                    <property name="minimumSize">
                     <size>
-                     <width>58</width>
+                     <width>0</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>60</width>
+                     <width>167750</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
                    </property>
                    <property name="text">
                     <string>Roadnet</string>
@@ -465,6 +477,9 @@ padding: 0 3px 0 3px;
                  </item>
                  <item>
                   <widget class="QLabel" name="label_12">
+                   <property name="styleSheet">
+                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                   </property>
                    <property name="text">
                     <string>Path type</string>
                    </property>
@@ -472,6 +487,9 @@ padding: 0 3px 0 3px;
                  </item>
                  <item>
                   <widget class="QLabel" name="label_11">
+                   <property name="styleSheet">
+                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                   </property>
                    <property name="text">
                     <string>Task type</string>
                    </property>
@@ -481,15 +499,18 @@ padding: 0 3px 0 3px;
                   <widget class="QLabel" name="label_4">
                    <property name="minimumSize">
                     <size>
-                     <width>58</width>
+                     <width>0</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>60</width>
+                     <width>167750</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
                    </property>
                    <property name="text">
                     <string>Speed</string>
@@ -502,6 +523,12 @@ padding: 0 3px 0 3px;
                 <layout class="QVBoxLayout" name="verticalLayout_10">
                  <item>
                   <widget class="QLineEdit" name="lineEdit_roadNet">
+                   <property name="styleSheet">
+                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
                    <property name="readOnly">
                     <bool>true</bool>
                    </property>
@@ -509,6 +536,9 @@ padding: 0 3px 0 3px;
                  </item>
                  <item>
                   <widget class="QComboBox" name="comboBox_goalType">
+                   <property name="styleSheet">
+                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                   </property>
                    <item>
                     <property name="text">
                      <string>Path</string>
@@ -523,6 +553,9 @@ padding: 0 3px 0 3px;
                  </item>
                  <item>
                   <widget class="QComboBox" name="comboBox_taskType">
+                   <property name="styleSheet">
+                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                   </property>
                    <item>
                     <property name="text">
                      <string>Drive</string>
@@ -537,6 +570,9 @@ padding: 0 3px 0 3px;
                  </item>
                  <item>
                   <widget class="QComboBox" name="comboBox_driverSpeed">
+                   <property name="styleSheet">
+                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                   </property>
                    <item>
                     <property name="text">
                      <string>3</string>
@@ -612,9 +648,12 @@ padding: 0 3px 0 3px;
                   <widget class="QPushButton" name="pushButton_openRoadNet">
                    <property name="maximumSize">
                     <size>
-                     <width>30</width>
+                     <width>50</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
                    </property>
                    <property name="text">
                     <string>...</string>
@@ -629,28 +668,31 @@ padding: 0 3px 0 3px;
                   </widget>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="pushButton_pathFilp">
-                   <property name="maximumSize">
-                    <size>
-                     <width>30</width>
-                     <height>16777215</height>
-                    </size>
+                  <widget class="QCheckBox" name="checkBox_pathFilp">
+                   <property name="layoutDirection">
+                    <enum>Qt::LeftToRight</enum>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
                    </property>
                    <property name="text">
                     <string>flip</string>
                    </property>
-                   <property name="checkable">
-                    <bool>true</bool>
-                   </property>
-                   <property name="checked">
+                   <property name="tristate">
                     <bool>false</bool>
                    </property>
                   </widget>
                  </item>
                  <item>
                   <widget class="QLabel" name="label_5">
+                   <property name="styleSheet">
+                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                   </property>
                    <property name="text">
                     <string>km/h</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
                    </property>
                   </widget>
                  </item>
@@ -659,7 +701,7 @@ padding: 0 3px 0 3px;
               </layout>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_13">
+              <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="10,1">
                <item>
                 <spacer name="horizontalSpacer_2">
                  <property name="orientation">
@@ -678,8 +720,11 @@ padding: 0 3px 0 3px;
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>30</height>
+                   <height>0</height>
                   </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">font: 14pt &quot;Sans Serif&quot;;</string>
                  </property>
                  <property name="text">
                   <string>Start</string>
@@ -718,8 +763,11 @@ padding: 0 3px 0 3px;
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>30</height>
+              <height>0</height>
              </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">font: 14pt &quot;Sans Serif&quot;;</string>
             </property>
             <property name="text">
              <string>Quit</string>
@@ -732,7 +780,7 @@ padding: 0 3px 0 3px;
       </widget>
       <widget class="QWidget" name="tab">
        <attribute name="title">
-        <string>Path Planning</string>
+        <string>Recording</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_8">
         <item>
@@ -759,7 +807,7 @@ padding: 0 3px 0 3px;
             <widget class="QListView" name="listView_pathPlanning">
              <property name="minimumSize">
               <size>
-               <width>500</width>
+               <width>0</width>
                <height>0</height>
               </size>
              </property>
@@ -773,8 +821,11 @@ padding: 0 3px 0 3px;
           <property name="minimumSize">
            <size>
             <width>0</width>
-            <height>30</height>
+            <height>0</height>
            </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">font: 14pt &quot;Sans Serif&quot;;</string>
           </property>
           <property name="text">
            <string>Start</string>
@@ -827,8 +878,8 @@ padding: 0 3px 0 3px;
                <widget class="QPushButton" name="pushButton_rtk">
                 <property name="minimumSize">
                  <size>
-                  <width>100</width>
-                  <height>30</height>
+                  <width>0</width>
+                  <height>0</height>
                  </size>
                 </property>
                 <property name="text">
@@ -843,8 +894,8 @@ padding: 0 3px 0 3px;
                <widget class="QLineEdit" name="lineEdit_rtk">
                 <property name="minimumSize">
                  <size>
-                  <width>350</width>
-                  <height>30</height>
+                  <width>0</width>
+                  <height>0</height>
                  </size>
                 </property>
                 <property name="text">
@@ -863,8 +914,8 @@ padding: 0 3px 0 3px;
                <widget class="QPushButton" name="pushButton_gps">
                 <property name="minimumSize">
                  <size>
-                  <width>100</width>
-                  <height>30</height>
+                  <width>0</width>
+                  <height>0</height>
                  </size>
                 </property>
                 <property name="text">
@@ -879,8 +930,8 @@ padding: 0 3px 0 3px;
                <widget class="QLineEdit" name="lineEdit_gps">
                 <property name="minimumSize">
                  <size>
-                  <width>200</width>
-                  <height>30</height>
+                  <width>0</width>
+                  <height>0</height>
                  </size>
                 </property>
                 <property name="readOnly">
@@ -896,8 +947,8 @@ padding: 0 3px 0 3px;
                <widget class="QPushButton" name="pushButton_camera">
                 <property name="minimumSize">
                  <size>
-                  <width>100</width>
-                  <height>30</height>
+                  <width>0</width>
+                  <height>0</height>
                  </size>
                 </property>
                 <property name="text">
@@ -912,8 +963,8 @@ padding: 0 3px 0 3px;
                <widget class="QLineEdit" name="lineEdit_camera">
                 <property name="minimumSize">
                  <size>
-                  <width>200</width>
-                  <height>30</height>
+                  <width>0</width>
+                  <height>0</height>
                  </size>
                 </property>
                 <property name="readOnly">
@@ -929,8 +980,8 @@ padding: 0 3px 0 3px;
                <widget class="QPushButton" name="pushButton_lidar">
                 <property name="minimumSize">
                  <size>
-                  <width>100</width>
-                  <height>30</height>
+                  <width>0</width>
+                  <height>0</height>
                  </size>
                 </property>
                 <property name="text">
@@ -945,8 +996,8 @@ padding: 0 3px 0 3px;
                <widget class="QLineEdit" name="lineEdit_lidar">
                 <property name="minimumSize">
                  <size>
-                  <width>200</width>
-                  <height>30</height>
+                  <width>0</width>
+                  <height>0</height>
                  </size>
                 </property>
                 <property name="readOnly">
@@ -962,8 +1013,8 @@ padding: 0 3px 0 3px;
                <widget class="QPushButton" name="pushButton_esrRadar">
                 <property name="minimumSize">
                  <size>
-                  <width>100</width>
-                  <height>30</height>
+                  <width>0</width>
+                  <height>0</height>
                  </size>
                 </property>
                 <property name="text">
@@ -978,8 +1029,8 @@ padding: 0 3px 0 3px;
                <widget class="QLineEdit" name="lineEdit_esrRadar">
                 <property name="minimumSize">
                  <size>
-                  <width>200</width>
-                  <height>30</height>
+                  <width>0</width>
+                  <height>0</height>
                  </size>
                 </property>
                 <property name="readOnly">
@@ -994,7 +1045,7 @@ padding: 0 3px 0 3px;
               <property name="minimumSize">
                <size>
                 <width>0</width>
-                <height>30</height>
+                <height>0</height>
                </size>
               </property>
               <property name="text">
@@ -1046,7 +1097,7 @@ padding: 0 3px 0 3px;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>761</width>
+     <width>954</width>
      <height>19</height>
     </rect>
    </property>

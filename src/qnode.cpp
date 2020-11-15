@@ -153,7 +153,7 @@ void QNode::gpsFix_callback(const sensor_msgs::NavSatFix::ConstPtr& gps_fix)
 
 void QNode::lidar_callback(const sensor_msgs::PointCloud2::ConstPtr& )
 {
-    qDebug() << "lidar_callback ";
+    //qDebug() << "lidar_callback ";
     static int i = 0;
     if((++i)%5 == 0) //降低更新时间覆盖频率
         lidar.last_update_time = ros::Time::now().toSec();

@@ -4,6 +4,7 @@ RecordPath::RecordPath():
     odom_topic_("/ll2utm_odom"),
     row_num_(0)
 {
+
 }
 
 RecordPath::~RecordPath()
@@ -19,11 +20,22 @@ bool RecordPath::start()
 
     private_nh.param<float>("sample_distance",sample_distance_,0.1);
     sub_gps_ = nh.subscribe(odom_topic_ ,1,&RecordPath::gps_callback,this);
+    connect(&wait_gps_topic_timer_, SIGNAL(timeout()), this, SLOT(waitGpsTopicTimeout()));
 
     path_points_.reserve(5000);
-    if(sub_gps_.getNumPublishers() == 0)
+    ros::Duration(0.5).sleep();  //等待订阅器初始化完成，否则即使存在发布者，也有可能被漏检
+
+    if(sub_gps_.getNumPublishers() == 0) //检测发布者是否存在
         return false;
     return true;
+}
+
+void RecordPath::waitGpsTopicTimeout()
+{
+    if(sub_gps_.getNumPublishers() == 0)
+    {
+
+    }
 }
 
 void RecordPath::stop()

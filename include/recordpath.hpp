@@ -12,6 +12,7 @@
 #include <nav_msgs/Odometry.h>
 #include <unistd.h>
 #include <cmath>
+#include <QTimer>
 
 #include <vector>
 #include <QStringListModel>
@@ -48,11 +49,15 @@ private:
     std::vector<gpsPoint> path_points_;
     QStringListModel logging_model;
 
+    QTimer  wait_gps_topic_timer_;
     size_t  row_num_;
     gpsPoint current_point_;
 
 Q_SIGNALS:
     void loggingUpdated();
+
+public Q_SLOTS:
+    void waitGpsTopicTimeout();
 
 public:
     RecordPath();
