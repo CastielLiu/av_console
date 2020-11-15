@@ -63,7 +63,7 @@ bool QNode::init()
         ac_ = nullptr;
     }
 
-    ac_ = new DoDriverlessTaskClient("/driverless/do_driverless_task", true); // true -> don't need ros::spin()
+    ac_ = new DoDriverlessTaskClient("/do_driverless_task", true); // true -> don't need ros::spin()
 
 	return true;
 }
