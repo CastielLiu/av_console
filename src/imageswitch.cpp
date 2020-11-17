@@ -84,7 +84,8 @@ void ImageSwitch::setChecked(bool isChecked)
 
 void ImageSwitch::setButtonStyle(const ImageSwitch::ButtonStyle &buttonStyle)
 {
-    if (this->buttonStyle != buttonStyle) {
+    if (this->buttonStyle != buttonStyle)
+    {
         this->buttonStyle = buttonStyle;
 
         if (buttonStyle == ButtonStyle_1) {
@@ -102,7 +103,7 @@ void ImageSwitch::setButtonStyle(const ImageSwitch::ButtonStyle &buttonStyle)
         } else if (buttonStyle == ButtonStyle_4) {
             imgOffFile = ":/button/gray_led";
             imgOnFile = ":/button/green_led";
-            //this->resize(50, 50);
+            this->resize(30,30);
         }
 
         imgFile = isChecked ? imgOnFile : imgOffFile;

@@ -22,7 +22,7 @@ class ImageSwitch : public QWidget
 
     //
     Q_PROPERTY(bool isChecked READ getChecked WRITE setChecked)
-    Q_PROPERTY(ButtonStyle buttonStyle READ getButtonStyle WRITE setButtonStyle)
+    //Q_PROPERTY(ButtonStyle buttonStyle READ getButtonStyle WRITE setButtonStyle)
 
 public:
     enum ButtonStyle {

@@ -113,8 +113,8 @@ padding: 0 3px 0 3px;
                 <widget class="ImageSwitch" name="widget_rtkStatus" native="true">
                  <property name="minimumSize">
                   <size>
-                   <width>0</width>
-                   <height>0</height>
+                   <width>20</width>
+                   <height>20</height>
                   </size>
                  </property>
                  <property name="maximumSize">
@@ -126,7 +126,7 @@ padding: 0 3px 0 3px;
                 </widget>
                </item>
                <item>
-                <widget class="QLabel" name="label_6">
+                <widget class="QLabel" name="label_rtkstus">
                  <property name="text">
                   <string>RTK</string>
                  </property>
@@ -149,8 +149,8 @@ padding: 0 3px 0 3px;
                 <widget class="ImageSwitch" name="widget_gpsStatus" native="true">
                  <property name="minimumSize">
                   <size>
-                   <width>0</width>
-                   <height>0</height>
+                   <width>20</width>
+                   <height>20</height>
                   </size>
                  </property>
                  <property name="maximumSize">
@@ -162,7 +162,7 @@ padding: 0 3px 0 3px;
                 </widget>
                </item>
                <item>
-                <widget class="QLabel" name="label_7">
+                <widget class="QLabel" name="label_gpsStatus">
                  <property name="text">
                   <string>GPS</string>
                  </property>
@@ -185,8 +185,8 @@ padding: 0 3px 0 3px;
                 <widget class="ImageSwitch" name="widget_esrStatus" native="true">
                  <property name="minimumSize">
                   <size>
-                   <width>0</width>
-                   <height>0</height>
+                   <width>20</width>
+                   <height>20</height>
                   </size>
                  </property>
                  <property name="maximumSize">
@@ -198,7 +198,7 @@ padding: 0 3px 0 3px;
                 </widget>
                </item>
                <item>
-                <widget class="QLabel" name="label_8">
+                <widget class="QLabel" name="label_esrStatus">
                  <property name="text">
                   <string>ESR</string>
                  </property>
@@ -221,8 +221,8 @@ padding: 0 3px 0 3px;
                 <widget class="ImageSwitch" name="widget_lidarStatus" native="true">
                  <property name="minimumSize">
                   <size>
-                   <width>0</width>
-                   <height>0</height>
+                   <width>20</width>
+                   <height>20</height>
                   </size>
                  </property>
                  <property name="maximumSize">
@@ -234,7 +234,7 @@ padding: 0 3px 0 3px;
                 </widget>
                </item>
                <item>
-                <widget class="QLabel" name="label_9">
+                <widget class="QLabel" name="label_lidarStatus">
                  <property name="text">
                   <string>LIDAR</string>
                  </property>
@@ -257,8 +257,8 @@ padding: 0 3px 0 3px;
                 <widget class="ImageSwitch" name="widget_camera1Status" native="true">
                  <property name="minimumSize">
                   <size>
-                   <width>0</width>
-                   <height>0</height>
+                   <width>20</width>
+                   <height>20</height>
                   </size>
                  </property>
                  <property name="maximumSize">
@@ -270,7 +270,7 @@ padding: 0 3px 0 3px;
                 </widget>
                </item>
                <item>
-                <widget class="QLabel" name="label_10">
+                <widget class="QLabel" name="label_camera1Ststus">
                  <property name="text">
                   <string>CAMERA1</string>
                  </property>
