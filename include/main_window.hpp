@@ -7,6 +7,7 @@
 #include "ui_main_window.h"
 #include "qnode.hpp"
 #include "recordpath.hpp"
+#include "recorddata.hpp"
 //#include "customtaskdialog.h"
 #include <QFileInfo>
 #include "utils.hpp"
