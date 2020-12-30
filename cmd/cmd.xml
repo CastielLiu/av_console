@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<AntCommands>
+
+    <Command name="gps"> roslaunch novatel novatel.launch </Command>
+    <Command name="imu"> roslaunch novatel imu.launch </Command>
+    <Command name="base_control"> roslaunch ant_driver ant_driver.launch </Command>
+    
+</AntCommands>

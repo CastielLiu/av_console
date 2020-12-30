@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
     driverless
     actionlib
     actionlib_msgs
+    ant_msgs
 )
 include_directories(${catkin_INCLUDE_DIRS} include/)
 # Use this to define what the package will export (e.g. libs, headers).

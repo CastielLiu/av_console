@@ -36,6 +36,10 @@
   <run_depend>nav_msgs</run_depend>
   <build_depend>diagnostic_msgs</build_depend>
   <run_depend>diagnostic_msgs</run_depend>
+  <build_depend>ant_msgs</build_depend>
+  <run_depend>ant_msgs</run_depend>
+
+
 
  
 </package>

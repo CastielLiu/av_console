@@ -7,6 +7,22 @@
 
 namespace av_console {
 
+//启动GPS节点
+static void launchGpsNode()
+{
+
+}
+//启动IMU节点
+static void launchImuNode()
+{
+
+}
+//启动汽车状态节点
+static void launchVehicleStateNode()
+{
+
+}
+
 static bool loadPathPoints(std::string file_path,PoseArray& path)
 {
     std::ifstream in_file(file_path.c_str());

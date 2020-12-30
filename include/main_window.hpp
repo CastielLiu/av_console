@@ -10,8 +10,12 @@
 #include "recorddata.hpp"
 //#include "customtaskdialog.h"
 #include <QFileInfo>
+#include <QObjectList>
+#include <QCheckBox>
 #include "utils.hpp"
 #include <ctime>
+#include <queue>
+#include <algorithm>
 
 namespace av_console {
 
@@ -36,6 +40,7 @@ public:
     void killDriverlessNode(){
         system("gnome-terminal -e \"rosnode kill /driverless_node\"");
     }
+    void setPushButtonStylesheet(const QString& style);
 
 public Q_SLOTS:
 	void on_actionAbout_triggered();
@@ -45,6 +50,7 @@ public Q_SLOTS:
     void updatePathPlanningLoggingView();
     void sensorStatusChanged(int,bool);
     void closeEvent(QCloseEvent *event);
+    void showEvent(QShowEvent* event) override;
 
 private Q_SLOTS:
     void on_pushButton_gps_clicked(bool checked);
@@ -57,13 +63,22 @@ private Q_SLOTS:
     void onTaskStateChanged(int state);
     void onRosmasterOffline();
     void onTimeout();
+    void on_pushButton_startRecordData_clicked(bool checked);
+    void on_pushButton_selectRecordFile_clicked();
+    void updateDataRecorderLoggingView();
+
+private:
+    QObjectList getAllLeafChilds(QObject* object);
+    void disableRecordDataConfigure(bool flag);
 
 private:
     Ui::MainWindow ui;
     QNode qnode;
     RecordPath *m_pathRecorder;
+    RecordData *m_dataRecorder;
     bool m_nodeInited;
-    QString m_pathFileDir;
+    QString m_roadNetFileDir;
+    QString m_recordFileDir;
 
     QTimer mTimer;
     //CustomTaskDialog* m_customDialog;

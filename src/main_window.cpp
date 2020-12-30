@@ -15,9 +15,12 @@ using namespace Qt;
 MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
     QMainWindow(parent),
     qnode(argc,argv),
-    m_nodeInited(false)
+    m_nodeInited(false),
+    m_pathRecorder(nullptr),
+    m_dataRecorder(nullptr)
 {
     ui.setupUi(this);
+
     QObject::connect(ui.actionAbout_Qt, SIGNAL(triggered(bool)), qApp, SLOT(aboutQt()));
     ReadSettings();
     setWindowIcon(QIcon(":/images/icon.png"));
@@ -30,8 +33,17 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
     QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
 
 
-    initSensorStatusWidget();
-    launchDrivelessNode();
+    this->initSensorStatusWidget();
+
+    //launchDrivelessNode();
+}
+
+MainWindow::~MainWindow()
+{
+    if(m_dataRecorder != nullptr)
+        delete m_dataRecorder;
+
+
 }
 
 /*初始化传感器状态显示控件*/
@@ -203,6 +215,9 @@ void MainWindow::on_pushButton_connect_clicked()
 	}
     qnode.log(QNode::Info,"connect to ros master ok!");
     m_nodeInited = true;
+
+    //实例化数据记录器
+    m_dataRecorder = new RecordData();
 }
 
 
@@ -234,8 +249,6 @@ void MainWindow::sensorStatusChanged(int sensor_id, bool status)
     else if(Sensor_Esr == sensor_id)
         ui.widget_esrStatus->setChecked(status);
 }
-
-MainWindow::~MainWindow() {}
 
 void MainWindow::showNoMasterMessage()
 {
@@ -283,11 +296,14 @@ void MainWindow::ReadSettings() {
     	ui.line_edit_host->setEnabled(false);
     	//ui.line_edit_topic->setEnabled(false);
     }
-    m_pathFileDir = settings.value("pathFileDir","").toString();
-    ui.lineEdit_roadNet->setText(m_pathFileDir);
+    m_roadNetFileDir = settings.value("roadNetFileDir","").toString();
+    ui.lineEdit_roadNet->setText(m_roadNetFileDir);
 
     int speedIndex = settings.value("speedIndex","0").toInt();
     ui.comboBox_driverSpeed->setCurrentIndex(speedIndex);
+
+    m_recordFileDir = settings.value("recordDataFileDir","").toString();
+    ui.lineEdit_recordFileName->setText(m_recordFileDir);
 }
 
 void MainWindow::WriteSettings() {
@@ -299,8 +315,10 @@ void MainWindow::WriteSettings() {
     settings.setValue("use_environment_variables",QVariant(ui.checkbox_use_environment->isChecked()));
     settings.setValue("geometry", saveGeometry()); //保存各窗口尺寸
     settings.setValue("windowState", saveState()); //保存各窗口位置
-    settings.setValue("pathFileDir",m_pathFileDir);
+    settings.setValue("roadNetFileDir",m_roadNetFileDir);
     settings.setValue("speedIndex",QString::number(ui.comboBox_driverSpeed->currentIndex()));
+
+    settings.setValue("recordDataFileDir",m_recordFileDir);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -420,13 +438,13 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
           return ;
         }
 
-        if(m_pathFileDir.isEmpty())
-            m_pathFileDir = "./";
+        if(m_roadNetFileDir.isEmpty())
+            m_roadNetFileDir = "./";
 
         while(true)
         {
             QString fileName = QFileDialog::getSaveFileName(this,
-                                        "save path points", m_pathFileDir, "TXT(*txt)");
+                                        "save path points", m_roadNetFileDir, "TXT(*txt)");
             if(fileName.isEmpty())
             {
                 int Abandon =
@@ -448,7 +466,7 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
             m_pathRecorder->savePathPoints(fileName.toStdString());
             delete m_pathRecorder;
             m_pathRecorder = NULL;
-            m_pathFileDir = fileName;
+            m_roadNetFileDir = fileName;
             break;
         }
         ui.pushButton_pathPlanning->setText("Start");
@@ -463,7 +481,7 @@ void av_console::MainWindow::updatePathPlanningLoggingView()
 void av_console::MainWindow::on_pushButton_openRoadNet_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
-                                "open roadnet file", m_pathFileDir, "TXT(*txt)");
+                                "open roadnet file", m_roadNetFileDir, "TXT(*txt)");
     if(fileName.isEmpty())
         return;
 /*
@@ -473,7 +491,7 @@ void av_console::MainWindow::on_pushButton_openRoadNet_clicked()
     ui.lineEdit_roadNet->setText(name);
 */
     ui.lineEdit_roadNet->setText(fileName);
-    m_pathFileDir = fileName;
+    m_roadNetFileDir = fileName;
 }
 
 
@@ -530,4 +548,150 @@ void av_console::MainWindow::onTimeout()
 {
 
 }
+
+void av_console::MainWindow::showEvent(QShowEvent* event)
+{
+   this->setPushButtonStylesheet(QString("font: 14pt \"Sans Serif\";"));
+}
+
+/*@brief 配置所有pushButton的stylesheet
+ */
+void av_console::MainWindow::setPushButtonStylesheet(const QString& style)
+{
+    ui.pushButton_camera->setStyleSheet(style);
+    ui.pushButton_connect->setStyleSheet(style);
+    ui.pushButton_driverlessStart->setStyleSheet(style);
+    ui.pushButton_esrRadar->setStyleSheet(style);
+    ui.pushButton_gps->setStyleSheet(style);
+    ui.pushButton_lidar->setStyleSheet(style);
+    ui.pushButton_openRoadNet->setStyleSheet(style);
+    ui.pushButton_pathPlanning->setStyleSheet(style);
+    ui.pushButton_rtk->setStyleSheet(style);
+    ui.pushButton_selectRecordFile->setStyleSheet(style);
+    ui.pushButton_startRecordData->setStyleSheet(style);
+
+    //设置等高
+    ui.pushButton_quit->setFixedHeight(ui.groupBox_sensorStatus->height());
+    ui.pushButton_startRecordData->setCheckable(true);
+}
+
+QObjectList av_console::MainWindow::getAllLeafChilds(QObject* object)
+{
+    QObjectList result;
+    std::queue<QObject *> queue;
+    queue.push(object);
+    while(!queue.empty())
+    {
+        QObject * node = queue.front(); queue.pop();
+        //qDebug() << "pop " << node->objectName();
+
+        QObjectList childs = node->children();
+        if(childs.size() == 0) //无子节点，当且节点为叶子
+        {
+            result.push_back(node);
+            continue;
+        }
+
+        //将其所有子节点放入队列
+        for(QObject* child : childs)
+        {
+            queue.push(child);
+            //qDebug() << "push " << child->objectName();
+        }
+    }
+    return result;
+}
+
+void av_console::MainWindow::disableRecordDataConfigure(bool flag)
+{
+    QObjectList childs = getAllLeafChilds(ui.widget_recorderConfig);
+    for(QObject* child : childs)
+    {
+        QCheckBox* checkBox = qobject_cast<QCheckBox*>(child);
+        QPushButton* botton = qobject_cast<QPushButton*>(child);
+        QLineEdit *lineEdit = qobject_cast<QLineEdit*>(child);
+        if(checkBox)
+            checkBox->setDisabled(flag);
+        else if(botton)
+            botton->setDisabled(flag);
+        else if(lineEdit)
+            lineEdit->setReadOnly(flag);
+    }
+}
+
+void av_console::MainWindow::on_pushButton_startRecordData_clicked(bool checked)
+{
+    if(checked)
+    {
+        static bool listview_inited  = false;
+
+        if(!listview_inited)
+        {
+            ui.listView_dataRecorder->setModel(m_dataRecorder->loggingModel());
+            connect(m_dataRecorder, SIGNAL(loggingUpdated()), this, SLOT(updateDataRecorderLoggingView()));
+            listview_inited = true;
+        }
+
+        m_dataRecorder->clearLog();
+        m_dataRecorder->setDataFile(ui.lineEdit_recordFileName->text());
+        m_dataRecorder->setRecordFrequency(ui.lineEdit_recordFrequency->text().toInt());
+        m_dataRecorder->setLaunchSensorWaitTime(ui.lineEdit_recorderWaitTime->text().toInt());
+
+        std::string vehicle_state_topic = "/vehicle_state";
+        std::string gps_topic = "/inspvax";
+        std::string utm_topic = "/gps_odom";
+        std::string imu_topic = "/raw_imu";
+
+        m_dataRecorder->setRecordVehicleState(vehicle_state_topic, ui.checkBox_recordRoadwheelAngle->isChecked(),
+                                              ui.checkBox_recordSpeed->isChecked());
+        m_dataRecorder->setRecordGps(gps_topic, ui.checkBox_recordYaw->isChecked(),
+                                     ui.checkBox_recordWGS84->isChecked());
+        m_dataRecorder->setRecordUtm(utm_topic, ui.checkBox_recordUTM->isChecked());
+        m_dataRecorder->setRecordImu(imu_topic, ui.checkBox_recordAnglularVel->isChecked(),
+                                     ui.checkBox_recordAccel->isChecked());
+
+        m_dataRecorder->setRecordStamp(ui.checkBox_recordDataStamp->isChecked());
+        bool ok = m_dataRecorder->start();
+
+        if(!ok)
+        {
+            ui.pushButton_startRecordData->setChecked(false);
+            return;
+        }
+
+        disableRecordDataConfigure(true);
+        ui.pushButton_startRecordData->setText(QString("Stop"));
+    }
+    else
+    {
+        m_dataRecorder->stop();
+        disableRecordDataConfigure(false);
+        ui.pushButton_startRecordData->setText(QString("Start"));
+    }
+}
+
+void av_console::MainWindow::updateDataRecorderLoggingView()
+{
+  ui.listView_dataRecorder->scrollToBottom();
+}
+
+void av_console::MainWindow::on_pushButton_selectRecordFile_clicked()
+{
+    if(m_recordFileDir.isEmpty())
+        m_recordFileDir = "/home/";
+
+    QString fileName = QFileDialog::getSaveFileName(this, QString("New File"), m_recordFileDir, "TXT(*txt)");
+    if(fileName.isEmpty())
+        return;
+
+    ui.lineEdit_recordFileName->setText(fileName);
+    m_recordFileDir = fileName;
+}
+
+bool av_console::MainWindow::getCommands()
+{
+    std::string file = QCoreApplication::applicationDirPath().toStdString() + "/../cmd/cmd.xml";
+
+}
+
 
