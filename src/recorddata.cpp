@@ -35,11 +35,13 @@ void RecordData::setRecordVehicleState(const std::string& topic, bool steerAngle
     {
         m_datas.push_back(&m_steer_angle);
         m_dataTitle += "steer_angle\t";
+        m_data_formats.push_back("%.2f\t");
     }
     if(speed)
     {
         m_datas.push_back(&m_speed);
         m_dataTitle += "speed(m/s)\t";
+        m_data_formats.push_back("%.2f\t");
     }
 
 }
@@ -55,6 +57,7 @@ void RecordData::setRecordGps(const std::string &topic, bool yaw, bool wgs84)
     {
         m_datas.push_back(&m_yaw);
         m_dataTitle += "yaw(deg)\t";
+        m_data_formats.push_back("%.2f\t");
     }
 
     if(wgs84)
@@ -63,6 +66,8 @@ void RecordData::setRecordGps(const std::string &topic, bool yaw, bool wgs84)
         m_datas.push_back(&m_lat);
 
         m_dataTitle += "longitude\tlatitude\t";
+        m_data_formats.push_back("%.7f\t");
+        m_data_formats.push_back("%.7f\t");
     }
 }
 
@@ -80,6 +85,9 @@ void RecordData::setRecordUtm(const std::string &topic, bool utm)
         m_datas.push_back(&m_z);
 
         m_dataTitle += "utm_x\tutm_y\tutm_z\t";
+        m_data_formats.push_back("%.3f\t");
+        m_data_formats.push_back("%.3f\t");
+        m_data_formats.push_back("%.3f\t");
     }
 }
 
@@ -98,6 +106,9 @@ void RecordData::setRecordImu(const std::string &topic, bool angular_v, bool acc
         m_datas.push_back(&m_omega_z);
 
         m_dataTitle += "omega_x\tomega_y\tomega_z\t";
+        m_data_formats.push_back("%.3f\t");
+        m_data_formats.push_back("%.3f\t");
+        m_data_formats.push_back("%.3f\t");
     }
     if(accel)
     {
@@ -106,6 +117,9 @@ void RecordData::setRecordImu(const std::string &topic, bool angular_v, bool acc
         m_datas.push_back(&m_accel_z);
 
         m_dataTitle += "accel_x\taccel_y\taccel_z\t";
+        m_data_formats.push_back("%.3f\t");
+        m_data_formats.push_back("%.3f\t");
+        m_data_formats.push_back("%.3f\t");
     }
 }
 
@@ -113,7 +127,9 @@ void RecordData::setRecordStamp(bool stamp)
 {
     m_recordTime = stamp;
     if(m_recordTime)
+    {
         m_dataTitle = "time\t" + m_dataTitle;
+    }
 }
 // 启动传感器的等待时间
 void RecordData::setLaunchSensorWaitTime(float t)
@@ -141,12 +157,15 @@ bool RecordData::start()
     }
     fprintf(m_fp, "%s\r\n", m_dataTitle.c_str());
 
-    m_timer = nh.createTimer(ros::Duration(1.0/m_record_frequency), &RecordData::recordTimerUpdate, this);
+    ros::Duration(1.0).sleep();
+    m_recorder_timer = nh.createTimer(ros::Duration(1.0/m_record_frequency), &RecordData::recordTimerUpdate, this);
+
+    return true;
 }
 
 void RecordData::stop()
 {
-    m_timer.stop();
+    m_recorder_timer.stop();
     m_sub_gps.shutdown();
     m_sub_imu.shutdown();
     m_sub_utm.shutdown();
@@ -161,6 +180,7 @@ void RecordData::stop()
 
     m_datas.clear();
     m_dataTitle.clear();
+    m_data_formats.clear();
     m_subscribers.clear();
 }
 
@@ -217,8 +237,8 @@ void RecordData::recordTimerUpdate(const ros::TimerEvent &event)
         std::lock_guard<std::mutex> lck3(m_imu_mutex);
         std::lock_guard<std::mutex> lck4(m_vehicle_state_mutex);
 
-        for(const double *data_ptr : m_datas)
-            fprintf(m_fp, "%.3f\t", *data_ptr);
+        for(int i=0; i<m_datas.size(); ++i)
+            fprintf(m_fp, m_data_formats[i].c_str(), *m_datas[i]);
         fprintf(m_fp, "\r\n");
 
         addLog(QString::number(++m_dataLineCnt));

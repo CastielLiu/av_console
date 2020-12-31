@@ -79,7 +79,7 @@ private:
     ros::NodeHandle nh_private;
 
     ros::Subscriber m_sub_gps, m_sub_utm, m_sub_imu, m_sub_vehicle_state;
-    ros::Timer m_timer;
+    ros::Timer m_recorder_timer, m_wait_timer;
 
     std::mutex m_vehicle_state_mutex, m_gps_mutex, m_utm_mutex, m_imu_mutex;
 
@@ -90,6 +90,7 @@ private:
     std::vector<Subscriber> m_subscribers;
     std::vector<double *> m_datas;
     std::string m_dataTitle;  //数据标题
+    std::vector<std::string> m_data_formats; //
     bool m_recordTime;
 
     FILE * m_fp;

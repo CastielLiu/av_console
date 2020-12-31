@@ -640,10 +640,10 @@ void av_console::MainWindow::on_pushButton_startRecordData_clicked(bool checked)
         m_dataRecorder->setRecordFrequency(ui.lineEdit_recordFrequency->text().toInt());
         m_dataRecorder->setLaunchSensorWaitTime(ui.lineEdit_recorderWaitTime->text().toInt());
 
-        std::string vehicle_state_topic = "/vehicle_state";
-        std::string gps_topic = "/inspvax";
-        std::string utm_topic = "/gps_odom";
-        std::string imu_topic = "/raw_imu";
+        std::string vehicle_state_topic = g_rosNodesArray["base_control"].topics["vehicle_state"];
+        std::string gps_topic = g_rosNodesArray["gps"].topics["inspvax"];
+        std::string utm_topic = g_rosNodesArray["gps"].topics["utm"];
+        std::string imu_topic = g_rosNodesArray["imu"].topics["corr_imu"];
 
         m_dataRecorder->setRecordVehicleState(vehicle_state_topic, ui.checkBox_recordRoadwheelAngle->isChecked(),
                                               ui.checkBox_recordSpeed->isChecked());

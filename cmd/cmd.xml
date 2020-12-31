@@ -2,8 +2,8 @@
 <RosNodesArray>
     <RosNodes name="gps">
         <LaunchCommand>roslaunch novatel novatel.launch &</LaunchCommand>
-        <Topic name="inspvax">/inspvax</Topic>
-        <Topic name="utm">/gps_odom</Topic>
+        <Topic name="inspvax">/gps</Topic>
+        <Topic name="utm">/ll2utm_odom</Topic>
     </RosNodes>
 
     <RosNodes name="imu">
@@ -14,7 +14,7 @@
 
     <RosNodes name="base_control">
         <LaunchCommand>roslaunch ant_driver ant_driver.launch &</LaunchCommand>
-        <Topic name="vehicle_state">/vehicle_state</Topic>
+        <Topic name="vehicle_state">/vehicleState</Topic>
     </RosNodes>
     
     <RosNodes name="driverless">
