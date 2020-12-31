@@ -240,19 +240,19 @@ void RecordData::recordTimerUpdate(const ros::TimerEvent &event)
             //m_sub_gps, m_sub_utm, m_sub_imu, m_sub_vehicle_state;
             if(sub.name == "m_sub_gps")
             {
-                av_console::launchGpsNode();
+                av_console::launchRosNodes("gps");
                 addLog("launching gps node...");
             }
             //if(sub.name == "m_sub_utm")
             //    av_console::launchUtmNode()
             if(sub.name == "m_sub_imu")
             {
-                av_console::launchImuNode();
+                av_console::launchRosNodes("imu");
                 addLog("launching imu node...");
             }
             if(sub.name == "m_sub_vehicle_state")
             {
-                av_console::launchVehicleStateNode();
+                av_console::launchRosNodes("base_control");
                 addLog("launching vehicle state node...");
             }
 

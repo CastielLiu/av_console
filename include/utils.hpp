@@ -4,23 +4,22 @@
 #include <fstream>
 #include <cstdio>
 #include "structs.hpp"
+#include "globalvariables.hpp"
+#include <sstream>
 
 namespace av_console {
 
-//启动GPS节点
-static void launchGpsNode()
+//启动ros nodes节点
+static bool launchRosNodes(const std::string& nodes_name)
 {
+    std::string launch_cmd = g_rosNodesArray[nodes_name].launch_cmd;
+    if(launch_cmd.empty())
+        return false;
 
-}
-//启动IMU节点
-static void launchImuNode()
-{
-
-}
-//启动汽车状态节点
-static void launchVehicleStateNode()
-{
-
+    std::string cmd = /*std::string("gnome-terminal -x ") +*/ launch_cmd;
+    std::cout <<"run: [" << cmd << "]" << std::endl;
+    system(cmd.c_str());
+    std::cout <<"run: [" << cmd << "]" << std::endl;
 }
 
 static bool loadPathPoints(std::string file_path,PoseArray& path)

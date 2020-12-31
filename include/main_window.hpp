@@ -13,9 +13,11 @@
 #include <QObjectList>
 #include <QCheckBox>
 #include "utils.hpp"
+#include "globalvariables.hpp"
 #include <ctime>
 #include <queue>
 #include <algorithm>
+#include <tinyxml2.h>
 
 namespace av_console {
 
@@ -70,6 +72,8 @@ private Q_SLOTS:
 private:
     QObjectList getAllLeafChilds(QObject* object);
     void disableRecordDataConfigure(bool flag);
+    bool loadRosNodesArrayInfo();
+    void displayRosNodesArrayInfo();
 
 private:
     Ui::MainWindow ui;
@@ -82,6 +86,8 @@ private:
 
     QTimer mTimer;
     //CustomTaskDialog* m_customDialog;
+
+    bool m_rosNodesArrayInvalid;
 
 };
 

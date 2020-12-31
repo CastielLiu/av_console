@@ -32,7 +32,6 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
     QObject::connect(&qnode, SIGNAL(rosmasterOffline()), this, SLOT(onRosmasterOffline()));
     QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
 
-
     this->initSensorStatusWidget();
 
     //launchDrivelessNode();
@@ -90,7 +89,8 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
 
         if(!qnode.serverConnected())
         {
-            this->showMessgeInStatusBar("driverless server is not connected!", true);
+            this->showMessgeInStatusBar("driverless server is not connected! restarting driverless program...", true);
+            launchRosNodes("driverless");
             onTaskStateChanged(qnode.Idle);
             return;
         }
@@ -218,6 +218,9 @@ void MainWindow::on_pushButton_connect_clicked()
 
     //实例化数据记录器
     m_dataRecorder = new RecordData();
+    //载入RosNodesArray信息
+    m_rosNodesArrayInvalid = loadRosNodesArrayInfo();
+
 }
 
 
@@ -688,10 +691,70 @@ void av_console::MainWindow::on_pushButton_selectRecordFile_clicked()
     m_recordFileDir = fileName;
 }
 
-bool av_console::MainWindow::getCommands()
+bool av_console::MainWindow::loadRosNodesArrayInfo()
 {
     std::string file = QCoreApplication::applicationDirPath().toStdString() + "/../cmd/cmd.xml";
 
+    tinyxml2::XMLDocument Doc;   //定义xml文件对象
+    tinyxml2::XMLError res = Doc.LoadFile(file.c_str());
+
+    if(tinyxml2::XML_ERROR_FILE_NOT_FOUND == res)
+    {
+        qnode.log(QNode::Error ,std::string("load ") + file + " failed");
+        return false;
+    }
+    else if(tinyxml2::XML_SUCCESS != res)
+    {
+        qnode.log(QNode::Error ,std::string("parse ") + file + " failed");
+        return false;
+    }
+    tinyxml2::XMLElement *pRoot = Doc.RootElement();
+
+    //第一个子节点 RosNodes
+    const tinyxml2::XMLElement *pRosNodes = pRoot->FirstChildElement();
+    while(pRosNodes)
+    {
+        std::string ros_nodes_name(pRosNodes->Attribute("name"));
+        RosNodes & ros_nodes = g_rosNodesArray[ros_nodes_name];
+
+        const tinyxml2::XMLElement *pChild = pRosNodes->FirstChildElement();
+        while(pChild)
+        {
+            std::string child_name(pChild->Name());
+            if(child_name == "LaunchCommand")
+            {
+                std::string launch_cmd(pChild->GetText());
+                ros_nodes.launch_cmd = launch_cmd;
+            }
+            else if(child_name == "Topic")
+            {
+                std::string topic_name(pChild->Attribute("name"));
+                std::string topic_val(pChild->GetText());
+
+                ros_nodes.topics[topic_name] = topic_val;
+            }
+            pChild = pChild->NextSiblingElement();//转到下一子节点
+        }
+        pRosNodes = pRosNodes->NextSiblingElement();//转到下一子节点，链表结构
+    }
+
+    //this->displayRosNodesArrayInfo();
+    return true;
+}
+
+void av_console::MainWindow::displayRosNodesArrayInfo()
+{
+    for(RosNodesArray::iterator iter=g_rosNodesArray.begin(); iter!=g_rosNodesArray.end(); ++iter)
+    {
+        std::string name = iter->first;
+        RosNodes& rosNodes = iter->second;
+        std::cout << name << " cmd: " << rosNodes.launch_cmd << std::endl;
+
+        for(std::unordered_map<std::string, std::string>::iterator it=rosNodes.topics.begin();
+            it != rosNodes.topics.end(); ++it)
+            std::cout << "topic name: " << it->first << "\ttopic value: " << it->second << std::endl;
+        std::cout << "--------------------\r\n";
+    }
 }
 
 

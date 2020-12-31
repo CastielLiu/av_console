@@ -1,8 +1,28 @@
 <?xml version="1.0"?>
-<AntCommands>
+<RosNodesArray>
+    <RosNodes name="gps">
+        <LaunchCommand>roslaunch novatel novatel.launch &</LaunchCommand>
+        <Topic name="inspvax">/inspvax</Topic>
+        <Topic name="utm">/gps_odom</Topic>
+    </RosNodes>
 
-    <Command name="gps"> roslaunch novatel novatel.launch </Command>
-    <Command name="imu"> roslaunch novatel imu.launch </Command>
-    <Command name="base_control"> roslaunch ant_driver ant_driver.launch </Command>
+    <RosNodes name="imu">
+        <LaunchCommand>roslaunch novatel novatel_imu.launch & </LaunchCommand>
+        <Topic name="raw_imu">/raw_imu</Topic>
+        <Topic name="corr_imu">/corr_imu</Topic>
+    </RosNodes>
+
+    <RosNodes name="base_control">
+        <LaunchCommand>roslaunch ant_driver ant_driver.launch &</LaunchCommand>
+        <Topic name="vehicle_state">/vehicle_state</Topic>
+    </RosNodes>
     
-</AntCommands>
+    <RosNodes name="driverless">
+        <LaunchCommand>roslaunch driverless driverless.launch &</LaunchCommand>
+    </RosNodes>
+    
+    <RosNodes name="killros">
+        <LaunchCommand>rosnode kill --all && killall -9 roscore && killall -9 rosmaster</LaunchCommand>
+    </RosNodes>
+
+</RosNodesArray>

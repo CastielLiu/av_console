@@ -1,6 +1,7 @@
 #ifndef STRUCTS_HPP
 #define STRUCTS_HPP
 #include <vector>
+#include <unordered_map>
 
 namespace av_console {
 
@@ -33,6 +34,19 @@ typedef struct _PoseArray
 {
     std::vector<Pose> poses;
 }PoseArray;
+
+//
+typedef struct _RosNodes
+{
+    std::string name;
+    std::string launch_cmd;
+
+    //topic_name, topic_value
+    std::unordered_map<std::string, std::string> topics;
+}RosNodes;
+
+//rosNode_name, rosNodes
+typedef std::unordered_map<std::string, RosNodes> RosNodesArray;
 
 }
 

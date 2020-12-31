@@ -12,5 +12,10 @@ int main(int argc, char **argv)
     app.connect(&app, SIGNAL(lastWindowClosed()), &app, SLOT(quit()));
     int result = app.exec();
 
+
+    //app->exit(777);
+    if(result == 777) //restart
+        QProcess::startDetached(qApp->applicationFilePath(), QStringList());
+
 	return result;
 }
