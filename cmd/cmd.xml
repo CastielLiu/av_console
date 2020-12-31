@@ -21,6 +21,12 @@
         <LaunchCommand>roslaunch driverless driverless.launch &</LaunchCommand>
     </RosNodes>
     
+    <RosNodes name="kill_driverless">
+        <LaunchCommand>rosnode kill /ant_driver_node &</LaunchCommand>
+    </RosNodes>
+    
+    
+    
     <RosNodes name="killros">
         <LaunchCommand>rosnode kill --all && killall -9 roscore && killall -9 rosmaster</LaunchCommand>
     </RosNodes>
