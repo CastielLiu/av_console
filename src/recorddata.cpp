@@ -2,7 +2,8 @@
 
 RecordData::RecordData():
     nh_private("~"),
-    m_fp(NULL)
+    m_fp(NULL),
+    m_disable(true)
 {
 
 }
@@ -139,6 +140,9 @@ void RecordData::setLaunchSensorWaitTime(float t)
 
 bool RecordData::start()
 {
+    if(m_disable)
+        return false;
+
     m_dataLineCnt = 0;
     m_validPublisherCnt = 0;
     m_waitNodeLaunched = false;

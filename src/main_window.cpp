@@ -90,6 +90,7 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         if(!qnode.serverConnected())
         {
             this->showMessgeInStatusBar("driverless server is not connected! restarting driverless program...", true);
+            qnode.stampedLog(qnode.Info, "driverless server is not connected! restarting driverless program...");
             launchRosNodes("driverless");
             onTaskStateChanged(qnode.Idle);
             return;
@@ -191,9 +192,11 @@ void MainWindow::on_pushButton_connect_clicked()
         if (!qnode.init())
         {
             showMessgeInStatusBar("roscore is not running. please wait a moment and reconnect.", true);
+            qnode.log("roscore is not running. please wait a moment and reconnect.");
             return;
         }
         showMessgeInStatusBar("connect to rosmaster ok.");
+        qnode.stampedLog(qnode.Info, "connect to rosmaster ok.");
         qnode.start();
         ui.pushButton_connect->setEnabled(false);
 
@@ -213,7 +216,6 @@ void MainWindow::on_pushButton_connect_clicked()
 			ui.line_edit_host->setReadOnly(true);
 		}
 	}
-    qnode.log(QNode::Info,"connect to ros master ok!");
     m_nodeInited = true;
 
     //实例化数据记录器
@@ -333,7 +335,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
                                        QMessageBox::No);
     if(button == QMessageBox::Yes)
     {
-        killDriverlessNode();
+        launchRosNodes("kill_driverless");
         event->accept();
         QMainWindow::closeEvent(event);
     }
@@ -393,8 +395,8 @@ bool av_console::MainWindow::changeToCmdDir(bool mode)
       pclose(fp);
       if(std::string(buf).find("home") == std::string::npos)
       {
-          //qnode.log(qnode.Error, std::string(buf));
-          qnode.log(qnode.Error,"change to cmd directory failed!");
+          //qnode.stampedLog(qnode.Error, std::string(buf));
+          qnode.stampedLog(qnode.Error,"change to cmd directory failed!");
           return false;
       }
       cmdPath = tr(buf);
@@ -410,7 +412,7 @@ bool av_console::MainWindow::changeToCmdDir(bool mode)
   cmdDir.cd(cmdPath);      //修改目录，仅修改了目录名，未切换
   cmdDir.cd("../cmd");
   QDir::setCurrent(cmdDir.absolutePath()); //切换目录
-  qnode.log(qnode.Info,cmdDir.absolutePath().toStdString());
+  qnode.stampedLog(qnode.Info,cmdDir.absolutePath().toStdString());
 
   parsed = true;
   return true;
@@ -501,10 +503,27 @@ void av_console::MainWindow::on_pushButton_openRoadNet_clicked()
 
 void av_console::MainWindow::on_tabWidget_currentChanged(int index)
 {
-    if(qnode.initialed())
+    static int last_index = 0;
+    if(!qnode.initialed())
+    {
+        ui.tabWidget->setCurrentIndex(stackWidgetIndex_driverless);
+        showMessgeInStatusBar("please connect to master firstly!", true);
+        qnode.log("please connect to master firstly!");
         return;
-    ui.tabWidget->setCurrentIndex(0);
-    ui.statusbar->showMessage("please connect to master firstly!",3000);
+    }
+    if(index == stackWidgetIndex_recorder)
+    {
+        bool ok;
+        QString text = QInputDialog::getText(this, "Infomation", "This feature is under development",
+                                                     QLineEdit::Normal,
+                                                     "",&ok);
+        if(text == "seucar")
+            m_dataRecorder->setDisable(false);
+        else
+            m_dataRecorder->setDisable(true);
+    }
+
+    last_index = index;
 }
 
 void av_console::MainWindow::onTaskStateChanged(int state)
@@ -700,12 +719,12 @@ bool av_console::MainWindow::loadRosNodesArrayInfo()
 
     if(tinyxml2::XML_ERROR_FILE_NOT_FOUND == res)
     {
-        qnode.log(QNode::Error ,std::string("load ") + file + " failed");
+        qnode.stampedLog(QNode::Error ,std::string("load ") + file + " failed");
         return false;
     }
     else if(tinyxml2::XML_SUCCESS != res)
     {
-        qnode.log(QNode::Error ,std::string("parse ") + file + " failed");
+        qnode.stampedLog(QNode::Error ,std::string("parse ") + file + " failed");
         return false;
     }
     tinyxml2::XMLElement *pRoot = Doc.RootElement();

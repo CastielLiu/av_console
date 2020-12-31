@@ -23,6 +23,13 @@ namespace av_console {
 
 class MainWindow : public QMainWindow {
 Q_OBJECT
+    enum stackWidgetIndex
+    {
+      stackWidgetIndex_driverless = 0,
+      stackWidgetIndex_planning   = 1,
+      stackWidgetIndex_sensors    = 2,
+      stackWidgetIndex_recorder   = 3,
+    };
 
 public:
 	MainWindow(int argc, char** argv, QWidget *parent = 0);

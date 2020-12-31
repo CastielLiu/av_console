@@ -44,7 +44,8 @@ public:
     };
 
 	QStringListModel* loggingModel() { return &logging_model; }
-	void log( const LogLevel &level, const std::string &msg);
+    void log(const std::string &msg);
+    void stampedLog( const LogLevel &level, const std::string &msg);
 	bool initialed(){return is_init;}
     bool serverConnected();
     void requestDriverlessTask(const driverless::DoDriverlessTaskGoal& goal);

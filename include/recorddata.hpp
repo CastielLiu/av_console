@@ -53,6 +53,7 @@ public:
     void setRecordUtm(const std::string &topic, bool utm);
     void setRecordStamp(bool stamp);
     void setRecordImu(const std::string &topic, bool angular_v, bool accel);
+    void setDisable(bool flag){m_disable = flag;}
     bool start();
     void stop();
 
@@ -100,6 +101,8 @@ private:
     bool m_waitNodeLaunched; //是否需要等待节点启动？
     double m_launchSensorTime; //开始启动节点的时间
     float m_launchSensorWaitTime; //启动传感器的等待时间
+
+    bool m_disable; //是否禁用功能
 
 };
 

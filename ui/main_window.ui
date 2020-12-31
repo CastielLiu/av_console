@@ -49,7 +49,7 @@
        <locale language="English" country="Australia"/>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>3</number>
       </property>
       <property name="iconSize">
        <size>
@@ -57,7 +57,7 @@
         <height>16</height>
        </size>
       </property>
-      <widget class="QWidget" name="tab_status">
+      <widget class="QWidget" name="tab_driverless">
        <attribute name="title">
         <string>Driverless</string>
        </attribute>
@@ -565,7 +565,7 @@ padding: 0 3px 0 3px;
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab">
+      <widget class="QWidget" name="tab_planning">
        <attribute name="title">
         <string>Planning</string>
        </attribute>

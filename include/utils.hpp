@@ -17,9 +17,9 @@ static bool launchRosNodes(const std::string& nodes_name)
         return false;
 
     std::string cmd = /*std::string("gnome-terminal -x ") +*/ launch_cmd;
-    std::cout <<"run: [" << cmd << "]" << std::endl;
+    //std::cout <<"run: [" << cmd << "]" << std::endl;
     system(cmd.c_str());
-    std::cout <<"run: [" << cmd << "]" << std::endl;
+    //std::cout <<"run: [" << cmd << "]" << std::endl;
 }
 
 static bool loadPathPoints(std::string file_path,PoseArray& path)

@@ -95,7 +95,7 @@ void QNode::run()
     }
     if(!ros::master::check())
     {
-        log(Warn, "Ros Master is shutdown. You Must Reconnect Before Any Task!");
+        stampedLog(Warn, "Ros Master is shutdown. You Must Reconnect Before Any Task!");
         Q_EMIT rosmasterOffline();
         is_init = false;
     }
@@ -189,7 +189,17 @@ void QNode::sensorStatusTimer_callback(const ros::TimerEvent& )
     }
 }
 
-void QNode::log( const LogLevel &level, const std::string &msg) {
+void QNode::log(const std::string &msg)
+{
+    logging_model.insertRows(logging_model.rowCount(),1);
+
+    QVariant new_row(QString(msg.c_str()));
+    logging_model.setData(logging_model.index(logging_model.rowCount()-1),new_row);
+    Q_EMIT loggingUpdated(); // used to readjust the scrollbar
+
+}
+
+void QNode::stampedLog( const LogLevel &level, const std::string &msg) {
 	logging_model.insertRows(logging_model.rowCount(),1);
 	std::stringstream logging_model_msg;
     double now = ros::Time::now().toSec();
@@ -197,31 +207,26 @@ void QNode::log( const LogLevel &level, const std::string &msg) {
     logging_model_msg << std::fixed << std::setprecision(2);
 
 	switch ( level ) {
-		case(Debug) : {
-				ROS_DEBUG_STREAM(msg);
-                logging_model_msg << "[DEBUG] [" << now << "]: " << msg;
-				break;
-		}
-		case(Info) : {
-				ROS_INFO_STREAM(msg);
-                logging_model_msg << "[INFO] [" << now << "]: " << msg;
-				break;
-		}
-		case(Warn) : {
-				ROS_WARN_STREAM(msg);
-                logging_model_msg << "[INFO] [" << now << "]: " << msg;
-				break;
-		}
-		case(Error) : {
-				ROS_ERROR_STREAM(msg);
-                logging_model_msg << "[ERROR] [" << now << "]: " << msg;
-				break;
-		}
-		case(Fatal) : {
-				ROS_FATAL_STREAM(msg);
-                logging_model_msg << "[FATAL] [" << now << "]: " << msg;
-				break;
-		}
+        case(Debug) :
+            ROS_DEBUG_STREAM(msg);
+            logging_model_msg << "[DEBUG] [" << now << "]: " << msg;
+            break;
+        case(Info) :
+            ROS_INFO_STREAM(msg);
+            logging_model_msg << "[INFO] [" << now << "]: " << msg;
+            break;
+        case(Warn) :
+            ROS_WARN_STREAM(msg);
+            logging_model_msg << "[INFO] [" << now << "]: " << msg;
+            break;
+        case(Error) :
+            ROS_ERROR_STREAM(msg);
+            logging_model_msg << "[ERROR] [" << now << "]: " << msg;
+            break;
+        case(Fatal) :
+            ROS_FATAL_STREAM(msg);
+            logging_model_msg << "[FATAL] [" << now << "]: " << msg;
+            break;
 	}
 	QVariant new_row(QString(logging_model_msg.str().c_str()));
 	logging_model.setData(logging_model.index(logging_model.rowCount()-1),new_row);
