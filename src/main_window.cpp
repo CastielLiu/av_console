@@ -668,7 +668,8 @@ void av_console::MainWindow::on_pushButton_startRecordData_clicked(bool checked)
                                               ui.checkBox_recordSpeed->isChecked());
         m_dataRecorder->setRecordGps(gps_topic, ui.checkBox_recordYaw->isChecked(),
                                      ui.checkBox_recordWGS84->isChecked());
-        m_dataRecorder->setRecordUtm(utm_topic, ui.checkBox_recordUTM->isChecked());
+        m_dataRecorder->setRecordUtm(utm_topic, ui.checkBox_recordYaw->isChecked(),
+                                     ui.checkBox_recordUTM->isChecked());
         m_dataRecorder->setRecordImu(imu_topic, ui.checkBox_recordAnglularVel->isChecked(),
                                      ui.checkBox_recordAccel->isChecked());
 

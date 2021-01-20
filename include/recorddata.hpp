@@ -50,7 +50,7 @@ public:
     void setLaunchSensorWaitTime(float t);
     void setRecordVehicleState(const std::string &topic, bool steerAngle, bool speed);
     void setRecordGps(const std::string &topic, bool yaw, bool wgs84);
-    void setRecordUtm(const std::string &topic, bool utm);
+    void setRecordUtm(const std::string &topic, bool yaw, bool utm);
     void setRecordStamp(bool stamp);
     void setRecordImu(const std::string &topic, bool angular_v, bool accel);
     void setDisable(bool flag){m_disable = flag;}
@@ -85,7 +85,7 @@ private:
     std::mutex m_vehicle_state_mutex, m_gps_mutex, m_utm_mutex, m_imu_mutex;
 
     double m_speed, m_steer_angle; //vehicle state
-    double m_lon, m_lat, m_yaw, m_x, m_y, m_z; //gps
+    double m_lon, m_lat, m_yaw_NED, m_yaw_ENU , m_x, m_y, m_z; //gps
     double m_omega_x, m_omega_y, m_omega_z, m_accel_x, m_accel_y, m_accel_z; //imu
 
     std::vector<Subscriber> m_subscribers;
