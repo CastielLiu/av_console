@@ -350,13 +350,11 @@ void av_console::MainWindow::on_pushButton_gps_clicked(bool checked)
 {
     if(checked)
     {
-      changeToCmdDir();
-      system("gnome-terminal -e ./gps.sh");
+      launchRosNodes("gps");
     }
     else
     {
-      changeToCmdDir();
-      system("gnome-terminal -e ./kill_gps.sh");
+      ui.pushButton_gps->setChecked(true);
     }
 }
 
@@ -778,4 +776,10 @@ void av_console::MainWindow::displayRosNodesArrayInfo()
     }
 }
 
-
+void av_console::MainWindow::on_pushButton_lidar_clicked(bool checked)
+{
+  if(checked)
+  {
+    launchRosNodes("lidar");
+  }
+}

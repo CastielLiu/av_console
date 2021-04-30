@@ -76,6 +76,8 @@ private Q_SLOTS:
     void on_pushButton_selectRecordFile_clicked();
     void updateDataRecorderLoggingView();
 
+    void on_pushButton_lidar_clicked(bool checked);
+    
 private:
     QObjectList getAllLeafChilds(QObject* object);
     void disableRecordDataConfigure(bool flag);
