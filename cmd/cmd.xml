@@ -3,7 +3,7 @@
     <RosNodes name="gps">
         <LaunchCommand>roslaunch novatel novatel.launch &</LaunchCommand>
         <Topic name="inspvax">/gps</Topic>
-        <Topic name="utm">/ll2utm_odom</Topic>
+        <Topic name="utm">/gps_odom</Topic>
     </RosNodes>
 
     <RosNodes name="lidar">
