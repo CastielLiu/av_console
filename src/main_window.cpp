@@ -431,9 +431,11 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
             m_pathRecorder->log("INFO","No Location Message Published, Starting GPS Automatically.");
         }
         ui.pushButton_pathPlanning->setText("Stop And Save");
+        ui.groupBox_pathPlanConfig->setDisabled(false);
     }
     else
     {
+        ui.groupBox_pathPlanConfig->setDisabled(true);
         m_pathRecorder->stop();
         if(m_pathRecorder->pathPointsSize() == 0)
         {
@@ -782,4 +784,92 @@ void av_console::MainWindow::on_pushButton_lidar_clicked(bool checked)
   {
     launchRosNodes("lidar");
   }
+}
+
+void av_console::MainWindow::on_pushButton_setPathWidth_clicked()
+{
+    assert(m_pathRecorder);
+    bool ok;
+    float left = ui.lineEdit_leftRoadWidth->text().toFloat(&ok);
+    if(!ok)
+    {
+        ui.lineEdit_leftRoadWidth->setText("Error");
+        return;
+    }
+    float right = ui.lineEdit_rightRoadWidth->text().toFloat(&ok);
+    if(!ok)
+    {
+        ui.lineEdit_rightRoadWidth->setText("Error");
+        return;
+    }
+    m_pathRecorder->setRoadWidth(left, right);
+}
+
+void av_console::MainWindow::on_pushButton_setLeftTurn_clicked(bool checked)
+{
+    assert(m_pathRecorder);
+    size_t currentIdx = m_pathRecorder->getPointsSize() - 1;
+    static size_t start_turn_index;
+
+    if(checked) //start
+    {
+        start_turn_index = currentIdx;
+        ui.pushButton_setLeftTurn->setText("End Left Turn");
+        ui.pushButton_setLeftTurn->setStyleSheet(QString::fromUtf8("font: 10pt \"Sans Serif\";color: rgb(255, 0, 0);"));
+
+        ui.pushButton_setRightTurn->setDisabled(true);
+    }
+    else //end
+    {
+        size_t end_turn_index = currentIdx;
+        m_pathRecorder->setTurnRange("left",start_turn_index, end_turn_index);
+        ui.pushButton_setLeftTurn->setText("Start Left Turn");
+        ui.pushButton_setLeftTurn->setStyleSheet(QString::fromUtf8("font: 10pt \"Sans Serif\";"));
+
+        ui.pushButton_setRightTurn->setDisabled(false);
+    }
+}
+
+void av_console::MainWindow::on_pushButton_setRightTurn_clicked(bool checked)
+{   
+    assert(m_pathRecorder);
+    size_t currentIdx = m_pathRecorder->getPointsSize() - 1;
+    static size_t start_turn_index;
+
+    if(checked) //start
+    {
+        start_turn_index = currentIdx;
+        ui.pushButton_setRightTurn->setText("End Right Turn");
+        ui.pushButton_setRightTurn->setStyleSheet(QString::fromUtf8("font: 10pt \"Sans Serif\";color: rgb(255, 0, 0);"));
+
+        ui.pushButton_setLeftTurn->setDisabled(true);
+    }
+    else //end
+    {
+        size_t end_turn_index = currentIdx;
+        m_pathRecorder->setTurnRange("right",start_turn_index, end_turn_index);
+        ui.pushButton_setRightTurn->setText("Start Right Turn");
+        ui.pushButton_setRightTurn->setStyleSheet(QString::fromUtf8("font: 10pt \"Sans Serif\";"));
+
+        ui.pushButton_setLeftTurn->setDisabled(false);
+    }
+}
+
+void av_console::MainWindow::on_pushButton_setParkPoint_clicked()
+{
+    assert(m_pathRecorder);
+    size_t duration = ui.lineEdit_parkDuration->text().toInt();
+    if(duration <= 0)
+    {
+        ui.lineEdit_parkDuration->setText(QString("Error"));
+        return;
+    }
+    m_pathRecorder->setParkPoint(duration);
+
+    static bool newOp = true;
+    if(newOp)
+        ui.pushButton_setParkPoint->setStyleSheet(QString::fromUtf8("font: 10pt \"Sans Serif\"; color: rgb(255, 0, 0);"));
+    else
+        ui.pushButton_setParkPoint->setStyleSheet(QString::fromUtf8("font: 10pt \"Sans Serif\";"));
+    newOp = !newOp;
 }

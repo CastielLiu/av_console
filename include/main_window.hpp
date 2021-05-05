@@ -78,6 +78,14 @@ private Q_SLOTS:
 
     void on_pushButton_lidar_clicked(bool checked);
     
+    void on_pushButton_setPathWidth_clicked();
+
+    void on_pushButton_setLeftTurn_clicked(bool checked);
+
+    void on_pushButton_setRightTurn_clicked(bool checked);
+
+    void on_pushButton_setParkPoint_clicked();
+
 private:
     QObjectList getAllLeafChilds(QObject* object);
     void disableRecordDataConfigure(bool flag);
