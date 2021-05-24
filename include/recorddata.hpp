@@ -8,7 +8,6 @@
 #include <ros/ros.h>
 #include <ant_msgs/State.h>
 #include <sensor_msgs/Imu.h>
-#include <gps_msgs/Inspvax.h>
 #include <nav_msgs/Odometry.h>
 #endif
 
@@ -63,7 +62,6 @@ public:
 private:
     void vehicleStateCallback(const ant_msgs::State::ConstPtr& msg);
     void imuCallback(const sensor_msgs::Imu::ConstPtr& msg);
-    void inspvaxCallback(const gps_msgs::Inspvax::ConstPtr& msg);
     void utmOdomCallback(const nav_msgs::Odometry::ConstPtr& msg);
     void recordTimerUpdate(const ros::TimerEvent  &event);
     void addLog(const QString& log);

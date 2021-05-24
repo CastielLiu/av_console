@@ -14,12 +14,11 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
     qt_build
     roscpp
-    diagnostic_msgs
     sensor_msgs
     driverless
     actionlib
     actionlib_msgs
-    ant_msgs
+    logistics_msgs
 )
 include_directories(${catkin_INCLUDE_DIRS} include/)
 # Use this to define what the package will export (e.g. libs, headers).

@@ -40,6 +40,7 @@ public:
 
 	void showNoMasterMessage();
     bool changeToCmdDir(bool mode=false);
+    void initWidgetSize();
     void initSensorStatusWidget();
     void showMessgeInStatusBar(const QString& msg, bool warnning=false);
 
@@ -50,6 +51,7 @@ public:
         system("gnome-terminal -e \"rosnode kill /driverless_node\"");
     }
     void setPushButtonStylesheet(const QString& style);
+
 
 public Q_SLOTS:
 	void on_actionAbout_triggered();
@@ -63,7 +65,7 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void on_pushButton_gps_clicked(bool checked);
-    void on_pushButton_rtk_clicked(bool checked);
+    void on_pushButton_cluster_clicked(bool checked);
     void on_pushButton_pathPlanning_clicked(bool checked);
     void on_pushButton_openRoadNet_clicked();
     void on_pushButton_driverlessStart_clicked(bool checked);
@@ -76,15 +78,9 @@ private Q_SLOTS:
     void on_pushButton_selectRecordFile_clicked();
     void updateDataRecorderLoggingView();
 
-    void on_pushButton_lidar_clicked(bool checked);
-    
-    void on_pushButton_setPathWidth_clicked();
+    void on_pushButton_livox_clicked(bool checked);
 
-    void on_pushButton_setLeftTurn_clicked(bool checked);
-
-    void on_pushButton_setRightTurn_clicked(bool checked);
-
-    void on_pushButton_setParkPoint_clicked();
+    void on_pushButton_lsRadar_clicked(bool checked);
 
 private:
     QObjectList getAllLeafChilds(QObject* object);

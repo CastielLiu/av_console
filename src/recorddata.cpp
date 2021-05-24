@@ -49,11 +49,11 @@ void RecordData::setRecordVehicleState(const std::string& topic, bool steerAngle
 
 void RecordData::setRecordGps(const std::string &topic, bool yaw, bool wgs84)
 {
-    if(yaw || wgs84)
-        m_sub_gps = nh.subscribe<gps_msgs::Inspvax>(topic, 1, &RecordData::inspvaxCallback, this);
+    if(wgs84 || yaw)
+        m_sub_utm = nh.subscribe<nav_msgs::Odometry>(topic, 1, &RecordData::utmOdomCallback, this);
     else
         return;
-    m_subscribers.emplace_back("m_sub_gps", &m_sub_gps);
+    m_subscribers.emplace_back("m_sub_utm", &m_sub_utm);
     if(yaw)
     {
         m_datas.push_back(&m_yaw_NED);
@@ -216,14 +216,6 @@ void RecordData::imuCallback(const sensor_msgs::Imu::ConstPtr& msg)
 
 }
 
-void RecordData::inspvaxCallback(const gps_msgs::Inspvax::ConstPtr& msg)
-{
-    std::lock_guard<std::mutex> lck(m_gps_mutex);
-    m_lon = msg->longitude;
-    m_lat = msg->latitude;
-    m_yaw_NED = msg->azimuth;
-}
-
 void RecordData::utmOdomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
     std::lock_guard<std::mutex> lck(m_utm_mutex);
@@ -232,6 +224,10 @@ void RecordData::utmOdomCallback(const nav_msgs::Odometry::ConstPtr& msg)
     m_x = position.x;
     m_y = position.y;
     m_z = position.z;
+
+    m_lon = msg->pose.covariance[1];
+    m_lat = msg->pose.covariance[2];
+    m_yaw_NED = 0.0;
 
     m_yaw_ENU = msg->pose.covariance[0]*180.0/M_PI; //yaw
 }

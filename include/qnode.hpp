@@ -18,7 +18,8 @@
 #include <QStringListModel>
 #include <sensor_msgs/NavSatFix.h>
 #include <sensor_msgs/PointCloud2.h>
-#include <diagnostic_msgs/DiagnosticStatus.h>
+#include <nav_msgs/Odometry.h>
+//#include<diagnostic_msgs/DiagnosticStatus.h>
 
 namespace av_console {
 
@@ -52,9 +53,10 @@ public:
     void cancleAllGoals();
 
 private:
-    void gpsFix_callback(const sensor_msgs::NavSatFix::ConstPtr& gps_fix);
+    void gps_callback(const nav_msgs::Odometry::ConstPtr& gps_msg);
     void lidar_callback(const sensor_msgs::PointCloud2::ConstPtr& );
-    void diagnostic_callback(const diagnostic_msgs::DiagnosticStatus::ConstPtr& msg);
+    void livox_callback(const sensor_msgs::PointCloud2::ConstPtr& );
+    //void diagnostic_callback(const diagnostic_msgs::DiagnosticStatus::ConstPtr& msg);
     void sensorStatusTimer_callback(const ros::TimerEvent& );
 
     void taskFeedbackCallback(const driverless::DoDriverlessTaskFeedbackConstPtr& fd);
@@ -75,11 +77,11 @@ private:
     QStringListModel logging_model;
 	bool is_init;
 
-    sensor_t gps,rtk,camera1,lidar,esr;
+    sensor_t gps,camera1,lidar,livox;
     std::vector<sensor_t*> sensors;
     ros::Subscriber gps_sub;
     ros::Subscriber lidar_sub;
-    ros::Subscriber diagnostic_sub;
+    ros::Subscriber livox_sub;
     ros::Timer      sensorStatus_timer;
 
     DoDriverlessTaskClient* ac_;

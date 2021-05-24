@@ -17,7 +17,8 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
     qnode(argc,argv),
     m_nodeInited(false),
     m_pathRecorder(nullptr),
-    m_dataRecorder(nullptr)
+    m_dataRecorder(nullptr),
+    m_rosNodesArrayInvalid(false)
 {
     ui.setupUi(this);
 
@@ -31,8 +32,12 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
     QObject::connect(&qnode, SIGNAL(taskStateChanged(int)), this, SLOT(onTaskStateChanged(int)));
     QObject::connect(&qnode, SIGNAL(rosmasterOffline()), this, SLOT(onRosmasterOffline()));
     QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
+    mTimer.start(500);
+
+    ui.widget_rosEnv->hide();
 
     this->initSensorStatusWidget();
+    this->initWidgetSize();
 
     //launchDrivelessNode();
 }
@@ -41,24 +46,36 @@ MainWindow::~MainWindow()
 {
     if(m_dataRecorder != nullptr)
         delete m_dataRecorder;
+}
 
+void MainWindow::initWidgetSize()
+{
+    int height = 50;
+    ui.pushButton_connect->setFixedHeight(height);
+    ui.pushButton_driverlessStart->setFixedHeight(height);
+    ui.pushButton_openRoadNet->setFixedHeight(height);
+    ui.pushButton_quit->setFixedHeight(height);
+    ui.lineEdit_roadNet->setFixedHeight(height);
+    ui.comboBox_driverSpeed->setFixedHeight(height);
+    ui.comboBox_goalType->setFixedHeight(height);
+    ui.comboBox_taskType->setFixedHeight(height);
 
 }
 
 /*初始化传感器状态显示控件*/
 void MainWindow::initSensorStatusWidget()
 {
-    ui.widget_rtkStatus->setChecked(false);
-    ui.widget_rtkStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
-    ui.widget_rtkStatus->setClickedDisable();
+    //ui.widget_rtkStatus->setChecked(false);
+    //ui.widget_rtkStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
+    //ui.widget_rtkStatus->setClickedDisable();
 
     ui.widget_camera1Status->setChecked(false);
     ui.widget_camera1Status->setButtonStyle(ImageSwitch::ButtonStyle_4);
     ui.widget_camera1Status->setClickedDisable();
 
-    ui.widget_esrStatus->setChecked(false);
-    ui.widget_esrStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
-    ui.widget_esrStatus->setClickedDisable();
+    ui.widget_livoxStatus->setChecked(false);
+    ui.widget_livoxStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
+    ui.widget_livoxStatus->setClickedDisable();
 
     ui.widget_gpsStatus->setChecked(false);
     ui.widget_gpsStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
@@ -181,12 +198,19 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
     {
         qnode.cancleAllGoals();
         onTaskStateChanged(qnode.Idle);
+        //launchRosNodes("kill_driverless");
     }
 }
 
 //connect
 void MainWindow::on_pushButton_connect_clicked()
 {
+	//载入RosNodesArray信息
+	if(!m_rosNodesArrayInvalid)
+		m_rosNodesArrayInvalid = loadRosNodesArrayInfo();
+	if(!m_rosNodesArrayInvalid)
+		return;
+	
     if(ui.checkbox_use_environment->isChecked())
     {
         if (!qnode.init())
@@ -220,9 +244,6 @@ void MainWindow::on_pushButton_connect_clicked()
 
     //实例化数据记录器
     m_dataRecorder = new RecordData();
-    //载入RosNodesArray信息
-    m_rosNodesArrayInvalid = loadRosNodesArrayInfo();
-
 }
 
 
@@ -245,14 +266,12 @@ void MainWindow::sensorStatusChanged(int sensor_id, bool status)
     qDebug() <<"sensorStatusChanged  " <<  sensor_id << "\t " << status;
     if(Sensor_Camera1 == sensor_id)
         ui.widget_camera1Status->setChecked(status);
-    else if(Sensor_Rtk == sensor_id)
-        ui.widget_rtkStatus->setChecked(status);
     else if(Sensor_Lidar == sensor_id)
         ui.widget_lidarStatus->setChecked(status);
     else if(Sensor_Gps == sensor_id)
         ui.widget_gpsStatus->setChecked(status);
-    else if(Sensor_Esr == sensor_id)
-        ui.widget_esrStatus->setChecked(status);
+    else if(Sensor_Livox == sensor_id)
+        ui.widget_livoxStatus->setChecked(status);
 }
 
 void MainWindow::showNoMasterMessage()
@@ -350,25 +369,61 @@ void av_console::MainWindow::on_pushButton_gps_clicked(bool checked)
 {
     if(checked)
     {
-      launchRosNodes("gps");
+      changeToCmdDir();
+      system("gnome-terminal -x bash -c 'source ~/logistics_ws/devel/setup.bash; roslaunch daoyuan daoyuan.launch'&");
+      ui.lineEdit_gps->setText("launch sucessfully!");
     }
     else
     {
-      ui.pushButton_gps->setChecked(true);
+      changeToCmdDir();
+      system("gnome-terminal -x rosnode kill daoyuan");
+      ui.lineEdit_gps->setText("close sucessfully!");
     }
 }
 
-void av_console::MainWindow::on_pushButton_rtk_clicked(bool checked)
+void av_console::MainWindow::on_pushButton_cluster_clicked(bool checked)
 {
     if(checked)
     {
       changeToCmdDir();
-      system("gnome-terminal -e ./rtk.sh");
-      ui.lineEdit_rtk->setText("ok");
+      system("gnome-terminal -x bash -c 'source ~/logistics_ws/devel/setup.bash; roslaunch euclidean_cluster euclidean_cluster.launch'&");
+      ui.lineEdit_cluster->setText("launch sucessfully!");
     }
     else
     {
-      ui.lineEdit_rtk->setText("");
+      ui.lineEdit_cluster->setText("close sucessfully!");
+      system("gnome-terminal -x rosnode kill euclidean_cluster");
+    }
+}
+void av_console::MainWindow::on_pushButton_livox_clicked(bool checked)
+{
+    if(checked)
+    {
+      changeToCmdDir();
+      system("gnome-terminal -x bash -c 'source ~/logistics_ws/devel/setup.bash; roslaunch livox_ros_driver livox_lidar_rviz.launch'&");
+      ui.lineEdit_livox->setText("launch sucessfully!");
+    }
+    else
+    {
+      changeToCmdDir();
+      system("gnome-terminal -x rosnode kill livox_lidar_publisher rviz");
+      ui.lineEdit_livox->setText("close sucessfully!");
+    }
+}
+
+void av_console::MainWindow::on_pushButton_lsRadar_clicked(bool checked)
+{
+    if(checked)
+    {
+      changeToCmdDir();
+      system("gnome-terminal -x bash -c 'source ~/logistics_ws/devel/setup.bash; roslaunch lslidar_c16_decoder lslidar_c16.launch'&");
+      ui.lineEdit_lsRadar->setText("launch sucessfully!");
+    }
+    else
+    {
+      changeToCmdDir();
+      system("gnome-terminal -e rosnode kill lslidar_c16_driver_node lslidar_c16_decoder_node");
+      ui.lineEdit_lsRadar->setText("close sucessfully!");
     }
 }
 
@@ -425,17 +480,13 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
         connect(m_pathRecorder, SIGNAL(loggingUpdated()), this, SLOT(updatePathPlanningLoggingView()));
         if(!m_pathRecorder->start())
         {
-//            changeToCmdDir();
-//            system("gnome-terminal -e ./gps.sh");
             launchRosNodes("gps");
             m_pathRecorder->log("INFO","No Location Message Published, Starting GPS Automatically.");
         }
         ui.pushButton_pathPlanning->setText("Stop And Save");
-        ui.groupBox_pathPlanConfig->setDisabled(false);
     }
     else
     {
-        ui.groupBox_pathPlanConfig->setDisabled(true);
         m_pathRecorder->stop();
         if(m_pathRecorder->pathPointsSize() == 0)
         {
@@ -509,7 +560,7 @@ void av_console::MainWindow::on_tabWidget_currentChanged(int index)
     {
         ui.tabWidget->setCurrentIndex(stackWidgetIndex_driverless);
         showMessgeInStatusBar("please connect to master firstly!", true);
-        qnode.log("please connect to master firstly!");
+        //qnode.log("please connect to master firstly!");
         return;
     }
     if(index == stackWidgetIndex_recorder)
@@ -569,7 +620,7 @@ void av_console::MainWindow::onRosmasterOffline()
 
 void av_console::MainWindow::onTimeout()
 {
-
+    qDebug() << this->geometry() << "\n";
 }
 
 void av_console::MainWindow::showEvent(QShowEvent* event)
@@ -581,15 +632,29 @@ void av_console::MainWindow::showEvent(QShowEvent* event)
  */
 void av_console::MainWindow::setPushButtonStylesheet(const QString& style)
 {
+    const QSize BUTTON_SIZE = QSize(130, 40);
+    const QSize BUTTON_SIZE1 = QSize(200, 40);
+    ui.pushButton_gps->setFixedSize(BUTTON_SIZE);
+    ui.pushButton_livox->setFixedSize(BUTTON_SIZE);
+    ui.pushButton_lsRadar->setFixedSize(BUTTON_SIZE);
+    ui.pushButton_cluster->setFixedSize(BUTTON_SIZE);
+    ui.pushButton_camera->setFixedSize(BUTTON_SIZE);
+
+    ui.lineEdit_cluster->setFixedSize(BUTTON_SIZE1);
+    ui.lineEdit_gps->setFixedSize(BUTTON_SIZE1);
+    ui.lineEdit_lsRadar->setFixedSize(BUTTON_SIZE1);
+    ui.lineEdit_livox->setFixedSize(BUTTON_SIZE1);
+    ui.lineEdit_camera->setFixedSize(BUTTON_SIZE1);
+
     ui.pushButton_camera->setStyleSheet(style);
     ui.pushButton_connect->setStyleSheet(style);
     ui.pushButton_driverlessStart->setStyleSheet(style);
-    ui.pushButton_esrRadar->setStyleSheet(style);
+    ui.pushButton_lsRadar->setStyleSheet(style);
     ui.pushButton_gps->setStyleSheet(style);
-    ui.pushButton_lidar->setStyleSheet(style);
+    ui.pushButton_livox->setStyleSheet(style);
     ui.pushButton_openRoadNet->setStyleSheet(style);
     ui.pushButton_pathPlanning->setStyleSheet(style);
-    ui.pushButton_rtk->setStyleSheet(style);
+    ui.pushButton_cluster->setStyleSheet(style);
     ui.pushButton_selectRecordFile->setStyleSheet(style);
     ui.pushButton_startRecordData->setStyleSheet(style);
 
@@ -662,8 +727,8 @@ void av_console::MainWindow::on_pushButton_startRecordData_clicked(bool checked)
 
         std::string vehicle_state_topic = g_rosNodesArray["base_control"].topics["vehicle_state"];
         std::string gps_topic = g_rosNodesArray["gps"].topics["inspvax"];
-        std::string utm_topic = g_rosNodesArray["gps"].topics["utm"];
-        std::string imu_topic = g_rosNodesArray["imu"].topics["corr_imu"];
+        std::string utm_topic = g_rosNodesArray["gps"].topics["odom"];
+        //std::string imu_topic = g_rosNodesArray["imu"].topics["corr_imu"];
 
         m_dataRecorder->setRecordVehicleState(vehicle_state_topic, ui.checkBox_recordRoadwheelAngle->isChecked(),
                                               ui.checkBox_recordSpeed->isChecked());
@@ -671,8 +736,8 @@ void av_console::MainWindow::on_pushButton_startRecordData_clicked(bool checked)
                                      ui.checkBox_recordWGS84->isChecked());
         m_dataRecorder->setRecordUtm(utm_topic, ui.checkBox_recordYaw->isChecked(),
                                      ui.checkBox_recordUTM->isChecked());
-        m_dataRecorder->setRecordImu(imu_topic, ui.checkBox_recordAnglularVel->isChecked(),
-                                     ui.checkBox_recordAccel->isChecked());
+        //m_dataRecorder->setRecordImu(imu_topic, ui.checkBox_recordAnglularVel->isChecked(),
+         //                            ui.checkBox_recordAccel->isChecked());
 
         m_dataRecorder->setRecordStamp(ui.checkBox_recordDataStamp->isChecked());
         bool ok = m_dataRecorder->start();
@@ -702,7 +767,7 @@ void av_console::MainWindow::updateDataRecorderLoggingView()
 void av_console::MainWindow::on_pushButton_selectRecordFile_clicked()
 {
     if(m_recordFileDir.isEmpty())
-        m_recordFileDir = "/home/";
+        m_recordFileDir = "/home/projects";
 
     QString fileName = QFileDialog::getSaveFileName(this, QString("New File"), m_recordFileDir, "TXT(*txt)");
     if(fileName.isEmpty())
@@ -714,21 +779,34 @@ void av_console::MainWindow::on_pushButton_selectRecordFile_clicked()
 
 bool av_console::MainWindow::loadRosNodesArrayInfo()
 {
-    std::string file = QCoreApplication::applicationDirPath().toStdString() + "/../cmd/cmd.xml";
 
+    std::string file = QCoreApplication::applicationDirPath().toStdString() + "/../cmd/cmd.xml";
+    //QString path;
+    //QDir dir;
+    //path=dir.currentPath();
+    //std::string file = path.toStdString() + "/src/av_console/cmd/cmd.xml";
+    //std::cout << QCoreApplication::applicationDirPath().toStdString() << std::endl;
+    //qnode.stampedLog(QNode::Info ,QDir::currentPath().toStdString());
+    //qnode.stampedLog(QNode::Info ,QCoreApplication::applicationDirPath().toStdString());
+    qnode.log(file);
     tinyxml2::XMLDocument Doc;   //定义xml文件对象
     tinyxml2::XMLError res = Doc.LoadFile(file.c_str());
 
     if(tinyxml2::XML_ERROR_FILE_NOT_FOUND == res)
     {
-        qnode.stampedLog(QNode::Error ,std::string("load ") + file + " failed");
+        qnode.log(std::string("load ") + file + " failed");
         return false;
     }
     else if(tinyxml2::XML_SUCCESS != res)
     {
-        qnode.stampedLog(QNode::Error ,std::string("parse ") + file + " failed");
+        qnode.log(std::string("parse ") + file + " failed");
         return false;
     }
+    else if(tinyxml2::XML_SUCCESS == res)
+        qnode.log(std::string("open ") + "cmds file successfully");
+    else
+        return false;
+
     tinyxml2::XMLElement *pRoot = Doc.RootElement();
 
     //第一个子节点 RosNodes
@@ -759,7 +837,7 @@ bool av_console::MainWindow::loadRosNodesArrayInfo()
         pRosNodes = pRosNodes->NextSiblingElement();//转到下一子节点，链表结构
     }
 
-    //this->displayRosNodesArrayInfo();
+    this->displayRosNodesArrayInfo();
     return true;
 }
 
@@ -776,100 +854,4 @@ void av_console::MainWindow::displayRosNodesArrayInfo()
             std::cout << "topic name: " << it->first << "\ttopic value: " << it->second << std::endl;
         std::cout << "--------------------\r\n";
     }
-}
-
-void av_console::MainWindow::on_pushButton_lidar_clicked(bool checked)
-{
-  if(checked)
-  {
-    launchRosNodes("lidar");
-  }
-}
-
-void av_console::MainWindow::on_pushButton_setPathWidth_clicked()
-{
-    assert(m_pathRecorder);
-    bool ok;
-    float left = ui.lineEdit_leftRoadWidth->text().toFloat(&ok);
-    if(!ok)
-    {
-        ui.lineEdit_leftRoadWidth->setText("Error");
-        return;
-    }
-    float right = ui.lineEdit_rightRoadWidth->text().toFloat(&ok);
-    if(!ok)
-    {
-        ui.lineEdit_rightRoadWidth->setText("Error");
-        return;
-    }
-    m_pathRecorder->setRoadWidth(left, right);
-}
-
-void av_console::MainWindow::on_pushButton_setLeftTurn_clicked(bool checked)
-{
-    assert(m_pathRecorder);
-    size_t currentIdx = m_pathRecorder->getPointsSize() - 1;
-    static size_t start_turn_index;
-
-    if(checked) //start
-    {
-        start_turn_index = currentIdx;
-        ui.pushButton_setLeftTurn->setText("End Left Turn");
-        ui.pushButton_setLeftTurn->setStyleSheet(QString::fromUtf8("font: 10pt \"Sans Serif\";color: rgb(255, 0, 0);"));
-
-        ui.pushButton_setRightTurn->setDisabled(true);
-    }
-    else //end
-    {
-        size_t end_turn_index = currentIdx;
-        m_pathRecorder->setTurnRange("left",start_turn_index, end_turn_index);
-        ui.pushButton_setLeftTurn->setText("Start Left Turn");
-        ui.pushButton_setLeftTurn->setStyleSheet(QString::fromUtf8("font: 10pt \"Sans Serif\";"));
-
-        ui.pushButton_setRightTurn->setDisabled(false);
-    }
-}
-
-void av_console::MainWindow::on_pushButton_setRightTurn_clicked(bool checked)
-{   
-    assert(m_pathRecorder);
-    size_t currentIdx = m_pathRecorder->getPointsSize() - 1;
-    static size_t start_turn_index;
-
-    if(checked) //start
-    {
-        start_turn_index = currentIdx;
-        ui.pushButton_setRightTurn->setText("End Right Turn");
-        ui.pushButton_setRightTurn->setStyleSheet(QString::fromUtf8("font: 10pt \"Sans Serif\";color: rgb(255, 0, 0);"));
-
-        ui.pushButton_setLeftTurn->setDisabled(true);
-    }
-    else //end
-    {
-        size_t end_turn_index = currentIdx;
-        m_pathRecorder->setTurnRange("right",start_turn_index, end_turn_index);
-        ui.pushButton_setRightTurn->setText("Start Right Turn");
-        ui.pushButton_setRightTurn->setStyleSheet(QString::fromUtf8("font: 10pt \"Sans Serif\";"));
-
-        ui.pushButton_setLeftTurn->setDisabled(false);
-    }
-}
-
-void av_console::MainWindow::on_pushButton_setParkPoint_clicked()
-{
-    assert(m_pathRecorder);
-    size_t duration = ui.lineEdit_parkDuration->text().toInt();
-    if(duration <= 0)
-    {
-        ui.lineEdit_parkDuration->setText(QString("Error"));
-        return;
-    }
-    m_pathRecorder->setParkPoint(duration);
-
-    static bool newOp = true;
-    if(newOp)
-        ui.pushButton_setParkPoint->setStyleSheet(QString::fromUtf8("font: 10pt \"Sans Serif\"; color: rgb(255, 0, 0);"));
-    else
-        ui.pushButton_setParkPoint->setStyleSheet(QString::fromUtf8("font: 10pt \"Sans Serif\";"));
-    newOp = !newOp;
 }

@@ -16,12 +16,11 @@ QNode::QNode(int argc, char** argv ) :
     task_state_(Idle),
     ac_(nullptr)
 {
-    sensors.resize(5);
+    sensors.resize(4);
     sensors[Sensor_Gps] = &gps;
-    sensors[Sensor_Rtk] = &rtk;
-    sensors[Sensor_Camera1] = &camera1;
+    sensors[Sensor_Livox] = &livox;
     sensors[Sensor_Lidar] = &lidar;
-    sensors[Sensor_Esr] = &esr;
+    sensors[Sensor_Camera1] = &camera1;
 }
 
 QNode::~QNode()
@@ -52,9 +51,9 @@ bool QNode::init()
 
     //subscribe sensor msg to listen its status.
     ros::NodeHandle nh;
-    gps_sub = nh.subscribe("/gps_fix",1,&QNode::gpsFix_callback,this);
-    lidar_sub =  nh.subscribe("/pandar_points",1,&QNode::lidar_callback,this);
-    diagnostic_sub = nh.subscribe("/sensors/diagnostic",10,&QNode::diagnostic_callback,this);
+    gps_sub = nh.subscribe("/gps_odom",1,&QNode::gps_callback,this);
+    lidar_sub =  nh.subscribe("/lslidar_point_cloud",1,&QNode::lidar_callback,this);
+    livox_sub =  nh.subscribe("/livox/lidar",1,&QNode::livox_callback,this);
     sensorStatus_timer = nh.createTimer(ros::Duration(1), &QNode::sensorStatusTimer_callback,this);
 
     if(ac_ != nullptr)
@@ -90,7 +89,7 @@ void QNode::run()
 
     while(ros::ok() && ros::master::check())
     {
-        //std::cout << ac_->getState().toString() << std::endl;
+        std::cout << "actionlib client state: " <<  ac_->getState().toString() << std::endl;
         ros::Duration(1.0).sleep();
     }
     if(!ros::master::check())
@@ -140,14 +139,12 @@ void QNode::taskActivedCallback()
 
 /*===================传感器状态监测相关函数================*/
 /*官方驱动则使用消息回调检测，用户自定义驱动则使用故障诊断消息检测*/
-void QNode::gpsFix_callback(const sensor_msgs::NavSatFix::ConstPtr& gps_fix)
+void QNode::gps_callback(const nav_msgs::Odometry::ConstPtr& gps_msg)
 {
     //qDebug() << "gpsFix_callback ";
     double time = ros::Time::now().toSec();
-
-    if(gps_fix->status.status == 56)
-        rtk.last_update_time = time;
-    if(gps_fix->status.status > 16)
+    int satelliteNum = gps_msg->pose.covariance[3];
+    if(satelliteNum > 18)
         gps.last_update_time = time;
 }
 
@@ -158,13 +155,12 @@ void QNode::lidar_callback(const sensor_msgs::PointCloud2::ConstPtr& )
     if((++i)%5 == 0) //降低更新时间覆盖频率
         lidar.last_update_time = ros::Time::now().toSec();
 }
-
-void QNode::diagnostic_callback(const diagnostic_msgs::DiagnosticStatus::ConstPtr& msg)
+void QNode::livox_callback(const sensor_msgs::PointCloud2::ConstPtr& )
 {
-    if(msg->hardware_id=="esr_radar")
-        esr.last_update_time = ros::Time::now().toSec();
-    else if(msg->hardware_id=="camera")
-        camera1.last_update_time = ros::Time::now().toSec();
+    //qDebug() << "livox_callback ";
+    static int i = 0;
+    if((++i)%5 == 0) //降低更新时间覆盖频率
+        livox.last_update_time = ros::Time::now().toSec();
 }
 void QNode::sensorStatusTimer_callback(const ros::TimerEvent& )
 {

@@ -19,10 +19,10 @@ typedef struct Sensor
 enum SensorId
 {
     Sensor_Gps =   0,
-    Sensor_Lidar = 1,
-    Sensor_Esr =   2,
+    Sensor_Livox = 1,
+    Sensor_Lidar = 2,
     Sensor_Camera1=3,
-    Sensor_Rtk    =4,
+    //Sensor_Rtk    =4,
 };
 
 typedef struct _Pose
