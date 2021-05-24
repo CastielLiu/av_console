@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Exec=bash -i -c /home/wendao/projects/av_console_ws/src/av_console/app/app/av_console
+Name=av_console
+GenericName=AV_CONSOLE
+Icon=/home/wendao/projects/av_console_ws/src/av_console/app/icon/icon.jpg
+Terminal=false
+Categories=Development
