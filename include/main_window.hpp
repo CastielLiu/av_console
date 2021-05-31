@@ -77,6 +77,8 @@ private Q_SLOTS:
     void on_pushButton_startRecordData_clicked(bool checked);
     void on_pushButton_selectRecordFile_clicked();
     void updateDataRecorderLoggingView();
+    void onDriverlessStatusChanged(float speed,float steerAngle,float latErr );
+
 
     void on_pushButton_livox_clicked(bool checked);
 

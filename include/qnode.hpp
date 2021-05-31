@@ -9,6 +9,10 @@
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/server/simple_action_server.h>
 #include <driverless/DoDriverlessTaskAction.h>
+#include <sensor_msgs/NavSatFix.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <nav_msgs/Odometry.h>
+#include <driverless/State.h>
 #endif
 
 #include <thread>
@@ -16,10 +20,6 @@
 #include <QThread>
 #include <QDebug>
 #include <QStringListModel>
-#include <sensor_msgs/NavSatFix.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <nav_msgs/Odometry.h>
-//#include<diagnostic_msgs/DiagnosticStatus.h>
 
 namespace av_console {
 
@@ -53,9 +53,11 @@ public:
     void cancleAllGoals();
 
 private:
+    void driverlessState_callback(const driverless::State::ConstPtr& msg);
     void gps_callback(const nav_msgs::Odometry::ConstPtr& gps_msg);
     void lidar_callback(const sensor_msgs::PointCloud2::ConstPtr& );
     void livox_callback(const sensor_msgs::PointCloud2::ConstPtr& );
+    void location_callback(const nav_msgs::Odometry::ConstPtr& location_msg);
     //void diagnostic_callback(const diagnostic_msgs::DiagnosticStatus::ConstPtr& msg);
     void sensorStatusTimer_callback(const ros::TimerEvent& );
 
@@ -69,6 +71,7 @@ Q_SIGNALS:
   void sensorStatusChanged(int sensorId,bool status);
   void taskStateChanged(int state);
   void rosmasterOffline();
+  void driverlessStatusChanged(float speed,float steerAngle,float latErr);
 
 private:
 	int init_argc;
@@ -77,11 +80,13 @@ private:
     QStringListModel logging_model;
 	bool is_init;
 
-    sensor_t gps,camera1,lidar,livox;
+    sensor_t gps,camera1,lidar,livox,location;
     std::vector<sensor_t*> sensors;
+    ros::Subscriber driverless_state_sub;
     ros::Subscriber gps_sub;
     ros::Subscriber lidar_sub;
     ros::Subscriber livox_sub;
+    ros::Subscriber location_sub;
     ros::Timer      sensorStatus_timer;
 
     DoDriverlessTaskClient* ac_;

@@ -29,6 +29,8 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
 
     ui.view_logging->setModel(qnode.loggingModel());
     QObject::connect(&qnode, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
+    QObject::connect(&qnode, SIGNAL(driverlessStatusChanged(float,float,float)),
+                      this,  SLOT(onDriverlessStatusChanged(float,float,float)));
     QObject::connect(&qnode, SIGNAL(taskStateChanged(int)), this, SLOT(onTaskStateChanged(int)));
     QObject::connect(&qnode, SIGNAL(rosmasterOffline()), this, SLOT(onRosmasterOffline()));
     QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
@@ -85,11 +87,15 @@ void MainWindow::initSensorStatusWidget()
     ui.widget_lidarStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
     ui.widget_lidarStatus->setClickedDisable();
 
+    ui.widget_LocationStatus->setChecked(false);
+    ui.widget_LocationStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
+    ui.widget_LocationStatus->setClickedDisable();
+
     connect(&qnode,SIGNAL(sensorStatusChanged(int,bool)),this,SLOT(sensorStatusChanged(int,bool)));
 }
 
 //start driverless
-void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
+void MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
 {
     if(checked)
     {
@@ -211,7 +217,7 @@ void MainWindow::on_pushButton_connect_clicked()
 	if(!m_rosNodesArrayInvalid)
 		return;
 	
-    if(ui.checkbox_use_environment->isChecked())
+    if(true /*ui.checkbox_use_environment->isChecked()*/)
     {
         if (!qnode.init())
         {
@@ -313,13 +319,15 @@ void MainWindow::ReadSettings() {
     ui.line_edit_host->setText(host_url);
     //ui.line_edit_topic->setText(topic_name);
 
+    /*
     bool checked = settings.value("use_environment_variables", true).toBool();
     ui.checkbox_use_environment->setChecked(checked);
     if ( checked ) {
     	ui.line_edit_master->setEnabled(false);
     	ui.line_edit_host->setEnabled(false);
     	//ui.line_edit_topic->setEnabled(false);
-    }
+    }*/
+
     m_roadNetFileDir = settings.value("roadNetFileDir","").toString();
     ui.lineEdit_roadNet->setText(m_roadNetFileDir);
 
@@ -362,10 +370,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->ignore();
 }
 
-}  // namespace av_console
-
-
-void av_console::MainWindow::on_pushButton_gps_clicked(bool checked)
+void MainWindow::on_pushButton_gps_clicked(bool checked)
 {
     if(checked)
     {
@@ -381,7 +386,7 @@ void av_console::MainWindow::on_pushButton_gps_clicked(bool checked)
     }
 }
 
-void av_console::MainWindow::on_pushButton_cluster_clicked(bool checked)
+void MainWindow::on_pushButton_cluster_clicked(bool checked)
 {
     if(checked)
     {
@@ -395,7 +400,7 @@ void av_console::MainWindow::on_pushButton_cluster_clicked(bool checked)
       system("gnome-terminal -x rosnode kill euclidean_cluster");
     }
 }
-void av_console::MainWindow::on_pushButton_livox_clicked(bool checked)
+void MainWindow::on_pushButton_livox_clicked(bool checked)
 {
     if(checked)
     {
@@ -411,7 +416,7 @@ void av_console::MainWindow::on_pushButton_livox_clicked(bool checked)
     }
 }
 
-void av_console::MainWindow::on_pushButton_lsRadar_clicked(bool checked)
+void MainWindow::on_pushButton_lsRadar_clicked(bool checked)
 {
     if(checked)
     {
@@ -429,7 +434,7 @@ void av_console::MainWindow::on_pushButton_lsRadar_clicked(bool checked)
 
 //mode=true  ros 工作空间目录
 //mode=false 应用程序所在目录 default
-bool av_console::MainWindow::changeToCmdDir(bool mode)
+bool MainWindow::changeToCmdDir(bool mode)
 {
   static bool parsed = false;
   static QDir cmdDir;
@@ -471,7 +476,7 @@ bool av_console::MainWindow::changeToCmdDir(bool mode)
   return true;
 }
 
-void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
+void MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
 {
     if(checked)
     {
@@ -530,12 +535,12 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
     }
 }
 
-void av_console::MainWindow::updatePathPlanningLoggingView()
+void MainWindow::updatePathPlanningLoggingView()
 {
   ui.listView_pathPlanning->scrollToBottom();
 }
 
-void av_console::MainWindow::on_pushButton_openRoadNet_clicked()
+void MainWindow::on_pushButton_openRoadNet_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
                                 "open roadnet file", m_roadNetFileDir, "TXT(*txt)");
@@ -551,9 +556,7 @@ void av_console::MainWindow::on_pushButton_openRoadNet_clicked()
     m_roadNetFileDir = fileName;
 }
 
-
-
-void av_console::MainWindow::on_tabWidget_currentChanged(int index)
+void MainWindow::on_tabWidget_currentChanged(int index)
 {
     static int last_index = 0;
     if(!qnode.initialed())
@@ -578,7 +581,7 @@ void av_console::MainWindow::on_tabWidget_currentChanged(int index)
     last_index = index;
 }
 
-void av_console::MainWindow::onTaskStateChanged(int state)
+void MainWindow::onTaskStateChanged(int state)
 {
     if(state == qnode.Idle)
     {
@@ -602,7 +605,21 @@ void av_console::MainWindow::onTaskStateChanged(int state)
     }
 }
 
-void av_console::MainWindow::on_comboBox_taskType_activated(const QString &arg1)
+QString to_qstring(float val, int precision)
+{
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(precision) << val;
+    return  QString(ss.str().c_str());
+}
+
+void MainWindow::onDriverlessStatusChanged(float speed,float steerAngle,float latErr )
+{
+    ui.lineEdit_latErr->setText(to_qstring(latErr,2));
+    ui.lineEdit_speed->setText(to_qstring(speed,2));
+    ui.lineEdit_steerAngle->setText(to_qstring(steerAngle,2));
+}
+
+void MainWindow::on_comboBox_taskType_activated(const QString &arg1)
 {
     if(arg1 == "Custom") //自定义任务形式
     {
@@ -613,24 +630,24 @@ void av_console::MainWindow::on_comboBox_taskType_activated(const QString &arg1)
 }
 
 //ros master shutdown , reEnable the connect button
-void av_console::MainWindow::onRosmasterOffline()
+void MainWindow::onRosmasterOffline()
 {
     ui.pushButton_connect->setEnabled(true);
 }
 
-void av_console::MainWindow::onTimeout()
+void MainWindow::onTimeout()
 {
-    qDebug() << this->geometry() << "\n";
+    //qDebug() << this->geometry() << "\n";
 }
 
-void av_console::MainWindow::showEvent(QShowEvent* event)
+void MainWindow::showEvent(QShowEvent* event)
 {
    this->setPushButtonStylesheet(QString("font: 14pt \"Sans Serif\";"));
 }
 
 /*@brief 配置所有pushButton的stylesheet
  */
-void av_console::MainWindow::setPushButtonStylesheet(const QString& style)
+void MainWindow::setPushButtonStylesheet(const QString& style)
 {
     const QSize BUTTON_SIZE = QSize(130, 40);
     const QSize BUTTON_SIZE1 = QSize(200, 40);
@@ -663,7 +680,7 @@ void av_console::MainWindow::setPushButtonStylesheet(const QString& style)
     ui.pushButton_startRecordData->setCheckable(true);
 }
 
-QObjectList av_console::MainWindow::getAllLeafChilds(QObject* object)
+QObjectList  MainWindow::getAllLeafChilds(QObject* object)
 {
     QObjectList result;
     std::queue<QObject *> queue;
@@ -690,7 +707,7 @@ QObjectList av_console::MainWindow::getAllLeafChilds(QObject* object)
     return result;
 }
 
-void av_console::MainWindow::disableRecordDataConfigure(bool flag)
+void  MainWindow::disableRecordDataConfigure(bool flag)
 {
     QObjectList childs = getAllLeafChilds(ui.widget_recorderConfig);
     for(QObject* child : childs)
@@ -707,7 +724,7 @@ void av_console::MainWindow::disableRecordDataConfigure(bool flag)
     }
 }
 
-void av_console::MainWindow::on_pushButton_startRecordData_clicked(bool checked)
+void  MainWindow::on_pushButton_startRecordData_clicked(bool checked)
 {
     if(checked)
     {
@@ -759,12 +776,12 @@ void av_console::MainWindow::on_pushButton_startRecordData_clicked(bool checked)
     }
 }
 
-void av_console::MainWindow::updateDataRecorderLoggingView()
+void  MainWindow::updateDataRecorderLoggingView()
 {
   ui.listView_dataRecorder->scrollToBottom();
 }
 
-void av_console::MainWindow::on_pushButton_selectRecordFile_clicked()
+void  MainWindow::on_pushButton_selectRecordFile_clicked()
 {
     if(m_recordFileDir.isEmpty())
         m_recordFileDir = "/home/projects";
@@ -777,7 +794,7 @@ void av_console::MainWindow::on_pushButton_selectRecordFile_clicked()
     m_recordFileDir = fileName;
 }
 
-bool av_console::MainWindow::loadRosNodesArrayInfo()
+bool MainWindow::loadRosNodesArrayInfo()
 {
 
     std::string file = QCoreApplication::applicationDirPath().toStdString() + "/../cmd/cmd.xml";
@@ -841,7 +858,7 @@ bool av_console::MainWindow::loadRosNodesArrayInfo()
     return true;
 }
 
-void av_console::MainWindow::displayRosNodesArrayInfo()
+void MainWindow::displayRosNodesArrayInfo()
 {
     for(RosNodesArray::iterator iter=g_rosNodesArray.begin(); iter!=g_rosNodesArray.end(); ++iter)
     {
@@ -855,3 +872,5 @@ void av_console::MainWindow::displayRosNodesArrayInfo()
         std::cout << "--------------------\r\n";
     }
 }
+
+} //end namespace av_console

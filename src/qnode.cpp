@@ -16,11 +16,12 @@ QNode::QNode(int argc, char** argv ) :
     task_state_(Idle),
     ac_(nullptr)
 {
-    sensors.resize(4);
+    sensors.resize(5);
     sensors[Sensor_Gps] = &gps;
     sensors[Sensor_Livox] = &livox;
     sensors[Sensor_Lidar] = &lidar;
     sensors[Sensor_Camera1] = &camera1;
+    sensors[Sensor_Location] = &location;
 }
 
 QNode::~QNode()
@@ -51,9 +52,12 @@ bool QNode::init()
 
     //subscribe sensor msg to listen its status.
     ros::NodeHandle nh;
+
+    driverless_state_sub = nh.subscribe("/driverless/state",1,&QNode::driverlessState_callback,this);
     gps_sub = nh.subscribe("/gps_odom",1,&QNode::gps_callback,this);
     lidar_sub =  nh.subscribe("/lslidar_point_cloud",1,&QNode::lidar_callback,this);
     livox_sub =  nh.subscribe("/livox/lidar",1,&QNode::livox_callback,this);
+    location_sub = nh.subscribe("/slam_fused_odom",1,&QNode::location_callback,this);
     sensorStatus_timer = nh.createTimer(ros::Duration(1), &QNode::sensorStatusTimer_callback,this);
 
     if(ac_ != nullptr)
@@ -148,6 +152,13 @@ void QNode::gps_callback(const nav_msgs::Odometry::ConstPtr& gps_msg)
         gps.last_update_time = time;
 }
 
+void QNode::location_callback(const nav_msgs::Odometry::ConstPtr& location_msg)
+{
+    double time = ros::Time::now().toSec();
+    int locationStatus = location_msg->pose.covariance[4];
+    if(locationStatus >= 9)
+        location.last_update_time = time;
+}
 void QNode::lidar_callback(const sensor_msgs::PointCloud2::ConstPtr& )
 {
     //qDebug() << "lidar_callback ";
@@ -183,6 +194,11 @@ void QNode::sensorStatusTimer_callback(const ros::TimerEvent& )
             //qDebug() << "sensorStatusTimer_callback " << i << "\t" << sensors[i]->status;
         }
     }
+}
+
+void QNode::driverlessState_callback(const driverless::State::ConstPtr& msg)
+{
+    Q_EMIT driverlessStatusChanged(msg->vehicle_speed,msg->roadwheel_angle,msg->lateral_error);
 }
 
 void QNode::log(const std::string &msg)

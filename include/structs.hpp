@@ -23,6 +23,7 @@ enum SensorId
     Sensor_Lidar = 2,
     Sensor_Camera1=3,
     //Sensor_Rtk    =4,
+    Sensor_Location = 4,
 };
 
 typedef struct _Pose

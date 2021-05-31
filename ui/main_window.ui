@@ -111,7 +111,173 @@ padding: 0 3px 0 3px;
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_12">
              <item>
-              <widget class="QWidget" name="widget_2" native="true"/>
+              <widget class="QWidget" name="widget_2" native="true">
+               <widget class="QWidget" name="">
+                <property name="geometry">
+                 <rect>
+                  <x>10</x>
+                  <y>20</y>
+                  <width>261</width>
+                  <height>82</height>
+                 </rect>
+                </property>
+                <layout class="QHBoxLayout" name="horizontalLayout_14">
+                 <item>
+                  <layout class="QVBoxLayout" name="verticalLayout_24">
+                   <item>
+                    <widget class="QLabel" name="label_17">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>167750</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>Speed</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_18">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>167750</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>Steer Angle</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_19">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>167750</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>Latteral Err</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QVBoxLayout" name="verticalLayout_25">
+                   <item>
+                    <widget class="QLineEdit" name="lineEdit_speed"/>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="lineEdit_steerAngle"/>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="lineEdit_latErr"/>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QVBoxLayout" name="verticalLayout_26">
+                   <item>
+                    <widget class="QLabel" name="label_22">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>167750</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>km/h</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_20">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>167750</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>degree</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_21">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>167750</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>m</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
+              </widget>
              </item>
             </layout>
            </widget>
@@ -238,6 +404,12 @@ padding: 0 3px 0 3px;
                   </property>
                   <property name="text">
                    <string>Use environment variables</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                  <property name="tristate">
+                   <bool>false</bool>
                   </property>
                  </widget>
                 </item>
@@ -407,6 +579,9 @@ padding: 0 3px 0 3px;
                  </item>
                  <item>
                   <widget class="QComboBox" name="comboBox_goalType">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="styleSheet">
                     <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
                    </property>
