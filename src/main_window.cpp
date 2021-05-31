@@ -1,4 +1,3 @@
-
 #include <QtGui>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -67,30 +66,19 @@ void MainWindow::initWidgetSize()
 /*初始化传感器状态显示控件*/
 void MainWindow::initSensorStatusWidget()
 {
-    //ui.widget_rtkStatus->setChecked(false);
-    //ui.widget_rtkStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
-    //ui.widget_rtkStatus->setClickedDisable();
+    sensorStatusWidgets.resize(qnode.getSensorCnt());
+    sensorStatusWidgets[Sensor_Camera1] = ui.widget_camera1Status;
+    sensorStatusWidgets[Sensor_Gps] = ui.widget_gpsStatus;
+    sensorStatusWidgets[Sensor_Livox] = ui.widget_livoxStatus;
+    sensorStatusWidgets[Sensor_Location] = ui.widget_LocationStatus;
+    sensorStatusWidgets[Sensor_Lidar] = ui.widget_lidarStatus;
 
-    ui.widget_camera1Status->setChecked(false);
-    ui.widget_camera1Status->setButtonStyle(ImageSwitch::ButtonStyle_4);
-    ui.widget_camera1Status->setClickedDisable();
-
-    ui.widget_livoxStatus->setChecked(false);
-    ui.widget_livoxStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
-    ui.widget_livoxStatus->setClickedDisable();
-
-    ui.widget_gpsStatus->setChecked(false);
-    ui.widget_gpsStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
-    ui.widget_gpsStatus->setClickedDisable();
-
-    ui.widget_lidarStatus->setChecked(false);
-    ui.widget_lidarStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
-    ui.widget_lidarStatus->setClickedDisable();
-
-    ui.widget_LocationStatus->setChecked(false);
-    ui.widget_LocationStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
-    ui.widget_LocationStatus->setClickedDisable();
-
+    for(size_t i=0; i<sensorStatusWidgets.size(); ++i)
+    {
+        sensorStatusWidgets[i]->setChecked(false);
+        sensorStatusWidgets[i]->setButtonStyle(ImageSwitch::ButtonStyle_4);
+        sensorStatusWidgets[i]->setClickedDisable();
+    }
     connect(&qnode,SIGNAL(sensorStatusChanged(int,bool)),this,SLOT(sensorStatusChanged(int,bool)));
 }
 
@@ -270,14 +258,10 @@ void MainWindow::on_checkbox_use_environment_stateChanged(int state)
 void MainWindow::sensorStatusChanged(int sensor_id, bool status)
 {
     qDebug() <<"sensorStatusChanged  " <<  sensor_id << "\t " << status;
-    if(Sensor_Camera1 == sensor_id)
-        ui.widget_camera1Status->setChecked(status);
-    else if(Sensor_Lidar == sensor_id)
-        ui.widget_lidarStatus->setChecked(status);
-    else if(Sensor_Gps == sensor_id)
-        ui.widget_gpsStatus->setChecked(status);
-    else if(Sensor_Livox == sensor_id)
-        ui.widget_livoxStatus->setChecked(status);
+    if(sensor_id >= sensorStatusWidgets.size())
+       return;
+
+    sensorStatusWidgets[sensor_id]->setChecked(status);
 }
 
 void MainWindow::showNoMasterMessage()

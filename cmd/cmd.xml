@@ -6,6 +6,12 @@
         <Topic name="odom">/slam_fused_odom</Topic>  #gps_odom  #slam_fused_odom
     </RosNodes>
 
+    <RosNodes name="location">
+        <LaunchCommand>None</LaunchCommand>
+        <Topic name="gps">/gps_odom</Topic>  #gps_odom  #slam_fused_odom
+        <Topic name="fused">/slam_fused_odom</Topic>
+    </RosNodes>
+
     <RosNodes name="base_control">
         <LaunchCommand>roslaunch driver pc_stm.launch &</LaunchCommand>
         <Topic name="vehicle_state">/car_state</Topic>
@@ -18,8 +24,6 @@
     <RosNodes name="kill_driverless">
         <LaunchCommand>rosnode kill /pc_stm32 &</LaunchCommand>
     </RosNodes>
-    
-    
     
     <RosNodes name="killros">
         <LaunchCommand>rosnode kill --all && killall -9 roscore && killall -9 rosmaster</LaunchCommand>

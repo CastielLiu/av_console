@@ -51,6 +51,7 @@ public:
     bool serverConnected();
     void requestDriverlessTask(const driverless::DoDriverlessTaskGoal& goal);
     void cancleAllGoals();
+    int  getSensorCnt()const {return sensors.size();}
 
 private:
     void driverlessState_callback(const driverless::State::ConstPtr& msg);
@@ -92,7 +93,6 @@ private:
     DoDriverlessTaskClient* ac_;
     bool as_online_;
     int task_state_;
-
 };
 
 }  // namespace av_console

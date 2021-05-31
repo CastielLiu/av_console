@@ -78,8 +78,6 @@ private Q_SLOTS:
     void on_pushButton_selectRecordFile_clicked();
     void updateDataRecorderLoggingView();
     void onDriverlessStatusChanged(float speed,float steerAngle,float latErr );
-
-
     void on_pushButton_livox_clicked(bool checked);
 
     void on_pushButton_lsRadar_clicked(bool checked);
@@ -103,6 +101,7 @@ private:
     //CustomTaskDialog* m_customDialog;
 
     bool m_rosNodesArrayInvalid;
+    std::vector<ImageSwitch *> sensorStatusWidgets;
 
 };
 
