@@ -59,6 +59,7 @@ bool QNode::init()
     livox_sub =  nh.subscribe("/livox/lidar",1,&QNode::livox_callback,this);
     location_sub = nh.subscribe("/slam_fused_odom",1,&QNode::location_callback,this);
     sensorStatus_timer = nh.createTimer(ros::Duration(1), &QNode::sensorStatusTimer_callback,this);
+    rtk_sub = nh.subscribe("/rtk_status",1,&QNode::rtk_callback,this);
 
     if(ac_ != nullptr)
     {
@@ -121,6 +122,11 @@ void QNode::requestDriverlessTask(const driverless::DoDriverlessTaskGoal& goal)
     ac_->sendGoal(goal, boost::bind(&QNode::taskDoneCallback,this,_1,_2),
                         boost::bind(&QNode::taskActivedCallback,this),
                         boost::bind(&QNode::taskFeedbackCallback,this,_1));
+}
+
+void QNode::rtk_callback(const std_msgs::String::ConstPtr& msg)
+{
+    Q_EMIT statusUpdate(StateUpdateList_rtk,QString::fromStdString(msg->data));
 }
 
 void QNode::taskFeedbackCallback(const driverless::DoDriverlessTaskFeedbackConstPtr& fd)
@@ -199,6 +205,7 @@ void QNode::sensorStatusTimer_callback(const ros::TimerEvent& )
 void QNode::driverlessState_callback(const driverless::State::ConstPtr& msg)
 {
     Q_EMIT driverlessStatusChanged(msg->vehicle_speed,msg->roadwheel_angle,msg->lateral_error);
+    Q_EMIT statusUpdate(StateUpdateList_task,QString::fromStdString(msg->task_state));
 }
 
 void QNode::log(const std::string &msg)

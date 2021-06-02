@@ -13,6 +13,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <nav_msgs/Odometry.h>
 #include <driverless/State.h>
+#include <std_msgs/String.h>
 #endif
 
 #include <thread>
@@ -44,6 +45,12 @@ public:
         Driverless_Complete,   //自动驾驶任务完成
     };
 
+    enum StateUpdateList
+    {
+        StateUpdateList_rtk,
+        StateUpdateList_task,
+    };
+
 	QStringListModel* loggingModel() { return &logging_model; }
     void log(const std::string &msg);
     void stampedLog( const LogLevel &level, const std::string &msg);
@@ -62,6 +69,8 @@ private:
     //void diagnostic_callback(const diagnostic_msgs::DiagnosticStatus::ConstPtr& msg);
     void sensorStatusTimer_callback(const ros::TimerEvent& );
 
+    void rtk_callback(const std_msgs::String::ConstPtr& msg);
+
     void taskFeedbackCallback(const driverless::DoDriverlessTaskFeedbackConstPtr& fd);
     void taskDoneCallback(const actionlib::SimpleClientGoalState& state,
                                  const driverless::DoDriverlessTaskResultConstPtr& res);
@@ -73,6 +82,9 @@ Q_SIGNALS:
   void taskStateChanged(int state);
   void rosmasterOffline();
   void driverlessStatusChanged(float speed,float steerAngle,float latErr);
+
+  //用于更新状态信息到ui的信号
+  void statusUpdate(int name, const QString& text);
 
 private:
 	int init_argc;
@@ -88,6 +100,7 @@ private:
     ros::Subscriber lidar_sub;
     ros::Subscriber livox_sub;
     ros::Subscriber location_sub;
+    ros::Subscriber rtk_sub;
     ros::Timer      sensorStatus_timer;
 
     DoDriverlessTaskClient* ac_;

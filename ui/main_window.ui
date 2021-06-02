@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>737</width>
-    <height>548</height>
+    <width>759</width>
+    <height>542</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,7 +23,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_21">
     <item>
-     <widget class="QTabWidget" name="tabWidget">
+     <widget class="QTabWidget" name="tabWidget_main">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -61,39 +61,458 @@
        <attribute name="title">
         <string>Driverless</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_15" stretch="2,1">
+       <layout class="QHBoxLayout" name="horizontalLayout_14">
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_5" stretch="1,1">
+         <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="3,1,2">
           <item>
-           <widget class="QGroupBox" name="groupBox_log">
+           <widget class="QTabWidget" name="tabWidget_driverless">
+            <property name="font">
+             <font>
+              <pointsize>7</pointsize>
+             </font>
+            </property>
             <property name="styleSheet">
-             <string notr="true">QGroupBox {
-border: 1px solid gray;
-border-radius: 9px;
-margin-top: 0.5em;
-font-size: 16px
-}
-QGroupBox::title {
-subcontrol-origin: margin;
-left: 12px;
-padding: 0 3px 0 3px;
-}
-</string>
+             <string notr="true">QTabBar::tab{min-height: 45px; min-width:100px; font: 12pt &quot;Sans Serif&quot;}</string>
             </property>
-            <property name="title">
-             <string>Logging</string>
+            <property name="currentIndex">
+             <number>0</number>
             </property>
-            <layout class="QHBoxLayout" name="horizontalLayout_2">
-             <item>
-              <widget class="QListView" name="view_logging"/>
-             </item>
-            </layout>
+            <widget class="QWidget" name="tab">
+             <attribute name="title">
+              <string>Datas</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_27">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_13">
+                <item>
+                 <spacer name="horizontalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item alignment="Qt::AlignHCenter">
+                 <widget class="QLabel" name="label_driverlessStatusLable">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>167750</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                  </property>
+                  <property name="text">
+                   <string>Driverless Status:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item alignment="Qt::AlignHCenter">
+                 <widget class="QLabel" name="label_driverlessStatus">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>167750</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                  </property>
+                  <property name="text">
+                   <string>Idle</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_3">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_2">
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_24">
+                  <item>
+                   <widget class="QLabel" name="label_17">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>167750</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Speed</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_18">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>167750</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Steer Angle</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_25">
+                  <item>
+                   <widget class="QLineEdit" name="lineEdit_speed"/>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="lineEdit_steerAngle"/>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_26">
+                  <item>
+                   <widget class="QLabel" name="label_22">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>167750</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>km/h</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_20">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>167750</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>degree</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_5">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <spacer name="verticalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>103</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tab_2">
+             <attribute name="title">
+              <string>Info</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_32">
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_31">
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_15">
+                  <item>
+                   <layout class="QVBoxLayout" name="verticalLayout_28">
+                    <item>
+                     <widget class="QLabel" name="label_19">
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>167750</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                      </property>
+                      <property name="text">
+                       <string>Latteral Err</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="label_23">
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>167750</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                      </property>
+                      <property name="text">
+                       <string>XX</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <layout class="QVBoxLayout" name="verticalLayout_29">
+                    <item>
+                     <widget class="QLineEdit" name="lineEdit_latErr"/>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="lineEdit_latErr_2"/>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <layout class="QVBoxLayout" name="verticalLayout_30">
+                    <item>
+                     <widget class="QLabel" name="label_24">
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>167750</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                      </property>
+                      <property name="text">
+                       <string>m</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="label_21">
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>167750</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                      </property>
+                      <property name="text">
+                       <string>m</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <spacer name="verticalSpacer_12">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_22">
+                  <item>
+                   <widget class="QLabel" name="label_25">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>167750</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>RTK:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_rtkStatus">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>167750</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Unknown</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tab_3">
+             <attribute name="title">
+              <string>Log</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_5">
+              <item>
+               <widget class="QListView" name="view_logging"/>
+              </item>
+             </layout>
+            </widget>
            </widget>
           </item>
           <item>
-           <widget class="QGroupBox" name="groupBox_vehicleStatus">
-            <property name="styleSheet">
-             <string notr="true">QGroupBox {
+           <widget class="Line" name="line_6">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
+            <item>
+             <widget class="QGroupBox" name="groupBox">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16677215</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QGroupBox {
 border: 1px solid gray;
 border-radius: 9px;
 margin-top: 0.5em;
@@ -105,27 +524,233 @@ left: 12px;
 padding: 0 3px 0 3px;
 }
 </string>
-            </property>
-            <property name="title">
-             <string>Vehicle Status</string>
-            </property>
-            <layout class="QHBoxLayout" name="horizontalLayout_12">
-             <item>
-              <widget class="QWidget" name="widget_2" native="true">
-               <widget class="QWidget" name="">
-                <property name="geometry">
-                 <rect>
-                  <x>10</x>
-                  <y>20</y>
-                  <width>261</width>
-                  <height>82</height>
-                 </rect>
-                </property>
-                <layout class="QHBoxLayout" name="horizontalLayout_14">
+              </property>
+              <property name="title">
+               <string>Ros Master</string>
+              </property>
+              <property name="flat">
+               <bool>false</bool>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_23">
+               <item>
+                <widget class="QWidget" name="widget_rosEnv" native="true">
+                 <layout class="QVBoxLayout" name="verticalLayout_4">
+                  <property name="spacing">
+                   <number>6</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_11">
+                    <item>
+                     <layout class="QVBoxLayout" name="verticalLayout_2">
+                      <item>
+                       <widget class="QLabel" name="label">
+                        <property name="frameShape">
+                         <enum>QFrame::NoFrame</enum>
+                        </property>
+                        <property name="frameShadow">
+                         <enum>QFrame::Raised</enum>
+                        </property>
+                        <property name="lineWidth">
+                         <number>1</number>
+                        </property>
+                        <property name="text">
+                         <string>Master</string>
+                        </property>
+                        <property name="margin">
+                         <number>-1</number>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="label_2">
+                        <property name="frameShape">
+                         <enum>QFrame::NoFrame</enum>
+                        </property>
+                        <property name="frameShadow">
+                         <enum>QFrame::Raised</enum>
+                        </property>
+                        <property name="text">
+                         <string>IP</string>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                    <item>
+                     <layout class="QVBoxLayout" name="verticalLayout_3">
+                      <item>
+                       <widget class="QLineEdit" name="line_edit_master">
+                        <property name="text">
+                         <string/>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLineEdit" name="line_edit_host">
+                        <property name="text">
+                         <string/>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <widget class="QCheckBox" name="checkbox_use_environment">
+                    <property name="layoutDirection">
+                     <enum>Qt::RightToLeft</enum>
+                    </property>
+                    <property name="text">
+                     <string>Use environment variables</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                    <property name="tristate">
+                     <bool>false</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="pushButton_connect">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string/>
+                 </property>
+                 <property name="statusTip">
+                  <string/>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">font: 14pt &quot;Sans Serif&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>connect</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_11">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_2">
+              <property name="maximumSize">
+               <size>
+                <width>16677215</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="autoFillBackground">
+               <bool>false</bool>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QGroupBox {
+border: 1px solid gray;
+border-radius: 9px;
+margin-top: 0.5em;
+font-size: 16px
+}
+QGroupBox::title {
+subcontrol-origin: margin;
+left: 12px;
+padding: 0 3px 0 3px;
+}
+</string>
+              </property>
+              <property name="title">
+               <string>Task</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_12">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout" stretch="3,10,1">
                  <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_24">
+                  <layout class="QVBoxLayout" name="verticalLayout_9">
                    <item>
-                    <widget class="QLabel" name="label_17">
+                    <widget class="QLabel" name="label_3">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>167750</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>Roadnet</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_12">
+                     <property name="styleSheet">
+                      <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>Path type</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_11">
+                     <property name="styleSheet">
+                      <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>Task type</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_4">
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
@@ -146,78 +771,106 @@ padding: 0 3px 0 3px;
                      </property>
                     </widget>
                    </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QVBoxLayout" name="verticalLayout_10">
                    <item>
-                    <widget class="QLabel" name="label_18">
-                     <property name="minimumSize">
-                      <size>
-                       <width>0</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>167750</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
+                    <widget class="QLineEdit" name="lineEdit_roadNet">
                      <property name="styleSheet">
                       <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
                      </property>
                      <property name="text">
-                      <string>Steer Angle</string>
+                      <string/>
+                     </property>
+                     <property name="readOnly">
+                      <bool>true</bool>
                      </property>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_19">
-                     <property name="minimumSize">
-                      <size>
-                       <width>0</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>167750</width>
-                       <height>16777215</height>
-                      </size>
+                    <widget class="QComboBox" name="comboBox_goalType">
+                     <property name="enabled">
+                      <bool>false</bool>
                      </property>
                      <property name="styleSheet">
                       <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
                      </property>
-                     <property name="text">
-                      <string>Latteral Err</string>
+                     <item>
+                      <property name="text">
+                       <string>Path</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>Goal</string>
+                      </property>
+                     </item>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QComboBox" name="comboBox_taskType">
+                     <property name="styleSheet">
+                      <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
                      </property>
+                     <item>
+                      <property name="text">
+                       <string>Drive</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>Reverse</string>
+                      </property>
+                     </item>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QComboBox" name="comboBox_driverSpeed">
+                     <property name="styleSheet">
+                      <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                     </property>
+                     <item>
+                      <property name="text">
+                       <string>0</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>1</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>1.5</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>2</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>2.5</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>3</string>
+                      </property>
+                     </item>
                     </widget>
                    </item>
                   </layout>
                  </item>
                  <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_25">
+                  <layout class="QVBoxLayout" name="verticalLayout_11">
                    <item>
-                    <widget class="QLineEdit" name="lineEdit_speed"/>
-                   </item>
-                   <item>
-                    <widget class="QLineEdit" name="lineEdit_steerAngle"/>
-                   </item>
-                   <item>
-                    <widget class="QLineEdit" name="lineEdit_latErr"/>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_26">
-                   <item>
-                    <widget class="QLabel" name="label_22">
-                     <property name="minimumSize">
-                      <size>
-                       <width>0</width>
-                       <height>0</height>
-                      </size>
-                     </property>
+                    <widget class="QPushButton" name="pushButton_openRoadNet">
                      <property name="maximumSize">
                       <size>
-                       <width>167750</width>
+                       <width>50</width>
                        <height>16777215</height>
                       </size>
                      </property>
@@ -225,43 +878,22 @@ padding: 0 3px 0 3px;
                       <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
                      </property>
                      <property name="text">
-                      <string>km/h</string>
+                      <string>...</string>
                      </property>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_20">
-                     <property name="minimumSize">
-                      <size>
-                       <width>0</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>167750</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                     <property name="styleSheet">
-                      <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
-                     </property>
+                    <widget class="QLabel" name="label_13">
                      <property name="text">
-                      <string>degree</string>
+                      <string/>
                      </property>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLabel" name="label_21">
-                     <property name="minimumSize">
-                      <size>
-                       <width>0</width>
-                       <height>0</height>
-                      </size>
-                     </property>
+                    <widget class="QPushButton" name="pushButton_flip">
                      <property name="maximumSize">
                       <size>
-                       <width>167750</width>
+                       <width>50</width>
                        <height>16777215</height>
                       </size>
                      </property>
@@ -269,487 +901,29 @@ padding: 0 3px 0 3px;
                       <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
                      </property>
                      <property name="text">
-                      <string>m</string>
+                      <string>flip</string>
+                     </property>
+                     <property name="checkable">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_5">
+                     <property name="styleSheet">
+                      <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
+                     </property>
+                     <property name="text">
+                      <string>m/s</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
                      </property>
                     </widget>
                    </item>
                   </layout>
                  </item>
                 </layout>
-               </widget>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
-          <item>
-           <widget class="QGroupBox" name="groupBox">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16677215</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QGroupBox {
-border: 1px solid gray;
-border-radius: 9px;
-margin-top: 0.5em;
-font-size: 16px
-}
-QGroupBox::title {
-subcontrol-origin: margin;
-left: 12px;
-padding: 0 3px 0 3px;
-}
-</string>
-            </property>
-            <property name="title">
-             <string>Ros Master</string>
-            </property>
-            <property name="flat">
-             <bool>false</bool>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_23">
-             <item>
-              <widget class="QWidget" name="widget_rosEnv" native="true">
-               <layout class="QVBoxLayout" name="verticalLayout_4">
-                <property name="spacing">
-                 <number>6</number>
-                </property>
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_11">
-                  <item>
-                   <layout class="QVBoxLayout" name="verticalLayout_2">
-                    <item>
-                     <widget class="QLabel" name="label">
-                      <property name="frameShape">
-                       <enum>QFrame::NoFrame</enum>
-                      </property>
-                      <property name="frameShadow">
-                       <enum>QFrame::Raised</enum>
-                      </property>
-                      <property name="lineWidth">
-                       <number>1</number>
-                      </property>
-                      <property name="text">
-                       <string>Master</string>
-                      </property>
-                      <property name="margin">
-                       <number>-1</number>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="label_2">
-                      <property name="frameShape">
-                       <enum>QFrame::NoFrame</enum>
-                      </property>
-                      <property name="frameShadow">
-                       <enum>QFrame::Raised</enum>
-                      </property>
-                      <property name="text">
-                       <string>IP</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QVBoxLayout" name="verticalLayout_3">
-                    <item>
-                     <widget class="QLineEdit" name="line_edit_master">
-                      <property name="text">
-                       <string/>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLineEdit" name="line_edit_host">
-                      <property name="text">
-                       <string/>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <widget class="QCheckBox" name="checkbox_use_environment">
-                  <property name="layoutDirection">
-                   <enum>Qt::RightToLeft</enum>
-                  </property>
-                  <property name="text">
-                   <string>Use environment variables</string>
-                  </property>
-                  <property name="checked">
-                   <bool>true</bool>
-                  </property>
-                  <property name="tristate">
-                   <bool>false</bool>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButton_connect">
-               <property name="enabled">
-                <bool>true</bool>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="toolTip">
-                <string/>
-               </property>
-               <property name="statusTip">
-                <string/>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">font: 14pt &quot;Sans Serif&quot;;</string>
-               </property>
-               <property name="text">
-                <string>connect</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_11">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="groupBox_2">
-            <property name="maximumSize">
-             <size>
-              <width>16677215</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="autoFillBackground">
-             <bool>false</bool>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QGroupBox {
-border: 1px solid gray;
-border-radius: 9px;
-margin-top: 0.5em;
-font-size: 16px
-}
-QGroupBox::title {
-subcontrol-origin: margin;
-left: 12px;
-padding: 0 3px 0 3px;
-}
-</string>
-            </property>
-            <property name="title">
-             <string>Task</string>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_12">
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout" stretch="3,10,1">
-               <item>
-                <layout class="QVBoxLayout" name="verticalLayout_9">
-                 <item>
-                  <widget class="QLabel" name="label_3">
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>167750</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
-                   </property>
-                   <property name="text">
-                    <string>Roadnet</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_12">
-                   <property name="styleSheet">
-                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
-                   </property>
-                   <property name="text">
-                    <string>Path type</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_11">
-                   <property name="styleSheet">
-                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
-                   </property>
-                   <property name="text">
-                    <string>Task type</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_4">
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>167750</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
-                   </property>
-                   <property name="text">
-                    <string>Speed</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QVBoxLayout" name="verticalLayout_10">
-                 <item>
-                  <widget class="QLineEdit" name="lineEdit_roadNet">
-                   <property name="styleSheet">
-                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
-                   </property>
-                   <property name="text">
-                    <string/>
-                   </property>
-                   <property name="readOnly">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QComboBox" name="comboBox_goalType">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
-                   </property>
-                   <item>
-                    <property name="text">
-                     <string>Path</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>Goal</string>
-                    </property>
-                   </item>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QComboBox" name="comboBox_taskType">
-                   <property name="styleSheet">
-                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
-                   </property>
-                   <item>
-                    <property name="text">
-                     <string>Drive</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>Reverse</string>
-                    </property>
-                   </item>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QComboBox" name="comboBox_driverSpeed">
-                   <property name="styleSheet">
-                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
-                   </property>
-                   <item>
-                    <property name="text">
-                     <string>-3</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>-2.5</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>-2</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>-1.5</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>-1</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>0</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>1</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>1.5</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>2</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>2.5</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>3</string>
-                    </property>
-                   </item>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QVBoxLayout" name="verticalLayout_11">
-                 <item>
-                  <widget class="QPushButton" name="pushButton_openRoadNet">
-                   <property name="maximumSize">
-                    <size>
-                     <width>50</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
-                   </property>
-                   <property name="text">
-                    <string>...</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_13">
-                   <property name="text">
-                    <string/>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QCheckBox" name="checkBox_pathFilp">
-                   <property name="layoutDirection">
-                    <enum>Qt::LeftToRight</enum>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
-                   </property>
-                   <property name="text">
-                    <string>flip</string>
-                   </property>
-                   <property name="tristate">
-                    <bool>false</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_5">
-                   <property name="styleSheet">
-                    <string notr="true">font: 12pt &quot;Sans Serif&quot;;</string>
-                   </property>
-                   <property name="text">
-                    <string>m/s</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="10,1">
-               <item>
-                <spacer name="horizontalSpacer_2">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
                </item>
                <item>
                 <widget class="QPushButton" name="pushButton_driverlessStart">
@@ -771,9 +945,9 @@ padding: 0 3px 0 3px;
                 </widget>
                </item>
               </layout>
-             </item>
-            </layout>
-           </widget>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
@@ -1729,7 +1903,7 @@ padding: 0 3px 0 3px;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>737</width>
+     <width>759</width>
      <height>19</height>
     </rect>
    </property>

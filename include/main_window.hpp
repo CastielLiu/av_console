@@ -40,13 +40,11 @@ public:
 
 	void showNoMasterMessage();
     bool changeToCmdDir(bool mode=false);
+    bool initDriverlessSystemInfo();
     void initWidgetSize();
     void initSensorStatusWidget();
     void showMessgeInStatusBar(const QString& msg, bool warnning=false);
 
-    void launchDrivelessNode(){
-        system("gnome-terminal -e \"roslaunch driverless driverless.launch\"");
-    }
     void killDriverlessNode(){
         system("gnome-terminal -e \"rosnode kill /driverless_node\"");
     }
@@ -60,6 +58,8 @@ public Q_SLOTS:
     void updateLoggingView(); // no idea why this can't connect automatically
     void updatePathPlanningLoggingView();
     void sensorStatusChanged(int,bool);
+    //用于更新状态到ui的槽函数
+    void onQnodeStatusUpdate(int name, const QString& text);
     void closeEvent(QCloseEvent *event);
     void showEvent(QShowEvent* event) override;
 

@@ -24,7 +24,8 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
     QObject::connect(ui.actionAbout_Qt, SIGNAL(triggered(bool)), qApp, SLOT(aboutQt()));
     ReadSettings();
     setWindowIcon(QIcon(":/images/icon.png"));
-    ui.tabWidget->setCurrentIndex(0);
+    ui.tabWidget_main->setCurrentIndex(0);
+    ui.tabWidget_driverless->setCurrentIndex(0);
 
     ui.view_logging->setModel(qnode.loggingModel());
     QObject::connect(&qnode, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
@@ -33,6 +34,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
     QObject::connect(&qnode, SIGNAL(taskStateChanged(int)), this, SLOT(onTaskStateChanged(int)));
     QObject::connect(&qnode, SIGNAL(rosmasterOffline()), this, SLOT(onRosmasterOffline()));
     QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
+    QObject::connect(&qnode, SIGNAL(statusUpdate(int,QString)),this,SLOT(onQnodeStatusUpdate(int,QString)));
     mTimer.start(500);
 
     ui.widget_rosEnv->hide();
@@ -40,13 +42,15 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
     this->initSensorStatusWidget();
     this->initWidgetSize();
 
-    //launchDrivelessNode();
+    initDriverlessSystemInfo();
+    launchRosNodes("driverless");
 }
 
 MainWindow::~MainWindow()
 {
     if(m_dataRecorder != nullptr)
         delete m_dataRecorder;
+    launchRosNodes("killros");
 }
 
 void MainWindow::initWidgetSize()
@@ -60,7 +64,19 @@ void MainWindow::initWidgetSize()
     ui.comboBox_driverSpeed->setFixedHeight(height);
     ui.comboBox_goalType->setFixedHeight(height);
     ui.comboBox_taskType->setFixedHeight(height);
+}
 
+bool MainWindow::initDriverlessSystemInfo()
+{
+    //载入RosNodesArray信息
+    if(!m_rosNodesArrayInvalid)
+        m_rosNodesArrayInvalid = loadRosNodesArrayInfo();
+    if(!m_rosNodesArrayInvalid)
+    {
+        std::cout << "loadRosNodesArrayInfo failed!" << std::endl;
+        return false;
+    }
+    return true;
 }
 
 /*初始化传感器状态显示控件*/
@@ -179,7 +195,7 @@ void MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         else if(ui.comboBox_taskType->currentText() == "Reverse")
         {
             goal.task  = goal.REVERSE_TASK;
-            if(this->ui.checkBox_pathFilp->checkState() == Qt::Checked)
+            if(this->ui.pushButton_flip->isChecked())
                 goal.path_filp = true;
             else
                 goal.path_filp = false;
@@ -198,13 +214,7 @@ void MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
 
 //connect
 void MainWindow::on_pushButton_connect_clicked()
-{
-	//载入RosNodesArray信息
-	if(!m_rosNodesArrayInvalid)
-		m_rosNodesArrayInvalid = loadRosNodesArrayInfo();
-	if(!m_rosNodesArrayInvalid)
-		return;
-	
+{	
     if(true /*ui.checkbox_use_environment->isChecked()*/)
     {
         if (!qnode.init())
@@ -288,6 +298,15 @@ void MainWindow::updateLoggingView()
 void MainWindow::on_actionAbout_triggered()
 {
     QMessageBox::about(this, tr("About ..."),tr("SEU Automatic Vehicle Console."));
+}
+
+void MainWindow::onQnodeStatusUpdate(int name, const QString& text)
+{
+    if(name==qnode.StateUpdateList_rtk)
+        ui.label_rtkStatus->setText(text);
+    else if(name=qnode.StateUpdateList_task)
+        ui.label_driverlessStatus->setText(text);
+
 }
 
 
@@ -545,7 +564,7 @@ void MainWindow::on_tabWidget_currentChanged(int index)
     static int last_index = 0;
     if(!qnode.initialed())
     {
-        ui.tabWidget->setCurrentIndex(stackWidgetIndex_driverless);
+        ui.tabWidget_main->setCurrentIndex(stackWidgetIndex_driverless);
         showMessgeInStatusBar("please connect to master firstly!", true);
         //qnode.log("please connect to master firstly!");
         return;
@@ -599,7 +618,7 @@ QString to_qstring(float val, int precision)
 void MainWindow::onDriverlessStatusChanged(float speed,float steerAngle,float latErr )
 {
     ui.lineEdit_latErr->setText(to_qstring(latErr,2));
-    ui.lineEdit_speed->setText(to_qstring(speed,2));
+    ui.lineEdit_speed->setText(to_qstring(speed*3.6,2));
     ui.lineEdit_steerAngle->setText(to_qstring(steerAngle,2));
 }
 
