@@ -9,7 +9,6 @@
 #include <ant_msgs/State.h>
 #include <sensor_msgs/Imu.h>
 #include <nav_msgs/Odometry.h>
-#endif
 
 #include <cstdio>
 #include <fstream>
@@ -17,6 +16,7 @@
 #include <memory>
 #include <sstream>
 #include <utils.hpp>
+#endif
 
 /*@brief 数据记录类
  *@note  记录各种传感器数据

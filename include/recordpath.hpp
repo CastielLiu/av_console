@@ -3,22 +3,21 @@
 
 #ifndef Q_MOC_RUN
 #include <ros/ros.h>
+#include <unistd.h>
+#include <cmath>
+#include <nav_msgs/Odometry.h>
+#include <fstream>
+#include <sstream>
+#include "globalvariables.hpp"
+#include <vector>
 #endif
 
 #include <QObject>
 #include <QThread>
 #include <QDebug>
 #include <QDir>
-#include <nav_msgs/Odometry.h>
-#include <unistd.h>
-#include <cmath>
 #include <QTimer>
-
-#include <vector>
 #include <QStringListModel>
-#include <fstream>
-#include <sstream>
-#include "globalvariables.hpp"
 
 struct gpsPoint
 {

@@ -5,7 +5,10 @@
 #include <functional>
 
 #ifndef Q_MOC_RUN    //避免Qt的Moc工具对Boost的代码进行Moc
+#include <string>
+#include <sstream>
 #include <ros/ros.h>
+#include <ros/network.h>
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/server/simple_action_server.h>
 #include <driverless/DoDriverlessTaskAction.h>

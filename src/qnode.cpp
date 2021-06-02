@@ -1,9 +1,4 @@
 
-#include <ros/ros.h>
-#include <ros/network.h>
-#include <string>
-#include <std_msgs/String.h>
-#include <sstream>
 #include "../include/qnode.hpp"
 
 namespace av_console {
