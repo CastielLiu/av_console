@@ -35,7 +35,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
 
     QObject::connect(&qnode, SIGNAL(driverlessStatusChanged(const driverless::State&)),
                      this,   SLOT(onDriverlessStatusChanged(const driverless::State&)),
-                     Qt::DrectConnection);
+                     Qt::DirectConnection);
 
     QObject::connect(&qnode, SIGNAL(taskStateChanged(int)), this, SLOT(onTaskStateChanged(int)));
     QObject::connect(&qnode, SIGNAL(rosmasterOffline()), this, SLOT(onRosmasterOffline()));
