@@ -34,7 +34,8 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
      //                 this,  SLOT(onDriverlessStatusChanged(float,float,float)));
 
     QObject::connect(&qnode, SIGNAL(driverlessStatusChanged(const driverless::State&)),
-                     this,   SLOT(onDriverlessStatusChanged(const driverless::State&)));
+                     this,   SLOT(onDriverlessStatusChanged(const driverless::State&)),
+                     Qt::DrectConnection);
 
     QObject::connect(&qnode, SIGNAL(taskStateChanged(int)), this, SLOT(onTaskStateChanged(int)));
     QObject::connect(&qnode, SIGNAL(rosmasterOffline()), this, SLOT(onRosmasterOffline()));
@@ -48,7 +49,6 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
     this->initWidgetSize();
 
     initDriverlessSystemInfo();
-    launchRosNodes("driverless");
 }
 
 MainWindow::~MainWindow()
@@ -70,7 +70,7 @@ void MainWindow::initWidgetSize()
     ui.comboBox_goalType->setFixedHeight(height);
     ui.comboBox_taskType->setFixedHeight(height);
 }
-
+#include <unistd.h>
 bool MainWindow::initDriverlessSystemInfo()
 {
     //载入RosNodesArray信息
@@ -81,6 +81,8 @@ bool MainWindow::initDriverlessSystemInfo()
         std::cout << "loadRosNodesArrayInfo failed!" << std::endl;
         return false;
     }
+    launchRosNodes("driverless");
+    usleep(3000000);
     //初始化qnode
     if(true /*ui.checkbox_use_environment->isChecked()*/)
     {
