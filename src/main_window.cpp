@@ -20,6 +20,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
     m_rosNodesArrayInvalid(false)
 {
     ui.setupUi(this);
+    qRegisterMetaType<driverless::State>("driverlessStateType");
 
     QObject::connect(ui.actionAbout_Qt, SIGNAL(triggered(bool)), qApp, SLOT(aboutQt()));
     ReadSettings();
@@ -29,15 +30,19 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
 
     ui.view_logging->setModel(qnode.loggingModel());
     QObject::connect(&qnode, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
-    QObject::connect(&qnode, SIGNAL(driverlessStatusChanged(float,float,float)),
-                      this,  SLOT(onDriverlessStatusChanged(float,float,float)));
+    //QObject::connect(&qnode, SIGNAL(driverlessStatusChanged(float,float,float)),
+     //                 this,  SLOT(onDriverlessStatusChanged(float,float,float)));
+
+    QObject::connect(&qnode, SIGNAL(driverlessStatusChanged(const driverless::State&)),
+                     this,   SLOT(onDriverlessStatusChanged(const driverless::State&)));
+
     QObject::connect(&qnode, SIGNAL(taskStateChanged(int)), this, SLOT(onTaskStateChanged(int)));
     QObject::connect(&qnode, SIGNAL(rosmasterOffline()), this, SLOT(onRosmasterOffline()));
     QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
     QObject::connect(&qnode, SIGNAL(statusUpdate(int,QString)),this,SLOT(onQnodeStatusUpdate(int,QString)));
     mTimer.start(500);
 
-    ui.widget_rosEnv->hide();
+    ui.groupBox_rosmaster->hide();
 
     this->initSensorStatusWidget();
     this->initWidgetSize();
@@ -76,6 +81,41 @@ bool MainWindow::initDriverlessSystemInfo()
         std::cout << "loadRosNodesArrayInfo failed!" << std::endl;
         return false;
     }
+    //初始化qnode
+    if(true /*ui.checkbox_use_environment->isChecked()*/)
+    {
+        if (!qnode.init())
+        {
+            std::cout << "roscore is not running. please wait a moment and reconnect.\n";
+            showMessgeInStatusBar("roscore is not running. please wait a moment and reconnect.", true);
+            qnode.log("roscore is not running. please wait a moment and reconnect.");
+            return false;
+        }
+        showMessgeInStatusBar("connect to rosmaster ok.");
+        qnode.stampedLog(qnode.Info, "connect to rosmaster ok.");
+        qnode.start();
+        ui.pushButton_connect->setEnabled(false);
+
+    }
+    else
+    {
+        if(!qnode.init(ui.line_edit_master->text().toStdString(),
+                   ui.line_edit_host->text().toStdString()))
+        {
+            showNoMasterMessage();
+            return false;
+        }
+        else
+        {
+            ui.pushButton_connect->setEnabled(false);
+            ui.line_edit_master->setReadOnly(true);
+            ui.line_edit_host->setReadOnly(true);
+        }
+    }
+    m_nodeInited = true;
+    //实例化数据记录器
+    m_dataRecorder = new RecordData();
+
     return true;
 }
 
@@ -106,6 +146,7 @@ void MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         //确保qnode已经初始化
         if(!qnode.initialed())
         {
+            system("roscore&");
             onTaskStateChanged(qnode.Idle);
             QMessageBox msgBox(this);
             msgBox.setIcon(QMessageBox::Warning);
@@ -215,39 +256,8 @@ void MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
 //connect
 void MainWindow::on_pushButton_connect_clicked()
 {	
-    if(true /*ui.checkbox_use_environment->isChecked()*/)
-    {
-        if (!qnode.init())
-        {
-            showMessgeInStatusBar("roscore is not running. please wait a moment and reconnect.", true);
-            qnode.log("roscore is not running. please wait a moment and reconnect.");
-            return;
-        }
-        showMessgeInStatusBar("connect to rosmaster ok.");
-        qnode.stampedLog(qnode.Info, "connect to rosmaster ok.");
-        qnode.start();
-        ui.pushButton_connect->setEnabled(false);
-
-    }
-    else
-    {
-        if(!qnode.init(ui.line_edit_master->text().toStdString(),
-                   ui.line_edit_host->text().toStdString()))
-        {
-            showNoMasterMessage();
-            return;
-        }
-        else
-        {
-            ui.pushButton_connect->setEnabled(false);
-			ui.line_edit_master->setReadOnly(true);
-			ui.line_edit_host->setReadOnly(true);
-		}
-	}
-    m_nodeInited = true;
-
-    //实例化数据记录器
-    m_dataRecorder = new RecordData();
+   if(!m_nodeInited)
+       this->initDriverlessSystemInfo();
 }
 
 
@@ -304,8 +314,6 @@ void MainWindow::onQnodeStatusUpdate(int name, const QString& text)
 {
     if(name==qnode.StateUpdateList_rtk)
         ui.label_rtkStatus->setText(text);
-    else if(name=qnode.StateUpdateList_task)
-        ui.label_driverlessStatus->setText(text);
 
 }
 
@@ -615,11 +623,14 @@ QString to_qstring(float val, int precision)
     return  QString(ss.str().c_str());
 }
 
-void MainWindow::onDriverlessStatusChanged(float speed,float steerAngle,float latErr )
+void MainWindow::onDriverlessStatusChanged(const driverless::State &state)
 {
-    ui.lineEdit_latErr->setText(to_qstring(latErr,2));
-    ui.lineEdit_speed->setText(to_qstring(speed*3.6,2));
-    ui.lineEdit_steerAngle->setText(to_qstring(steerAngle,2));
+    ui.lineEdit_latErr->setText(to_qstring(state.lateral_error,2));
+    ui.lineEdit_speed->setText(to_qstring(state.vehicle_speed*3.6,2));
+    ui.lineEdit_steerAngle->setText(to_qstring(state.roadwheel_angle,2));
+    ui.label_driverlessStatus->setText(QString::fromStdString(state.task_state));
+    ui.lineEdit_commandSpeed->setText(to_qstring(state.command_speed*3.6,2));
+    ui.lineEdit_obstacleDis->setText(to_qstring(state.nearest_object_distance,2));
 }
 
 void MainWindow::on_comboBox_taskType_activated(const QString &arg1)

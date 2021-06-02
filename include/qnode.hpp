@@ -45,10 +45,10 @@ public:
         Driverless_Complete,   //自动驾驶任务完成
     };
 
+    //状态更新列表，与onQnodeStatusUpdate配合使用
     enum StateUpdateList
     {
         StateUpdateList_rtk,
-        StateUpdateList_task,
     };
 
 	QStringListModel* loggingModel() { return &logging_model; }
@@ -81,7 +81,7 @@ Q_SIGNALS:
   void sensorStatusChanged(int sensorId,bool status);
   void taskStateChanged(int state);
   void rosmasterOffline();
-  void driverlessStatusChanged(float speed,float steerAngle,float latErr);
+  void driverlessStatusChanged(const driverless::State& state);
 
   //用于更新状态信息到ui的信号
   void statusUpdate(int name, const QString& text);

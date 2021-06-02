@@ -204,8 +204,7 @@ void QNode::sensorStatusTimer_callback(const ros::TimerEvent& )
 
 void QNode::driverlessState_callback(const driverless::State::ConstPtr& msg)
 {
-    Q_EMIT driverlessStatusChanged(msg->vehicle_speed,msg->roadwheel_angle,msg->lateral_error);
-    Q_EMIT statusUpdate(StateUpdateList_task,QString::fromStdString(msg->task_state));
+    Q_EMIT driverlessStatusChanged(*msg);
 }
 
 void QNode::log(const std::string &msg)
@@ -215,7 +214,6 @@ void QNode::log(const std::string &msg)
     QVariant new_row(QString(msg.c_str()));
     logging_model.setData(logging_model.index(logging_model.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
-
 }
 
 void QNode::stampedLog( const LogLevel &level, const std::string &msg) {

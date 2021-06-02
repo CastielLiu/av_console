@@ -1,5 +1,7 @@
 #!/bin/sh
 
+./flush.sh
+
 pwd=`pwd`
 exe=${pwd}/app/av_console
 icon=${pwd}/icon/icon.jpg
