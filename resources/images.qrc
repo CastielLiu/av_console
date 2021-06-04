@@ -2,6 +2,9 @@
     <qresource prefix="/">
         <file>images/icon.png</file>
     </qresource>
+    <qresource prefix="/bk">
+        <file>images/bk.jpg</file>
+    </qresource>
     <qresource prefix="/button">
         <file>images/btncheckoff1.png</file>
         <file>images/btncheckoff2.png</file>

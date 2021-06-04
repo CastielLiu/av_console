@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>759</width>
-    <height>542</height>
+    <width>936</width>
+    <height>762</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -72,12 +72,16 @@
              </font>
             </property>
             <property name="styleSheet">
-             <string notr="true">QTabBar::tab{min-height: 45px; min-width:100px; font: 12pt &quot;Sans Serif&quot;}</string>
+             <string notr="true">QTabBar::tab{min-height: 45px; min-width:100px; font: 12pt &quot;Sans Serif&quot;}
+background-image: url(:/bk/images/bk.jpg);</string>
             </property>
             <property name="currentIndex">
-             <number>0</number>
+             <number>1</number>
             </property>
             <widget class="QWidget" name="tab">
+             <property name="styleSheet">
+              <string notr="true">background-image: url(:/bk/images/bk.jpg);</string>
+             </property>
              <attribute name="title">
               <string>Datas</string>
              </attribute>
@@ -295,6 +299,9 @@
              </layout>
             </widget>
             <widget class="QWidget" name="tab_2">
+             <property name="styleSheet">
+              <string notr="true">background-image: url(:/bk/images/bk.jpg);</string>
+             </property>
              <attribute name="title">
               <string>Info</string>
              </attribute>
@@ -533,6 +540,9 @@
              </layout>
             </widget>
             <widget class="QWidget" name="tab_3">
+             <property name="styleSheet">
+              <string notr="true">background-image: url(:/bk/images/bk.jpg);</string>
+             </property>
              <attribute name="title">
               <string>Log</string>
              </attribute>
@@ -555,6 +565,9 @@
            <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
             <item>
              <widget class="QGroupBox" name="groupBox_rosmaster">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
               <property name="minimumSize">
                <size>
                 <width>0</width>
@@ -569,6 +582,7 @@
               </property>
               <property name="styleSheet">
                <string notr="true">QGroupBox {
+	background-image: url(:/bk/images/bk.jpg);
 border: 1px solid gray;
 border-radius: 9px;
 margin-top: 0.5em;
@@ -730,6 +744,7 @@ padding: 0 3px 0 3px;
               </property>
               <property name="styleSheet">
                <string notr="true">QGroupBox {
+	background-image: url(:/bk/images/bk.jpg);
 border: 1px solid gray;
 border-radius: 9px;
 margin-top: 0.5em;
@@ -1023,6 +1038,7 @@ padding: 0 3px 0 3px;
          <widget class="QGroupBox" name="groupBox_5">
           <property name="styleSheet">
            <string notr="true">QGroupBox {
+	background-image: url(:/bk/images/bk.jpg);
 border: 1px solid gray;
 border-radius: 9px;
 margin-top: 0.5em;
@@ -1077,6 +1093,9 @@ padding: 0 3px 0 3px;
        </layout>
       </widget>
       <widget class="QWidget" name="tab_sensors">
+       <property name="styleSheet">
+        <string notr="true">background-image: url(:/bk/images/bk.jpg);</string>
+       </property>
        <attribute name="title">
         <string>Sensors</string>
        </attribute>
@@ -1364,6 +1383,9 @@ padding: 0 3px 0 3px;
        </layout>
       </widget>
       <widget class="QWidget" name="tab_recorder">
+       <property name="styleSheet">
+        <string notr="true">background-image: url(:/bk/images/bk.jpg);</string>
+       </property>
        <attribute name="title">
         <string>Recorder</string>
        </attribute>
@@ -1747,6 +1769,7 @@ padding: 0 3px 0 3px;
         </property>
         <property name="styleSheet">
          <string notr="true">QGroupBox {
+	background-image: url(:/bk/images/bk.jpg);
 border: 1px solid gray;
 border-radius: 9px;
 margin-top: 0.5em;
@@ -1964,8 +1987,8 @@ padding: 0 3px 0 3px;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>759</width>
-     <height>19</height>
+     <width>936</width>
+     <height>31</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
