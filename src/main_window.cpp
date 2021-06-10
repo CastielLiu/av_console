@@ -39,16 +39,19 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
 
     QObject::connect(&qnode, SIGNAL(taskStateChanged(int)), this, SLOT(onTaskStateChanged(int)));
     QObject::connect(&qnode, SIGNAL(rosmasterOffline()), this, SLOT(onRosmasterOffline()));
-    QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
+    QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeout())); mTimer.start(500);
     QObject::connect(&qnode, SIGNAL(statusUpdate(int,QString)),this,SLOT(onQnodeStatusUpdate(int,QString)));
-    mTimer.start(500);
+
 
     ui.groupBox_rosmaster->hide();
+    ui.tabWidget_main->setTabEnabled(ui.tabWidget_main->indexOf(ui.tab_recorder) ,false);
+    ui.tabWidget_main->setTabEnabled(ui.tabWidget_main->indexOf(ui.tab_sensors) ,false);
 
     this->initSensorStatusWidget();
     this->initWidgetSize();
 
-    initDriverlessSystemInfo();
+    if(!initDriverlessSystem())
+        exit(0);
 }
 
 MainWindow::~MainWindow()
@@ -71,7 +74,7 @@ void MainWindow::initWidgetSize()
     ui.comboBox_taskType->setFixedHeight(height);
 }
 #include <unistd.h>
-bool MainWindow::initDriverlessSystemInfo()
+bool MainWindow::initDriverlessSystem()
 {
     //载入RosNodesArray信息
     if(!m_rosNodesArrayInvalid)
@@ -79,25 +82,18 @@ bool MainWindow::initDriverlessSystemInfo()
     if(!m_rosNodesArrayInvalid)
     {
         std::cout << "loadRosNodesArrayInfo failed!" << std::endl;
+        QMessageBox::critical(this,"Fatal", "Load Ros Nodes Array Information Failed!");
         return false;
     }
-    launchRosNodes("driverless");
-    usleep(3000000);
+
     //初始化qnode
     if(true /*ui.checkbox_use_environment->isChecked()*/)
     {
-        if (!qnode.init())
+        if (!qnode.init(2))
         {
-            std::cout << "roscore is not running. please wait a moment and reconnect.\n";
-            showMessgeInStatusBar("roscore is not running. please wait a moment and reconnect.", true);
-            qnode.log("roscore is not running. please wait a moment and reconnect.");
+            QMessageBox::critical(this,"Fatal", "QNode Initial Failed!");
             return false;
         }
-        showMessgeInStatusBar("connect to rosmaster ok.");
-        qnode.stampedLog(qnode.Info, "connect to rosmaster ok.");
-        qnode.start();
-        ui.pushButton_connect->setEnabled(false);
-
     }
     else
     {
@@ -114,10 +110,16 @@ bool MainWindow::initDriverlessSystemInfo()
             ui.line_edit_host->setReadOnly(true);
         }
     }
+    showMessgeInStatusBar("connect to rosmaster ok.");
+    qnode.stampedLog(qnode.Info, "connect to rosmaster ok.");
+    qnode.start();
+    ui.pushButton_connect->setEnabled(false);
+
     m_nodeInited = true;
     //实例化数据记录器
     m_dataRecorder = new RecordData();
 
+    launchRosNodes("driverless");
     return true;
 }
 
@@ -145,18 +147,6 @@ void MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
 {
     if(checked)
     {
-        //确保qnode已经初始化
-        if(!qnode.initialed())
-        {
-            system("roscore&");
-            onTaskStateChanged(qnode.Idle);
-            QMessageBox msgBox(this);
-            msgBox.setIcon(QMessageBox::Warning);
-            msgBox.setText("Please Connect Firstly.");
-            msgBox.exec();
-            return;
-        }
-
         if(!qnode.serverConnected())
         {
             this->showMessgeInStatusBar("driverless server is not connected! restarting driverless program...", true);
@@ -259,7 +249,7 @@ void MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
 void MainWindow::on_pushButton_connect_clicked()
 {	
    if(!m_nodeInited)
-       this->initDriverlessSystemInfo();
+       this->initDriverlessSystem();
 }
 
 
@@ -569,7 +559,7 @@ void MainWindow::on_pushButton_openRoadNet_clicked()
     m_roadNetFileDir = fileName;
 }
 
-void MainWindow::on_tabWidget_currentChanged(int index)
+void MainWindow::on_tabWidget_main_currentChanged(int index)
 {
     static int last_index = 0;
     if(!qnode.initialed())
@@ -629,6 +619,8 @@ void MainWindow::onDriverlessStatusChanged(const driverless::State &state)
 {
     ui.lineEdit_latErr->setText(to_qstring(state.lateral_error,2));
     ui.lineEdit_speed->setText(to_qstring(state.vehicle_speed*3.6,2));
+    ui.widget_speedDial->updateValue(state.vehicle_speed*3.6);
+
     ui.lineEdit_steerAngle->setText(to_qstring(state.roadwheel_angle,2));
     ui.label_driverlessStatus->setText(QString::fromStdString(state.task_state));
     ui.lineEdit_commandSpeed->setText(to_qstring(state.command_speed*3.6,2));

@@ -34,15 +34,24 @@ QNode::~QNode()
 	wait();
 }
 
-bool QNode::init()
+bool QNode::init(int try_num)
 {
+    if(is_init)
+        return true;
+
 	ros::init(init_argc,init_argv,"av_console");
-    if ( ! ros::master::check() )
+    while ( ! ros::master::check() && try_num>0)
     {
+        try_num --;
         std::thread t(&QNode::roscoreThread, this);
         t.detach();
-		return false;
+
+        usleep(500000); //500ms
 	}
+
+    if(try_num <= 0)
+        return false;
+
     is_init = true;
 
     //subscribe sensor msg to listen its status.
@@ -214,9 +223,9 @@ void QNode::log(const std::string &msg)
 void QNode::stampedLog( const LogLevel &level, const std::string &msg) {
 	logging_model.insertRows(logging_model.rowCount(),1);
 	std::stringstream logging_model_msg;
-    double now = ros::Time::now().toSec();
-
-    logging_model_msg << std::fixed << std::setprecision(2);
+    //double now = ros::Time::now().toSec();
+    //logging_model_msg << std::fixed << std::setprecision(2);
+    std::string now = "";
 
 	switch ( level ) {
         case(Debug) :

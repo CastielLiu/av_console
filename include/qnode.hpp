@@ -34,7 +34,7 @@ public:
 
 	QNode(int argc, char** argv );
 	virtual ~QNode();
-	bool init();
+    bool init(int try_num);
 	bool init(const std::string &master_url, const std::string &host_url);
     void roscoreThread() {system("roscore&");}
 	void run();

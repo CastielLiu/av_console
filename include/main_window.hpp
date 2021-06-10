@@ -40,7 +40,7 @@ public:
 
 	void showNoMasterMessage();
     bool changeToCmdDir(bool mode=false);
-    bool initDriverlessSystemInfo();
+    bool initDriverlessSystem();
     void initWidgetSize();
     void initSensorStatusWidget();
     void showMessgeInStatusBar(const QString& msg, bool warnning=false);
@@ -49,7 +49,6 @@ public:
         system("gnome-terminal -e \"rosnode kill /driverless_node\"");
     }
     void setPushButtonStylesheet(const QString& style);
-
 
 public Q_SLOTS:
 	void on_actionAbout_triggered();
@@ -69,7 +68,7 @@ private Q_SLOTS:
     void on_pushButton_pathPlanning_clicked(bool checked);
     void on_pushButton_openRoadNet_clicked();
     void on_pushButton_driverlessStart_clicked(bool checked);
-    void on_tabWidget_currentChanged(int index);
+    void on_tabWidget_main_currentChanged(int index);
     void on_comboBox_taskType_activated(const QString &arg1);
     void onTaskStateChanged(int state);
     void onRosmasterOffline();
