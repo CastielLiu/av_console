@@ -17,11 +17,12 @@ find_package(catkin REQUIRED COMPONENTS
     diagnostic_msgs
     sensor_msgs
     driverless
+    driverless_actions
     actionlib
     actionlib_msgs
     ant_msgs
 )
-include_directories(${catkin_INCLUDE_DIRS} include/)
+include_directories(${catkin_INCLUDE_DIRS} include/ driverless)
 # Use this to define what the package will export (e.g. libs, headers).
 # Since the default here is to produce only a binary, we don't worry about
 # exporting anything. 

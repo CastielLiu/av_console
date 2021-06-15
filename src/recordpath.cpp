@@ -238,7 +238,7 @@ bool RecordPath::generatePathInfoFile(const std::string& file_name)
 
     tinyxml2::XMLElement* durationElement = doc.NewElement("duration");
     discriptionNode->InsertEndChild(durationElement);
-    durationElement->InsertEndChild(doc.NewText("parking time(s), 0 for destination"));
+    durationElement->InsertEndChild(doc.NewText("parking time(s), -1 for destination"));
 
     tinyxml2::XMLElement* addEle = doc.NewElement("add");
     discriptionNode->InsertEndChild(addEle);
@@ -247,12 +247,12 @@ bool RecordPath::generatePathInfoFile(const std::string& file_name)
     size_t park_point_id = 0;
     for(size_t i=0; i<park_points_.size(); ++i)
     {
-        const ParkPoint& park_point = park_points_[i];
+        const ParkingPoint& park_point = park_points_[i];
         tinyxml2::XMLElement* pointElement = doc.NewElement("ParkingPoint");
         parkingPointsNode->InsertEndChild(pointElement); //在最后插入节点
         pointElement->SetAttribute("id", park_point_id++);
         pointElement->SetAttribute("index", park_point.index);
-        pointElement->SetAttribute("duration", park_point.duration);
+        pointElement->SetAttribute("duration", park_point.parkingDuration);
     }
 
     //创建ParkingPoint节点
@@ -262,7 +262,7 @@ bool RecordPath::generatePathInfoFile(const std::string& file_name)
     //为节点增加属性,终点停车
     pointElement->SetAttribute("id", park_point_id);
     pointElement->SetAttribute("index", path_points_.size()-1);
-    pointElement->SetAttribute("duration", 0);
+    pointElement->SetAttribute("duration", -1);
 
     }
 
@@ -305,10 +305,50 @@ bool RecordPath::generatePathInfoFile(const std::string& file_name)
         turnRangesNode->InsertEndChild(turnRangeNode);
 
         turnRangeNode->SetAttribute("type", turn_range.type);
-        turnRangeNode->SetAttribute("start", turn_range.startIndex);
-        turnRangeNode->SetAttribute("end", turn_range.endIndex);
+        turnRangeNode->SetAttribute("start", turn_range.start_index);
+        turnRangeNode->SetAttribute("end", turn_range.end_index);
     }
-    }
+    } //end TurnRanges
+
+    {//SpeedRanges
+        tinyxml2::XMLElement* speedRangesNode = doc.NewElement("SpeedRanges");
+        pathInfoNode->InsertEndChild(speedRangesNode);
+
+        //创建Description子节点,并插入父节点
+        tinyxml2::XMLElement* discriptionNode = doc.NewElement("Description");
+        speedRangesNode->InsertEndChild(discriptionNode);
+
+        tinyxml2::XMLElement* typeElement = doc.NewElement("speed");
+        discriptionNode->InsertEndChild(typeElement);
+        typeElement->InsertEndChild(doc.NewText("the max speed in the range of road"));
+
+        tinyxml2::XMLElement* startElement = doc.NewElement("start");
+        discriptionNode->InsertEndChild(startElement);
+        startElement->InsertEndChild(doc.NewText("the start index of the given max speed"));
+
+        tinyxml2::XMLElement* endElement = doc.NewElement("end");
+        discriptionNode->InsertEndChild(endElement);
+        endElement->InsertEndChild(doc.NewText("the end index of the given max speed"));
+
+        tinyxml2::XMLElement* addEle = doc.NewElement("add");
+        discriptionNode->InsertEndChild(addEle);
+        addEle->InsertEndChild(doc.NewText("To add a max speed range manually, please follow the format below"));
+
+        //创建speedRange节点
+        tinyxml2::XMLElement* speedRangeNode = doc.NewElement("SpeedRange");
+        speedRangesNode->InsertEndChild(speedRangeNode);
+
+        //添加属性,示例
+        for(const SpeedRange& speed_range: speed_ranges_)
+        {
+            tinyxml2::XMLElement* speedRangeNode = doc.NewElement("SpeedRange");
+            speedRangesNode->InsertEndChild(speedRangeNode);
+
+            speedRangeNode->SetAttribute("speed", speed_range.speed);
+            speedRangeNode->SetAttribute("start", speed_range.start_index);
+            speedRangeNode->SetAttribute("end", speed_range.end_index);
+        }
+    }//end SpeedRanges
     //6.保存xml文件
     doc.SaveFile(file_name.c_str());
 }
@@ -337,13 +377,27 @@ void RecordPath::setParkPoint(size_t duration)
     std::lock_guard<std::mutex> lck(mutex_);
 
     //当在小范围内多次请求时，新请求覆盖旧请求
+    std::cout << park_points_.back().index << "\t" << path_points_.size() << std::endl;
     if(park_points_.size() >0 && fabs(park_points_.back().index - path_points_.size()) < 5)
     {
         path_points_.back() = current_point_;
-        park_points_.back() = ParkPoint(path_points_.size()-1, duration);
+        park_points_.back() = ParkingPoint(path_points_.size()-1, duration);
         return;
     }
-
     path_points_.push_back(current_point_); //强制保存当前点，以提高定点停车准确度
     park_points_.emplace_back(path_points_.size()-1, duration);
+}
+
+void RecordPath::setMaxSpeed(float speed, bool is_start)
+{
+    std::lock_guard<std::mutex> lck(mutex_);
+
+    if(is_start)
+    {
+        speed_ranges_.push_back(SpeedRange(speed, path_points_.size()-1, path_points_.size()-1));
+    }
+    else
+    {
+        speed_ranges_.back().end_index = path_points_.size()-1;
+    }
 }

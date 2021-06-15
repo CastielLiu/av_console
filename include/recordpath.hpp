@@ -3,6 +3,7 @@
 
 #ifndef Q_MOC_RUN
 #include <ros/ros.h>
+#include <driverless/structs.h>
 #endif
 
 #include <QObject>
@@ -40,6 +41,7 @@ struct PathPoint
   }
 };
 
+/*
 struct TurnRange
 {
   TurnRange(int t, size_t s, size_t e): type(t), startIndex(s), endIndex(e){}
@@ -47,12 +49,14 @@ struct TurnRange
   size_t startIndex, endIndex;
 };
 
+
 struct ParkPoint
 {
     ParkPoint(size_t idx, size_t d): index(idx), duration(d){}
     size_t index;
     size_t duration; //s
 };
+*/
 
 class RecordPath : public QObject
 {
@@ -80,8 +84,8 @@ private:
     float current_road_left_width_;
     float current_road_right_width_;
     std::vector<TurnRange> turn_ranges_;
-    std::vector<ParkPoint> park_points_;
-
+    std::vector<ParkingPoint> park_points_;
+    std::vector<SpeedRange> speed_ranges_;
 
 Q_SIGNALS:
     void loggingUpdated();
@@ -104,6 +108,7 @@ public:
     void setRoadWidth(float left, float right);
     void setTurnRange(const std::string &type, size_t startIdx, size_t endIdx);
     void setParkPoint(size_t duration);
+    void setMaxSpeed(float speed, bool is_start);
     size_t getPointsSize() {std::lock_guard<std::mutex> lck(mutex_); return path_points_.size();}
 };
 

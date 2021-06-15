@@ -86,6 +86,8 @@ private Q_SLOTS:
 
     void on_pushButton_setParkPoint_clicked();
 
+    void on_pushButton_setRoadMaxSpeed_clicked(bool checked);
+
 private:
     QObjectList getAllLeafChilds(QObject* object);
     void disableRecordDataConfigure(bool flag);

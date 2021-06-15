@@ -8,7 +8,7 @@
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/server/simple_action_server.h>
-#include <driverless/DoDriverlessTaskAction.h>
+#include <driverless_actions/DoDriverlessTaskAction.h>
 #endif
 
 #include <thread>
@@ -25,7 +25,7 @@ namespace av_console {
 class QNode : public QThread {
     Q_OBJECT
 public:
-    typedef actionlib::SimpleActionClient<driverless::DoDriverlessTaskAction> DoDriverlessTaskClient;
+    typedef actionlib::SimpleActionClient<driverless_actions::DoDriverlessTaskAction> DoDriverlessTaskClient;
 
 	QNode(int argc, char** argv );
 	virtual ~QNode();
@@ -48,7 +48,7 @@ public:
     void stampedLog( const LogLevel &level, const std::string &msg);
 	bool initialed(){return is_init;}
     bool serverConnected();
-    void requestDriverlessTask(const driverless::DoDriverlessTaskGoal& goal);
+    void requestDriverlessTask(const driverless_actions::DoDriverlessTaskGoal& goal);
     void cancleAllGoals();
 
 private:
@@ -57,9 +57,9 @@ private:
     void diagnostic_callback(const diagnostic_msgs::DiagnosticStatus::ConstPtr& msg);
     void sensorStatusTimer_callback(const ros::TimerEvent& );
 
-    void taskFeedbackCallback(const driverless::DoDriverlessTaskFeedbackConstPtr& fd);
+    void taskFeedbackCallback(const driverless_actions::DoDriverlessTaskFeedbackConstPtr& fd);
     void taskDoneCallback(const actionlib::SimpleClientGoalState& state,
-                                 const driverless::DoDriverlessTaskResultConstPtr& res);
+                                 const driverless_actions::DoDriverlessTaskResultConstPtr& res);
     void taskActivedCallback();
 
 Q_SIGNALS:

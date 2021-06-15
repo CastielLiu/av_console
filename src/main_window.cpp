@@ -33,6 +33,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
     QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
 
     this->initSensorStatusWidget();
+    ui.groupBox_pathPlanConfig->setEnabled(false);
 
     //launchDrivelessNode();
 }
@@ -132,7 +133,7 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         {
         }
 
-        driverless::DoDriverlessTaskGoal goal;
+        driverless_actions::DoDriverlessTaskGoal goal;
         goal.roadnet_file = roadnet_file.toStdString();
         goal.expect_speed = speed;
 
@@ -865,11 +866,28 @@ void av_console::MainWindow::on_pushButton_setParkPoint_clicked()
         return;
     }
     m_pathRecorder->setParkPoint(duration);
-
+/*
     static bool newOp = true;
     if(newOp)
         ui.pushButton_setParkPoint->setStyleSheet(QString::fromUtf8("font: 10pt \"Sans Serif\"; color: rgb(255, 0, 0);"));
     else
         ui.pushButton_setParkPoint->setStyleSheet(QString::fromUtf8("font: 10pt \"Sans Serif\";"));
     newOp = !newOp;
+*/
+}
+
+void av_console::MainWindow::on_pushButton_setRoadMaxSpeed_clicked(bool checked)
+{
+    assert(m_pathRecorder);
+
+    float speed = ui.lineEdit_roadMaxSpeed->text().toFloat();
+    if(speed == 0.0)
+    {
+        QMessageBox::warning(this,"Warn","Road Max Speed Can Not Be Zero!");
+        ui.pushButton_setRoadMaxSpeed->setChecked(false);
+    }
+    else
+        m_pathRecorder->setMaxSpeed(speed, checked);
+
+    ui.lineEdit_roadMaxSpeed->setEnabled(!ui.pushButton_setRoadMaxSpeed->isChecked());
 }

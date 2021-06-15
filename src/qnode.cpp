@@ -113,20 +113,20 @@ void QNode::cancleAllGoals()
     ac_->cancelAllGoals();
 }
 
-void QNode::requestDriverlessTask(const driverless::DoDriverlessTaskGoal& goal)
+void QNode::requestDriverlessTask(const driverless_actions::DoDriverlessTaskGoal& goal)
 {
     ac_->sendGoal(goal, boost::bind(&QNode::taskDoneCallback,this,_1,_2),
                         boost::bind(&QNode::taskActivedCallback,this),
                         boost::bind(&QNode::taskFeedbackCallback,this,_1));
 }
 
-void QNode::taskFeedbackCallback(const driverless::DoDriverlessTaskFeedbackConstPtr& fd)
+void QNode::taskFeedbackCallback(const driverless_actions::DoDriverlessTaskFeedbackConstPtr& fd)
 {
     qDebug() << "taskFeedbackCallback ";
 }
 
 void QNode::taskDoneCallback(const actionlib::SimpleClientGoalState& state,
-                             const driverless::DoDriverlessTaskResultConstPtr& res)
+                             const driverless_actions::DoDriverlessTaskResultConstPtr& res)
 {
     qDebug() << "taskDoneCallback ";
     Q_EMIT taskStateChanged(Driverless_Complete);
