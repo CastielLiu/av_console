@@ -3,7 +3,7 @@
 
 #ifndef Q_MOC_RUN
 #include <ros/ros.h>
-#include <driverless/structs.h>
+#include <driverless_common/structs.h>
 #endif
 
 #include <QObject>

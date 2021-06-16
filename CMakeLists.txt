@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
     sensor_msgs
     driverless
     driverless_actions
+    driverless_common
     actionlib
     actionlib_msgs
     ant_msgs
