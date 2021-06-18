@@ -375,9 +375,11 @@ void RecordPath::setTurnRange(const std::string& type, size_t startIdx, size_t e
 void RecordPath::setParkPoint(size_t duration)
 {
     std::lock_guard<std::mutex> lck(mutex_);
+    if(path_points_.empty())
+        return ;
 
-    //当在小范围内多次请求时，新请求覆盖旧请求
-    std::cout << park_points_.back().index << "\t" << path_points_.size() << std::endl;
+    //当在小范围内多次请求记录停车点时，新请求覆盖旧请求
+    //vector::back()使用需谨慎，若vector为空，将访问非法内存，导致程序异常崩溃。 vector::front同理
     if(park_points_.size() >0 && fabs(park_points_.back().index - path_points_.size()) < 5)
     {
         path_points_.back() = current_point_;

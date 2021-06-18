@@ -5,7 +5,6 @@
 
 int main(int argc, char **argv)
 {
-
     QApplication app(argc, argv);
     av_console::MainWindow w(argc,argv);
     w.show();

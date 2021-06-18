@@ -52,7 +52,8 @@ public:
     void setPushButtonStylesheet(const QString& style);
 
 public Q_SLOTS:
-	void on_actionAbout_triggered();
+    void on_actionAbout_triggered();
+    void on_actionReinstall_triggered();
 	void on_checkbox_use_environment_stateChanged(int state);
     void on_pushButton_connect_clicked();
     void updateLoggingView(); // no idea why this can't connect automatically
@@ -77,15 +78,10 @@ private Q_SLOTS:
     void updateDataRecorderLoggingView();
 
     void on_pushButton_lidar_clicked(bool checked);
-    
     void on_pushButton_setPathWidth_clicked();
-
     void on_pushButton_setLeftTurn_clicked(bool checked);
-
     void on_pushButton_setRightTurn_clicked(bool checked);
-
     void on_pushButton_setParkPoint_clicked();
-
     void on_pushButton_setRoadMaxSpeed_clicked(bool checked);
 
 private:

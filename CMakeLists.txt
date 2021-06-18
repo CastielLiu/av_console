@@ -1,9 +1,10 @@
 ##############################################################################
 # CMake
 ##############################################################################
-
 cmake_minimum_required(VERSION 2.8.0)
+
 project(av_console)
+
 add_compile_options(-std=c++11)
 
 ##############################################################################
@@ -63,4 +64,10 @@ add_executable(av_console ${QT_SOURCES} ${QT_RESOURCES_CPP} ${QT_FORMS_HPP} ${QT
 add_dependencies(av_console ${av_console_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(av_console ${QT_LIBRARIES} ${catkin_LIBRARIES} /usr/local/lib/libtinyxml2.a)
 install(TARGETS av_console RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+
+#install av_console automatically
+execute_process(COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/release/install.sh" OUTPUT_VARIABLE cmd_res)
+message(++++++++++++++++++++ "${cmd_res}")
+
 

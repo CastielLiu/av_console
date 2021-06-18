@@ -21,7 +21,6 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
 {
     ui.setupUi(this);
 
-    QObject::connect(ui.actionAbout_Qt, SIGNAL(triggered(bool)), qApp, SLOT(aboutQt()));
     ReadSettings();
     setWindowIcon(QIcon(":/images/icon.png"));
     ui.tabWidget->setCurrentIndex(0);
@@ -42,8 +41,6 @@ MainWindow::~MainWindow()
 {
     if(m_dataRecorder != nullptr)
         delete m_dataRecorder;
-
-
 }
 
 /*初始化传感器状态显示控件*/
@@ -890,4 +887,12 @@ void av_console::MainWindow::on_pushButton_setRoadMaxSpeed_clicked(bool checked)
         m_pathRecorder->setMaxSpeed(speed, checked);
 
     ui.lineEdit_roadMaxSpeed->setEnabled(!ui.pushButton_setRoadMaxSpeed->isChecked());
+}
+
+void av_console::MainWindow::on_actionReinstall_triggered()
+{
+    QString app_dir = QCoreApplication::applicationDirPath();
+    QString cmd = app_dir+"/../install.sh";
+    QMessageBox::information(this,"d",cmd);
+    system(cmd.toStdString().c_str());
 }
