@@ -17,7 +17,8 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
     qnode(argc,argv),
     m_nodeInited(false),
     m_pathRecorder(nullptr),
-    m_dataRecorder(nullptr)
+    m_dataRecorder(nullptr),
+    m_forceExit(false)
 {
     ui.setupUi(this);
 
@@ -220,9 +221,7 @@ void MainWindow::on_pushButton_connect_clicked()
     m_dataRecorder = new RecordData();
     //载入RosNodesArray信息
     m_rosNodesArrayInvalid = loadRosNodesArrayInfo();
-
 }
-
 
 void MainWindow::on_checkbox_use_environment_stateChanged(int state)
 {
@@ -327,18 +326,23 @@ void MainWindow::WriteSettings() {
 void MainWindow::closeEvent(QCloseEvent *event)
 {
 	WriteSettings();
-    int button = QMessageBox::question(this,"Confirm Exit",
-                                       "Are you sure to exit?",
+
+    if(!m_forceExit)
+    {
+        int button = QMessageBox::question(this,"Confirm Exit",
+                                       "Are you sure to exit??",
                                        QMessageBox::Yes|QMessageBox::No,
                                        QMessageBox::No);
-    if(button == QMessageBox::Yes)
-    {
-        launchRosNodes("kill_driverless");
-        event->accept();
-        QMainWindow::closeEvent(event);
+        if(button != QMessageBox::Yes)
+        {
+            event->ignore();
+            return ;
+        }
     }
-    else
-        event->ignore();
+
+    launchRosNodes("kill_driverless");
+    event->accept();
+    QMainWindow::closeEvent(event);
 }
 
 }  // namespace av_console
@@ -891,8 +895,17 @@ void av_console::MainWindow::on_pushButton_setRoadMaxSpeed_clicked(bool checked)
 
 void av_console::MainWindow::on_actionReinstall_triggered()
 {
+    int button = QMessageBox::question(this,"Reinstall",
+                                       "The current program will exit automatically.\n Confirm the reinstall?",
+                                       QMessageBox::Yes|QMessageBox::No,
+                                       QMessageBox::No);
+    if(button != QMessageBox::Yes)
+        return ;
+
     QString app_dir = QCoreApplication::applicationDirPath();
-    QString cmd = app_dir+"/../install.sh";
-    QMessageBox::information(this,"d",cmd);
-    system(cmd.toStdString().c_str());
+    QString cmd_dir = app_dir + "/../";
+    QString cmd = cmd_dir+"install.sh 1"; //执行安装程序时延迟1s再进行拷贝，确保可执行程序已经退出以防止占用导致拷贝失败
+    execute_process_detached(cmd.toStdString());
+    m_forceExit = true;
+    this->close();
 }

@@ -6,8 +6,20 @@
 #include "structs.hpp"
 #include "globalvariables.hpp"
 #include <sstream>
+#include <thread>
 
 namespace av_console {
+
+static void execute_process(const std::string& cmd)
+{
+    system(cmd.c_str());
+}
+
+static void execute_process_detached(const std::string& cmd)
+{
+    std::thread t(execute_process, cmd);
+    t.detach();
+}
 
 //启动ros nodes节点
 static bool launchRosNodes(const std::string& nodes_name)
@@ -45,6 +57,7 @@ static bool loadPathPoints(std::string file_path,PoseArray& path)
     }
     return true;
 }
+
 
 }
 #endif // UTILS_HPP

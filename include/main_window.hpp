@@ -99,6 +99,8 @@ private:
     QString m_roadNetFileDir;
     QString m_recordFileDir;
 
+    bool m_forceExit; //强制退出，无需确认
+
     QTimer mTimer;
     //CustomTaskDialog* m_customDialog;
 

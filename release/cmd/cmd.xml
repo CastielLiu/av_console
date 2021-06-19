@@ -31,7 +31,7 @@
     </RosNodes>
     
     <RosNodes name="killros">
-        <LaunchCommand>rosnode kill --all && killall -9 roscore && killall -9 rosmaster</LaunchCommand>
+        <LaunchCommand>rosnode kill --all && killall -9 roscore && killall -9 rosmaster &</LaunchCommand>
     </RosNodes>
 
 </RosNodesArray>

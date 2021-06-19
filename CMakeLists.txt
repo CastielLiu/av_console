@@ -67,7 +67,7 @@ install(TARGETS av_console RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 
 
 #install av_console automatically
-execute_process(COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/release/install.sh" OUTPUT_VARIABLE cmd_res)
-message(++++++++++++++++++++ "${cmd_res}")
+#execute_process(COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/release/install.sh" OUTPUT_VARIABLE cmd_res)
+#message(++++++++++++++++++++ "${cmd_res}")
 
 
