@@ -88,7 +88,7 @@ void MainWindow::initSensorStatusWidget()
     {
         m_sensorStatusWidgets[i]->setChecked(false);
         m_sensorStatusWidgets[i]->configButton(ImageSwitch::ButtonStyle_4);
-        m_sensorStatusWidgets[i]->setClickedEnable();
+        m_sensorStatusWidgets[i]->setClickedDisable();
     }
 
     connect(&qnode,SIGNAL(sensorStatusChanged(int,bool)),this,SLOT(sensorStatusChanged(int,bool)));
