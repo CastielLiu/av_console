@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/av_console">
+        <file>av_console/splash_screen.jpg</file>
+    </qresource>
+</RCC>

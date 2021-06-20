@@ -18,6 +18,7 @@
 #include <queue>
 #include <algorithm>
 #include <tinyxml2.h>
+#include <QSplashScreen>
 
 namespace av_console {
 
@@ -32,7 +33,7 @@ Q_OBJECT
     };
 
 public:
-	MainWindow(int argc, char** argv, QWidget *parent = 0);
+    MainWindow(int argc, char** argv, QSplashScreen* splash, QWidget *parent = 0);
 	~MainWindow();
 
 	void ReadSettings(); // Load up qt program settings at startup
@@ -43,9 +44,6 @@ public:
     void initSensorStatusWidget();
     void showMessgeInStatusBar(const QString& msg, bool warnning=false);
 
-    void launchDrivelessNode(){
-        system("gnome-terminal -e \"roslaunch driverless driverless.launch\"");
-    }
     void killDriverlessNode(){
         system("gnome-terminal -e \"rosnode kill /driverless_node\"");
     }
@@ -61,6 +59,9 @@ public Q_SLOTS:
     void sensorStatusChanged(int,bool);
     void closeEvent(QCloseEvent *event);
     void showEvent(QShowEvent* event) override;
+
+Q_SIGNALS:
+    void restart();
 
 private Q_SLOTS:
     void on_pushButton_gps_clicked(bool checked);
@@ -84,11 +85,15 @@ private Q_SLOTS:
     void on_pushButton_setParkPoint_clicked();
     void on_pushButton_setRoadMaxSpeed_clicked(bool checked);
 
+    void on_pushButton_setTrafficLightPoint_clicked();
+
 private:
     QObjectList getAllLeafChilds(QObject* object);
     void disableRecordDataConfigure(bool flag);
     bool loadRosNodesArrayInfo();
     void displayRosNodesArrayInfo();
+    bool initDriverlessSystem();
+    bool initQnode();
 
 private:
     Ui::MainWindow ui;
@@ -100,11 +105,11 @@ private:
     QString m_recordFileDir;
 
     bool m_forceExit; //强制退出，无需确认
-
     QTimer mTimer;
     //CustomTaskDialog* m_customDialog;
-
     bool m_rosNodesArrayInvalid;
+    QSplashScreen *m_splash;
+    std::vector<ImageSwitch *> m_sensorStatusWidgets;
 
 };
 

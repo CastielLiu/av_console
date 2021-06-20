@@ -5,6 +5,11 @@
         <Topic name="inspvax">/gps</Topic>
         <Topic name="utm">/gps_odom</Topic>
     </RosNodes>
+    
+    <RosNodes name="rtk">
+        <LaunchCommand>rosrun rtk rtk_node /dev/ttyS3 &</LaunchCommand>
+        <Topic name="status">/rtk_status</Topic>
+    </RosNodes>
 
     <RosNodes name="lidar">
         <LaunchCommand>roslaunch hesai_lidar p40p.launch &</LaunchCommand>

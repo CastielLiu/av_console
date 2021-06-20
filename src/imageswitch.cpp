@@ -4,15 +4,12 @@
 #include "qpainter.h"
 #include "qdebug.h"
 
-ImageSwitch::ImageSwitch(QWidget *parent) : QWidget(parent)
+ImageSwitch::ImageSwitch(QWidget *parent) :
+    QWidget(parent),
+    isChecked(false),
+    useClick(true)
 {
-    isChecked = false;
-    buttonStyle = ButtonStyle_2;
-    useClick = true;
-
-    imgOffFile = ":/button/gray_led";
-    imgOnFile = ":/button/green_led";
-    imgFile = imgOffFile;
+    configButton(ButtonStyle_4);
 }
 
 void ImageSwitch::mousePressEvent(QMouseEvent *event)
@@ -26,6 +23,7 @@ void ImageSwitch::mousePressEvent(QMouseEvent *event)
 
     if(event->button() == Qt::LeftButton)
     {
+        qDebug() << "clicked!";
         isChecked = !isChecked;
         imgFile = isChecked ? imgOnFile : imgOffFile;
 
@@ -72,6 +70,8 @@ QSize ImageSwitch::minimumSizeHint() const
     return QSize(87, 40);
 }
 */
+
+//@brief 控制开关状态
 void ImageSwitch::setChecked(bool isChecked)
 {
     if (this->isChecked != isChecked)
@@ -82,33 +82,36 @@ void ImageSwitch::setChecked(bool isChecked)
     }
 }
 
-void ImageSwitch::setButtonStyle(const ImageSwitch::ButtonStyle &buttonStyle)
+/*@brief 配置按钮
+ *@param buttonStyle 按钮类型
+ */
+void ImageSwitch::configButton(const ImageSwitch::ButtonStyle &buttonStyle, const QString& name)
 {
+    mName = name;
     if (this->buttonStyle != buttonStyle)
     {
         this->buttonStyle = buttonStyle;
 
         if (buttonStyle == ButtonStyle_1) {
-            imgOffFile = ":/image/btncheckoff1.png";
-            imgOnFile = ":/image/btncheckon1.png";
+            imgOffFile = ":/button/imageswitch_imgs/btncheckoff1.png";
+            imgOnFile = ":/button/imageswitch_imgs/btncheckon1.png";
             this->resize(87, 28);
         } else if (buttonStyle == ButtonStyle_2) {
-            imgOffFile = ":/image/btncheckoff2.png";
-            imgOnFile = ":/image/btncheckon2.png";
+            imgOffFile = ":/button/imageswitch_imgs/btncheckoff2.png";
+            imgOnFile = ":/button/imageswitch_imgs/btncheckon2.png";
             this->resize(87, 28);
         } else if (buttonStyle == ButtonStyle_3) {
-            imgOffFile = ":/image/btncheckoff3.png";
-            imgOnFile = ":/image/btncheckon3.png";
+            imgOffFile = ":/button/imageswitch_imgs/btncheckoff3.png";
+            imgOnFile = ":/button/imageswitch_imgs/btncheckon3.png";
             this->resize(96, 38);
         } else if (buttonStyle == ButtonStyle_4) {
-            imgOffFile = ":/button/gray_led";
-            imgOnFile = ":/button/green_led";
+            imgOffFile = ":/button/imageswitch_imgs/btncheckoff4";
+            imgOnFile = ":/button/imageswitch_imgs/btncheckon4";
             this->resize(30,30);
         }
-
-        imgFile = isChecked ? imgOnFile : imgOffFile;
-        setChecked(isChecked);
-        this->update();
-        updateGeometry();
     }
+    imgFile = isChecked ? imgOnFile : imgOffFile;
+    setChecked(isChecked);
+    this->update();
+    updateGeometry();
 }

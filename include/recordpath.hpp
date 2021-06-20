@@ -85,6 +85,7 @@ private:
     float current_road_right_width_;
     std::vector<TurnRange> turn_ranges_;
     std::vector<ParkingPoint> park_points_;
+    std::vector<TrafficLightPoint> traffic_light_points_;
     std::vector<SpeedRange> speed_ranges_;
 
 Q_SIGNALS:
@@ -108,6 +109,7 @@ public:
     void setRoadWidth(float left, float right);
     void setTurnRange(const std::string &type, size_t startIdx, size_t endIdx);
     void setParkPoint(size_t duration);
+    void setTrafficLightPoint();
     void setMaxSpeed(float speed, bool is_start);
     size_t getPointsSize() {std::lock_guard<std::mutex> lck(mutex_); return path_points_.size();}
 };

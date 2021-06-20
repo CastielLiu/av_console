@@ -9,8 +9,10 @@
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/server/simple_action_server.h>
 #include <driverless_actions/DoDriverlessTaskAction.h>
+#include <nav_msgs/Odometry.h>
 #endif
 
+#include "utils.hpp"
 #include <thread>
 #include <string>
 #include <QThread>
@@ -29,9 +31,9 @@ public:
 
 	QNode(int argc, char** argv );
 	virtual ~QNode();
-	bool init();
+    bool init(int try_num);
 	bool init(const std::string &master_url, const std::string &host_url);
-    void roscoreThread() {system("roscore&");}
+    bool waitForDriverlessServer(float timeout);
 	void run();
 
     enum LogLevel {Debug, Info,Warn,Error,Fatal};
@@ -46,13 +48,13 @@ public:
 	QStringListModel* loggingModel() { return &logging_model; }
     void log(const std::string &msg);
     void stampedLog( const LogLevel &level, const std::string &msg);
-	bool initialed(){return is_init;}
+    bool initialed(){return is_init&&ros::master::check() ;}
     bool serverConnected();
     void requestDriverlessTask(const driverless_actions::DoDriverlessTaskGoal& goal);
     void cancleAllGoals();
 
 private:
-    void gpsFix_callback(const sensor_msgs::NavSatFix::ConstPtr& gps_fix);
+    void gpsOdom_callback(const nav_msgs::Odometry::ConstPtr& odom);
     void lidar_callback(const sensor_msgs::PointCloud2::ConstPtr& );
     void diagnostic_callback(const diagnostic_msgs::DiagnosticStatus::ConstPtr& msg);
     void sensorStatusTimer_callback(const ros::TimerEvent& );
@@ -75,8 +77,7 @@ private:
     QStringListModel logging_model;
 	bool is_init;
 
-    sensor_t gps,rtk,camera1,lidar,esr;
-    std::vector<sensor_t*> sensors;
+    std::vector<Sensor> sensors;
     ros::Subscriber gps_sub;
     ros::Subscriber lidar_sub;
     ros::Subscriber diagnostic_sub;

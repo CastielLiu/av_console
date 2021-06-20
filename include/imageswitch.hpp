@@ -22,7 +22,7 @@ class ImageSwitch : public QWidget
 
     //
     Q_PROPERTY(bool isChecked READ getChecked WRITE setChecked)
-    //Q_PROPERTY(ButtonStyle buttonStyle READ getButtonStyle WRITE setButtonStyle)
+    //Q_PROPERTY(ButtonStyle buttonStyle READ getButtonStyle WRITE configButton)
 
 public:
     enum ButtonStyle {
@@ -48,10 +48,12 @@ private:
     QString imgOnFile;
     QString imgFile;
     bool useClick; //是否使用点击，作为状态灯时禁用
+    QString mName;  //名称
 
 public:
     bool getChecked()               const;
     ButtonStyle getButtonStyle()    const;
+    std::string getName()const {return mName.toStdString();}
     /*
     QSize sizeHint()                const;
     QSize minimumSizeHint()         const;
@@ -59,7 +61,7 @@ public:
 
 public Q_SLOTS:
     void setChecked(bool isChecked);
-    void setButtonStyle(const ImageSwitch::ButtonStyle &buttonStyle);
+    void configButton(const ImageSwitch::ButtonStyle &buttonStyle, const QString& name="");
 };
 
 #endif // IMAGESWITCH_H

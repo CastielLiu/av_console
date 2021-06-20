@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/button">
+        <file>imageswitch_imgs/btncheckoff1.png</file>
+        <file>imageswitch_imgs/btncheckoff2.png</file>
+        <file>imageswitch_imgs/btncheckoff3.png</file>
+        <file alias="red_led">imageswitch_imgs/btncheckoff4_.jpg</file>
+        <file>imageswitch_imgs/btncheckoff4.jpg</file>
+        <file>imageswitch_imgs/btncheckon1.png</file>
+        <file>imageswitch_imgs/btncheckon2.png</file>
+        <file>imageswitch_imgs/btncheckon3.png</file>
+        <file>imageswitch_imgs/btncheckon4.jpg</file>
+    </qresource>
+</RCC>

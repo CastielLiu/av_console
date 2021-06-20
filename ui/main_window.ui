@@ -14,7 +14,7 @@
    <string>Autonomous Vehicle Console</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resources/images.qrc">
+   <iconset>
     <normaloff>:/images/icon.png</normaloff>:/images/icon.png</iconset>
   </property>
   <property name="locale">
@@ -808,6 +808,32 @@ padding: 0 3px 0 3px;
              </item>
              <item>
               <widget class="Line" name="line_8">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButton_setTrafficLightPoint">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>35</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font: 10pt &quot;Sans Serif&quot;;</string>
+               </property>
+               <property name="text">
+                <string>Set Traffic Light Point</string>
+               </property>
+               <property name="checkable">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="Line" name="line_9">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
                </property>
@@ -1805,9 +1831,7 @@ padding: 0 3px 0 3px;
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="../resources/images.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>action_Quit</sender>

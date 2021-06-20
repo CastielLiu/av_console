@@ -22,6 +22,7 @@ bool RecordPath::start()
     
     odom_topic_ = g_rosNodesArray["gps"].topics["utm"];
     sub_gps_ = nh.subscribe(odom_topic_ ,1,&RecordPath::gps_callback,this);
+
     connect(&wait_gps_topic_timer_, SIGNAL(timeout()), this, SLOT(waitGpsTopicTimeout()));
 
     path_points_.clear();
@@ -29,7 +30,12 @@ bool RecordPath::start()
     ros::Duration(0.5).sleep();  //等待订阅器初始化完成，否则即使存在发布者，也有可能被漏检
 
     if(sub_gps_.getNumPublishers() == 0) //检测发布者是否存在
+    {
+        std::string info = std::string("No ") + odom_topic_ + " publihser!\nPlease check the gps node!";
+        this->log("WARN", info);
         return false;
+    }
+
     return true;
 }
 
@@ -196,7 +202,7 @@ void RecordPath::log( const std::string &level, const std::string &msg)
   std::stringstream logging_model_msg;
 
   logging_model_msg << std::fixed << std::setprecision(3)
-                    << "[" << level << "]" << "[" << ros::Time::now() << "]: " << msg;
+                    << "[" << level << "]: " << msg;
 
   QVariant new_row(QString(logging_model_msg.str().c_str()));
   logging_model.setData(logging_model.index(logging_model.rowCount()-1),new_row);
@@ -334,13 +340,10 @@ bool RecordPath::generatePathInfoFile(const std::string& file_name)
         discriptionNode->InsertEndChild(addEle);
         addEle->InsertEndChild(doc.NewText("To add a max speed range manually, please follow the format below"));
 
-        //创建speedRange节点
-        tinyxml2::XMLElement* speedRangeNode = doc.NewElement("SpeedRange");
-        speedRangesNode->InsertEndChild(speedRangeNode);
-
         //添加属性,示例
         for(const SpeedRange& speed_range: speed_ranges_)
         {
+            //创建speedRange节点
             tinyxml2::XMLElement* speedRangeNode = doc.NewElement("SpeedRange");
             speedRangesNode->InsertEndChild(speedRangeNode);
 
@@ -349,6 +352,40 @@ bool RecordPath::generatePathInfoFile(const std::string& file_name)
             speedRangeNode->SetAttribute("end", speed_range.end_index);
         }
     }//end SpeedRanges
+
+    {//TrafficLightPoints
+        tinyxml2::XMLElement* pointsNode = doc.NewElement("TrafficLightPoints");
+        pathInfoNode->InsertEndChild(pointsNode);
+
+        //创建Description子节点,并插入父节点
+        tinyxml2::XMLElement* discriptionNode = doc.NewElement("Description");
+        pointsNode->InsertEndChild(discriptionNode);
+
+        tinyxml2::XMLElement* typeElement = doc.NewElement("index");
+        discriptionNode->InsertEndChild(typeElement);
+        typeElement->InsertEndChild(doc.NewText("the traffic light position in global path"));
+
+        tinyxml2::XMLElement* startElement = doc.NewElement("id");
+        discriptionNode->InsertEndChild(startElement);
+        startElement->InsertEndChild(doc.NewText("the sequence of the traffic light point"));
+
+        tinyxml2::XMLElement* addEle = doc.NewElement("add");
+        discriptionNode->InsertEndChild(addEle);
+        addEle->InsertEndChild(doc.NewText("To add a max speed range manually, please follow the format below"));
+
+        //添加属性
+        for(int id=0; id<traffic_light_points_.size(); ++id)
+        {
+            //创建point节点
+            const TrafficLightPoint& point = traffic_light_points_[id];
+            tinyxml2::XMLElement* pointNode = doc.NewElement("TrafficLightPoint");
+            pointsNode->InsertEndChild(pointNode);
+
+            pointNode->SetAttribute("id", id);
+            pointNode->SetAttribute("index", point.index);
+        }
+    }//end SpeedRanges
+
     //6.保存xml文件
     doc.SaveFile(file_name.c_str());
 }
@@ -376,18 +413,35 @@ void RecordPath::setParkPoint(size_t duration)
 {
     std::lock_guard<std::mutex> lck(mutex_);
     if(path_points_.empty())
+    {
+        log("WARN","[Parking Point] No Valid Path Points!");
         return ;
+    }
 
+    path_points_.push_back(current_point_); //强制保存当前点，以提高定点停车准确度
     //当在小范围内多次请求记录停车点时，新请求覆盖旧请求
     //vector::back()使用需谨慎，若vector为空，将访问非法内存，导致程序异常崩溃。 vector::front同理
     if(park_points_.size() >0 && fabs(park_points_.back().index - path_points_.size()) < 5)
+        park_points_.back() = ParkingPoint(path_points_.size()-1, duration); //覆盖最后一个停车点
+    else
+        park_points_.emplace_back(path_points_.size()-1, duration);
+    log("INFO","[Parking Point] Recorded.");
+}
+
+void RecordPath::setTrafficLightPoint()
+{
+    std::lock_guard<std::mutex> lck(mutex_);
+    if(path_points_.empty())
     {
-        path_points_.back() = current_point_;
-        park_points_.back() = ParkingPoint(path_points_.size()-1, duration);
-        return;
+        log("WARN","[Traffic Light Point] No Valid Path Points!");
+        return ;
     }
-    path_points_.push_back(current_point_); //强制保存当前点，以提高定点停车准确度
-    park_points_.emplace_back(path_points_.size()-1, duration);
+
+    if(traffic_light_points_.size() >0 && fabs(traffic_light_points_.back().index - path_points_.size()) < 5)
+        traffic_light_points_.back() = TrafficLightPoint(path_points_.size()-1, -1);
+    else
+        traffic_light_points_.emplace_back(path_points_.size()-1, -1);
+    log("INFO","[Traffic Light Point] Recorded.");
 }
 
 void RecordPath::setMaxSpeed(float speed, bool is_start)
@@ -402,4 +456,5 @@ void RecordPath::setMaxSpeed(float speed, bool is_start)
     {
         speed_ranges_.back().end_index = path_points_.size()-1;
     }
+    log("INFO",QString("[Max Speed] %1 km/h.").arg(speed).toStdString());
 }

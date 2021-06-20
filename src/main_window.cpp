@@ -12,18 +12,22 @@
 namespace av_console {
 using namespace Qt;
 
-MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
+MainWindow::MainWindow(int argc, char** argv, QSplashScreen* splash, QWidget *parent):
     QMainWindow(parent),
     qnode(argc,argv),
     m_nodeInited(false),
     m_pathRecorder(nullptr),
     m_dataRecorder(nullptr),
-    m_forceExit(false)
+    m_forceExit(false),
+    m_splash(splash)
 {
     ui.setupUi(this);
 
+    m_splash->setFont(QFont("microsoft yahei", 20));
+    m_splash->showMessage("Initializing UI ...", Qt::AlignCenter|Qt::AlignBottom);
+
     ReadSettings();
-    setWindowIcon(QIcon(":/images/icon.png"));
+    //setWindowIcon(QIcon(":/images/icon.png"));
     ui.tabWidget->setCurrentIndex(0);
 
     ui.view_logging->setModel(qnode.loggingModel());
@@ -34,8 +38,12 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent):
 
     this->initSensorStatusWidget();
     ui.groupBox_pathPlanConfig->setEnabled(false);
-
-    //launchDrivelessNode();
+    if(!initDriverlessSystem())
+    {
+        //延时以充分显示错误信息
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        exit(0);
+    }
 }
 
 MainWindow::~MainWindow()
@@ -44,28 +52,44 @@ MainWindow::~MainWindow()
         delete m_dataRecorder;
 }
 
+bool MainWindow::initDriverlessSystem()
+{
+    //载入RosNodesArray信息
+    if(!loadRosNodesArrayInfo())
+        return false;
+
+    m_splash->showMessage("Preparing  driverless ...", Qt::AlignCenter|Qt::AlignBottom);
+
+    if(!initQnode()) return false;
+
+    if(!qnode.waitForDriverlessServer(3.0))
+    {
+        m_splash->showMessage("Connect to driverless server failed!",Qt::AlignCenter|Qt::AlignBottom, Qt::red);
+        return false;
+    }
+
+    m_splash->showMessage("Initializing complete!",Qt::AlignCenter|Qt::AlignBottom, Qt::green);
+
+
+    return true;
+}
+
 /*初始化传感器状态显示控件*/
 void MainWindow::initSensorStatusWidget()
 {
-    ui.widget_rtkStatus->setChecked(false);
-    ui.widget_rtkStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
-    ui.widget_rtkStatus->setClickedDisable();
+    m_sensorStatusWidgets.resize(Sensor::TotalCount);
+    m_sensorStatusWidgets[Sensor::Camera1] = ui.widget_camera1Status;
+    m_sensorStatusWidgets[Sensor::Gps] = ui.widget_gpsStatus;
+    m_sensorStatusWidgets[Sensor::Rtk] = ui.widget_rtkStatus;
+    m_sensorStatusWidgets[Sensor::Esr] = ui.widget_esrStatus;
+    m_sensorStatusWidgets[Sensor::Lidar] = ui.widget_lidarStatus;
 
-    ui.widget_camera1Status->setChecked(false);
-    ui.widget_camera1Status->setButtonStyle(ImageSwitch::ButtonStyle_4);
-    ui.widget_camera1Status->setClickedDisable();
-
-    ui.widget_esrStatus->setChecked(false);
-    ui.widget_esrStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
-    ui.widget_esrStatus->setClickedDisable();
-
-    ui.widget_gpsStatus->setChecked(false);
-    ui.widget_gpsStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
-    ui.widget_gpsStatus->setClickedDisable();
-
-    ui.widget_lidarStatus->setChecked(false);
-    ui.widget_lidarStatus->setButtonStyle(ImageSwitch::ButtonStyle_4);
-    ui.widget_lidarStatus->setClickedDisable();
+    for(size_t i=0; i<m_sensorStatusWidgets.size(); ++i)
+    {
+        m_sensorStatusWidgets[i]->setChecked(false);
+        m_sensorStatusWidgets[i]->configButton(ImageSwitch::ButtonStyle_4);
+        m_sensorStatusWidgets[i]->setClickedEnable();
+    }
 
     connect(&qnode,SIGNAL(sensorStatusChanged(int,bool)),this,SLOT(sensorStatusChanged(int,bool)));
 }
@@ -88,8 +112,8 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
 
         if(!qnode.serverConnected())
         {
-            this->showMessgeInStatusBar("driverless server is not connected! restarting driverless program...", true);
-            qnode.stampedLog(qnode.Info, "driverless server is not connected! restarting driverless program...");
+            //this->showMessgeInStatusBar("driverless server is not connected! restarting driverless program...", true);
+            qnode.stampedLog(qnode.Info, "driverless server is not connected!\n automatic starting driverless program...");
             launchRosNodes("driverless");
             onTaskStateChanged(qnode.Idle);
             return;
@@ -186,41 +210,37 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
 //connect
 void MainWindow::on_pushButton_connect_clicked()
 {
+    initQnode();
+}
+
+bool MainWindow::initQnode()
+{
     if(ui.checkbox_use_environment->isChecked())
     {
-        if (!qnode.init())
+        if (!qnode.init(5))
         {
-            showMessgeInStatusBar("roscore is not running. please wait a moment and reconnect.", true);
-            qnode.log("roscore is not running. please wait a moment and reconnect.");
-            return;
+            m_splash->showMessage("Detect rosmaster failed!",Qt::AlignCenter|Qt::AlignBottom, Qt::red);
+            return false;
         }
-        showMessgeInStatusBar("connect to rosmaster ok.");
-        qnode.stampedLog(qnode.Info, "connect to rosmaster ok.");
         qnode.start();
         ui.pushButton_connect->setEnabled(false);
-
     }
     else
     {
         if(!qnode.init(ui.line_edit_master->text().toStdString(),
                    ui.line_edit_host->text().toStdString()))
         {
-            showNoMasterMessage();
-            return;
+            return false;
         }
         else
         {
             ui.pushButton_connect->setEnabled(false);
-			ui.line_edit_master->setReadOnly(true);
-			ui.line_edit_host->setReadOnly(true);
-		}
-	}
+            ui.line_edit_master->setReadOnly(true);
+            ui.line_edit_host->setReadOnly(true);
+        }
+    }
     m_nodeInited = true;
-
-    //实例化数据记录器
-    m_dataRecorder = new RecordData();
-    //载入RosNodesArray信息
-    m_rosNodesArrayInvalid = loadRosNodesArrayInfo();
+    return true;
 }
 
 void MainWindow::on_checkbox_use_environment_stateChanged(int state)
@@ -240,16 +260,7 @@ void MainWindow::on_checkbox_use_environment_stateChanged(int state)
 void MainWindow::sensorStatusChanged(int sensor_id, bool status)
 {
     qDebug() <<"sensorStatusChanged  " <<  sensor_id << "\t " << status;
-    if(Sensor_Camera1 == sensor_id)
-        ui.widget_camera1Status->setChecked(status);
-    else if(Sensor_Rtk == sensor_id)
-        ui.widget_rtkStatus->setChecked(status);
-    else if(Sensor_Lidar == sensor_id)
-        ui.widget_lidarStatus->setChecked(status);
-    else if(Sensor_Gps == sensor_id)
-        ui.widget_gpsStatus->setChecked(status);
-    else if(Sensor_Esr == sensor_id)
-        ui.widget_esrStatus->setChecked(status);
+    m_sensorStatusWidgets[sensor_id]->setChecked(status);
 }
 
 void MainWindow::showNoMasterMessage()
@@ -427,10 +438,8 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
         connect(m_pathRecorder, SIGNAL(loggingUpdated()), this, SLOT(updatePathPlanningLoggingView()));
         if(!m_pathRecorder->start())
         {
-//            changeToCmdDir();
-//            system("gnome-terminal -e ./gps.sh");
-            launchRosNodes("gps");
-            m_pathRecorder->log("INFO","No Location Message Published, Starting GPS Automatically.");
+            ui.pushButton_pathPlanning->setChecked(false);
+            return;
         }
         ui.pushButton_pathPlanning->setText("Stop And Save");
         ui.groupBox_pathPlanConfig->setDisabled(false);
@@ -502,16 +511,18 @@ void av_console::MainWindow::on_pushButton_openRoadNet_clicked()
     m_roadNetFileDir = fileName;
 }
 
-
-
 void av_console::MainWindow::on_tabWidget_currentChanged(int index)
 {
     static int last_index = 0;
+
     if(!qnode.initialed())
     {
-        ui.tabWidget->setCurrentIndex(stackWidgetIndex_driverless);
-        showMessgeInStatusBar("please connect to master firstly!", true);
-        qnode.log("please connect to master firstly!");
+        if(index != stackWidgetIndex_driverless)
+        {
+            showMessgeInStatusBar("please connect to master firstly!", true);
+            qnode.log("please connect to master firstly!");
+            ui.tabWidget->setCurrentIndex(stackWidgetIndex_driverless);
+        }
         return;
     }
     if(index == stackWidgetIndex_recorder)
@@ -520,6 +531,13 @@ void av_console::MainWindow::on_tabWidget_currentChanged(int index)
         QString text = QInputDialog::getText(this, "Infomation", "This feature is under development",
                                                      QLineEdit::Normal,
                                                      "",&ok);
+
+        if(m_dataRecorder == nullptr)
+        {
+            //实例化数据记录器
+            m_dataRecorder = new RecordData();
+        }
+
         if(text == "seucar")
             m_dataRecorder->setDisable(false);
         else
@@ -566,7 +584,24 @@ void av_console::MainWindow::on_comboBox_taskType_activated(const QString &arg1)
 //ros master shutdown , reEnable the connect button
 void av_console::MainWindow::onRosmasterOffline()
 {
-    ui.pushButton_connect->setEnabled(true);
+    //ui.pushButton_connect->setEnabled(true);
+    //创建msgBox
+    QMessageBox msgBox(QMessageBox::Warning, tr("ROS Master Shutdown!"), tr("Close Application or Restart?"),
+                       QMessageBox::Yes|QMessageBox::Cancel);
+    //添加按键并重命名
+    msgBox.button(QMessageBox::Yes)->setText(tr("restart"));
+    msgBox.button(QMessageBox::Cancel)->setText(tr("close"));
+
+    //设置默认按键
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    //启动msgBox事件循环
+    int button = msgBox.exec();
+
+    //点击叉号或者Cancel均返回QMessageBox::Cancel
+    if(button == QMessageBox::Yes)
+        qApp->exit(777); //restart
+    else
+        qApp->exit(0);
 }
 
 void av_console::MainWindow::onTimeout()
@@ -716,19 +751,21 @@ void av_console::MainWindow::on_pushButton_selectRecordFile_clicked()
 
 bool av_console::MainWindow::loadRosNodesArrayInfo()
 {
-    std::string file = QCoreApplication::applicationDirPath().toStdString() + "/../cmd/cmd.xml";
+    QString file = QCoreApplication::applicationDirPath() + "/../cmd/cmd.xml";
 
     tinyxml2::XMLDocument Doc;   //定义xml文件对象
-    tinyxml2::XMLError res = Doc.LoadFile(file.c_str());
+    tinyxml2::XMLError res = Doc.LoadFile(file.toStdString().c_str());
 
     if(tinyxml2::XML_ERROR_FILE_NOT_FOUND == res)
     {
-        qnode.stampedLog(QNode::Error ,std::string("load ") + file + " failed");
+        QString fatalMsg = QString("No ") + file + "!";
+        QMessageBox::critical(this,"Fatal", fatalMsg);
         return false;
     }
     else if(tinyxml2::XML_SUCCESS != res)
     {
-        qnode.stampedLog(QNode::Error ,std::string("parse ") + file + " failed");
+        QString fatalMsg = QString("Parse ") + file + "failed!";
+        QMessageBox::critical(this,"Fatal", fatalMsg);
         return false;
     }
     tinyxml2::XMLElement *pRoot = Doc.RootElement();
@@ -908,4 +945,9 @@ void av_console::MainWindow::on_actionReinstall_triggered()
     execute_process_detached(cmd.toStdString());
     m_forceExit = true;
     this->close();
+}
+
+void av_console::MainWindow::on_pushButton_setTrafficLightPoint_clicked()
+{
+    m_pathRecorder->setTrafficLightPoint();
 }
