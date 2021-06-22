@@ -1,42 +1,55 @@
 <?xml version="1.0"?>
-<RosNodesArray>
-    <RosNodes name="gps">
+#Nodes 节点程序信息
+#   name 节点名称   use_botton 是否用于按键,true: UI自动生成按钮并关键启动和关闭指令
+#   LaunchCommand 启动指令
+#   CloseCommand  关闭指令
+#   Topic 节点话题名称, 程序订阅特定话题以检测状态
+#   
+<NodesArray>
+    <Nodes name="gps">
         <LaunchCommand>roslaunch novatel novatel.launch &</LaunchCommand>
         <Topic name="inspvax">/gps</Topic>
-        <Topic name="utm">/gps_odom</Topic>
-    </RosNodes>
+        <Topic name="odom">/gps_odom</Topic>
+    </Nodes>
     
-    <RosNodes name="rtk">
+    <Nodes name="rtk">
         <LaunchCommand>rosrun rtk rtk_node /dev/ttyS3 &</LaunchCommand>
         <Topic name="status">/rtk_status</Topic>
-    </RosNodes>
+    </Nodes>
 
-    <RosNodes name="lidar">
+    <Nodes name="lidar">
         <LaunchCommand>roslaunch hesai_lidar p40p.launch &</LaunchCommand>
         <Topic name="points">/pandar_points</Topic>
-    </RosNodes>
+    </Nodes>
 
-    <RosNodes name="imu">
+    <Nodes name="imu">
         <LaunchCommand>roslaunch novatel novatel_imu.launch & </LaunchCommand>
         <Topic name="raw_imu">/raw_imu</Topic>
         <Topic name="corr_imu">/corr_imu</Topic>
-    </RosNodes>
+    </Nodes>
 
-    <RosNodes name="base_control">
+    <Nodes name="base_control">
         <LaunchCommand>roslaunch ant_driver ant_driver.launch &</LaunchCommand>
         <Topic name="vehicle_state">/vehicleState</Topic>
-    </RosNodes>
+    </Nodes>
     
-    <RosNodes name="driverless">
+    <Nodes name="driverless">
         <LaunchCommand>roslaunch driverless driverless.launch &</LaunchCommand>
-    </RosNodes>
+        <CloseCommand>rosnode kill /driverless_node &</CloseCommand>
+    </Nodes>
     
-    <RosNodes name="kill_driverless">
-        <LaunchCommand>rosnode kill /ant_driver_node &</LaunchCommand>
-    </RosNodes>
-    
-    <RosNodes name="killros">
+    <Nodes name="killros">
         <LaunchCommand>rosnode kill --all && killall -9 roscore && killall -9 rosmaster &</LaunchCommand>
-    </RosNodes>
+    </Nodes>
+    
+    <Nodes name="rviz" use_botton="true">
+        <LaunchCommand>rosrun rviz rviz __name:=rviz &</LaunchCommand>
+        <CloseCommand>rosnode kill /rviz &</CloseCommand>
+    </Nodes>
+    
+    <Nodes name="turtlesim_test" use_botton="true">
+        <LaunchCommand>rosrun turtlesim  turtlesim_node &</LaunchCommand>
+        <CloseCommand>rosnode kill /turtlesim &</CloseCommand>
+    </Nodes>
 
-</RosNodesArray>
+</NodesArray>

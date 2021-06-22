@@ -31,18 +31,19 @@ public:
 
 	QNode(int argc, char** argv );
 	virtual ~QNode();
-    bool init(int try_num);
-	bool init(const std::string &master_url, const std::string &host_url);
+    bool init(int try_num, const std::string &master_url="", const std::string &host_url="");
     bool waitForDriverlessServer(float timeout);
 	void run();
 
     enum LogLevel {Debug, Info,Warn,Error,Fatal};
     enum TaskState
     {
-        Idle,
+        Driverless_Offline,    //自动驾驶离线
+        Driverless_Idle,       //自动驾驶空闲
         Driverless_Starting,   //自动驾驶任务启动中
         Driverless_Running,    //自动驾驶任务运行中
         Driverless_Complete,   //自动驾驶任务完成
+        Driverless_Failed,     //自动驾驶失败
     };
 
 	QStringListModel* loggingModel() { return &logging_model; }
@@ -67,8 +68,9 @@ private:
 Q_SIGNALS:
   void loggingUpdated();
   void sensorStatusChanged(int sensorId,bool status);
-  void taskStateChanged(int state);
+  void taskStateChanged(int state, const QString& info="");
   void rosmasterOffline();
+  void showDiagnosticMsg(const QString& device, int level,const QString& msg);
 
 private:
 	int init_argc;

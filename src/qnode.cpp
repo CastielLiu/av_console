@@ -13,7 +13,7 @@ QNode::QNode(int argc, char** argv ) :
 	init_argv(argv),
     is_init(false),
     as_online_(false),
-    task_state_(Idle),
+    task_state_(Driverless_Idle),
     ac_(nullptr)
 {
     sensors.resize(Sensor::TotalCount);
@@ -34,9 +34,18 @@ QNode::~QNode()
 	wait();
 }
 
-bool QNode::init(int try_num)
+bool QNode::init(int try_num, const std::string &master_url, const std::string &host_url)
 {
-	ros::init(init_argc,init_argv,"av_console");
+    if(!master_url.empty() && !host_url.empty())
+    {
+        std::map<std::string,std::string> remappings;
+        remappings["__master"] = master_url;
+        remappings["__hostname"] = host_url;
+        ros::init(remappings,"av_console");
+    }
+    else
+        ros::init(init_argc,init_argv,"av_console");
+
     while ( ! ros::master::check() && try_num>0)
     {
        try_num --;
@@ -48,9 +57,9 @@ bool QNode::init(int try_num)
 
     //subscribe sensor msg to listen its status.
     ros::NodeHandle nh;
-    gps_sub = nh.subscribe(g_rosNodesArray["gps"].topics["utm"],1,&QNode::gpsOdom_callback,this);
+    gps_sub = nh.subscribe(g_rosNodesArray["gps"].topics["odom"],1,&QNode::gpsOdom_callback,this);
     lidar_sub =  nh.subscribe(g_rosNodesArray["lidar"].topics["points"],1,&QNode::lidar_callback,this);
-    diagnostic_sub = nh.subscribe("/sensors/diagnostic",10,&QNode::diagnostic_callback,this);
+    diagnostic_sub = nh.subscribe("/driverless/diagnostic",10,&QNode::diagnostic_callback,this);
     sensorStatus_timer = nh.createTimer(ros::Duration(1), &QNode::sensorStatusTimer_callback,this);
 
     if(ac_ != nullptr)
@@ -84,20 +93,6 @@ bool QNode::waitForDriverlessServer(float timeout)
     return true;
 }
 
-bool QNode::init(const std::string &master_url, const std::string &host_url)
-{
-	std::map<std::string,std::string> remappings;
-	remappings["__master"] = master_url;
-	remappings["__hostname"] = host_url;
-	ros::init(remappings,"av_console");
-    if ( ! ros::master::check())
-		return false;
-	ros::start(); // explicitly needed since our nodehandle is going out of scope.
-    start();
-	is_init = true;
-	return true;
-}
-
 /*QThread 线程函数，start后开始执行*/
 void QNode::run()
 {
@@ -108,7 +103,7 @@ void QNode::run()
     {
         if(!ac_->isServerConnected())
         {
-            Q_EMIT taskStateChanged(Idle);
+            Q_EMIT taskStateChanged(Driverless_Offline);
         }
 
         ros::Duration(1.0).sleep();
@@ -147,8 +142,9 @@ void QNode::taskFeedbackCallback(const driverless_actions::DoDriverlessTaskFeedb
 void QNode::taskDoneCallback(const actionlib::SimpleClientGoalState& state,
                              const driverless_actions::DoDriverlessTaskResultConstPtr& res)
 {
-    qDebug() << "taskDoneCallback ";
-    Q_EMIT taskStateChanged(Driverless_Complete);
+    std::cout << "taskDoneCallback " << state.toString().c_str() << std::endl;
+
+    Q_EMIT taskStateChanged(Driverless_Complete, QString(state.getText().c_str()));
 }
 
 void QNode::taskActivedCallback()
@@ -190,11 +186,18 @@ void QNode::lidar_callback(const sensor_msgs::PointCloud2::ConstPtr& )
 
 void QNode::diagnostic_callback(const diagnostic_msgs::DiagnosticStatus::ConstPtr& msg)
 {
-    if(msg->hardware_id=="esr_radar")
-        sensors[Sensor::Esr].last_update_time = ros::Time::now().toSec();
-    else if(msg->hardware_id=="camera")
-        sensors[Sensor::Camera1].last_update_time = ros::Time::now().toSec();
+    //ros消息中的字符串需要通过字符串流取出
+    std::string hardware_id, message; char level;
+    std::stringstream ss1; ss1 << msg->hardware_id; ss1 >> hardware_id;
+    std::stringstream ss2; ss2 << msg->level; ss2 >> level;  //std::cout << ss2.str() << std::endl;
+    std::stringstream ss3; ss3 << msg->message; ss3 >> message;
+
+    //std::cout << hardware_id << " " <<  level << " " << message << std::endl;
+
+    Q_EMIT showDiagnosticMsg(QString::fromStdString(hardware_id),level,QString::fromStdString(msg->message));
 }
+
+//传感器状态更新定时器，若新消息超时，则认为数据丢失
 void QNode::sensorStatusTimer_callback(const ros::TimerEvent& )
 {
     //qDebug() << "sensorStatusTimer_callback\r\n" ;

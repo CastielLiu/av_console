@@ -50,6 +50,8 @@ typedef struct _RosNodes
 {
     std::string name;
     std::string launch_cmd;
+    std::string close_cmd;
+    bool use_button;  //是否使用按钮，若使用，则在UI界面自动生成按钮
 
     //topic_name, topic_value
     std::unordered_map<std::string, std::string> topics;

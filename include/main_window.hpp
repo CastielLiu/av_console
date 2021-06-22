@@ -64,27 +64,25 @@ Q_SIGNALS:
     void restart();
 
 private Q_SLOTS:
-    void on_pushButton_gps_clicked(bool checked);
-    void on_pushButton_rtk_clicked(bool checked);
     void on_pushButton_pathPlanning_clicked(bool checked);
     void on_pushButton_openRoadNet_clicked();
     void on_pushButton_driverlessStart_clicked(bool checked);
     void on_tabWidget_currentChanged(int index);
     void on_comboBox_taskType_activated(const QString &arg1);
-    void onTaskStateChanged(int state);
+    void onTaskStateChanged(int state, const QString &info="");
     void onRosmasterOffline();
     void onTimeout();
     void on_pushButton_startRecordData_clicked(bool checked);
     void on_pushButton_selectRecordFile_clicked();
     void updateDataRecorderLoggingView();
+    void onShowDiagnosticMsg(const QString& device, int level, const QString& msg);
 
-    void on_pushButton_lidar_clicked(bool checked);
     void on_pushButton_setPathWidth_clicked();
     void on_pushButton_setLeftTurn_clicked(bool checked);
     void on_pushButton_setRightTurn_clicked(bool checked);
     void on_pushButton_setParkPoint_clicked();
     void on_pushButton_setRoadMaxSpeed_clicked(bool checked);
-
+    void customizeButtonsClicked(bool checked);
     void on_pushButton_setTrafficLightPoint_clicked();
 
 private:

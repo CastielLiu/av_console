@@ -7,7 +7,9 @@
 #include "unistd.h"
 #include "iostream"
 #include "cstdio"
-#include "QDir"
+#include <QDir>
+#include "autodisapperdialog.hpp"
+
 
 namespace av_console {
 using namespace Qt;
@@ -21,6 +23,9 @@ MainWindow::MainWindow(int argc, char** argv, QSplashScreen* splash, QWidget *pa
     m_forceExit(false),
     m_splash(splash)
 {
+    //注册信号槽数据类型
+    qRegisterMetaType<std::string>("std_string");
+
     ui.setupUi(this);
 
     m_splash->setFont(QFont("microsoft yahei", 20));
@@ -32,12 +37,19 @@ MainWindow::MainWindow(int argc, char** argv, QSplashScreen* splash, QWidget *pa
 
     ui.view_logging->setModel(qnode.loggingModel());
     QObject::connect(&qnode, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
-    QObject::connect(&qnode, SIGNAL(taskStateChanged(int)), this, SLOT(onTaskStateChanged(int)));
+    QObject::connect(&qnode, SIGNAL(taskStateChanged(int,const QString&)), this, SLOT(onTaskStateChanged(int,const QString&)));
     QObject::connect(&qnode, SIGNAL(rosmasterOffline()), this, SLOT(onRosmasterOffline()));
     QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
+    QObject::connect(&qnode, SIGNAL(showDiagnosticMsg(const QString&,int,const QString&)),
+                     this, SLOT(onShowDiagnosticMsg(const QString&,int,const QString&)));
 
-    this->initSensorStatusWidget();
-    ui.groupBox_pathPlanConfig->setEnabled(false);
+    this->initSensorStatusWidget(); //初始化传感器状态widget
+
+    //设置treeWidget_diagnosics
+    //如设置为根据文本内容调整尺寸，将导致加载速度变慢
+    //ui.treeWidget_diagnosics->header()->setResizeMode(QHeaderView::ResizeToContents); //根据内容调整尺寸
+    ui.treeWidget_diagnosics->setUniformRowHeights(true); //使用同一高度，防止每次加载新数据都计算行高，以加快载入
+
     if(!initDriverlessSystem())
     {
         //延时以充分显示错误信息
@@ -52,11 +64,35 @@ MainWindow::~MainWindow()
         delete m_dataRecorder;
 }
 
+void MainWindow::customizeButtonsClicked(bool checked)
+{
+    QPushButton *button = qobject_cast<QPushButton *>(sender());
+    //qDebug() << button->text();
+    launchRosNodes(button->text().toStdString(), !checked);
+}
+
 bool MainWindow::initDriverlessSystem()
 {
     //载入RosNodesArray信息
     if(!loadRosNodesArrayInfo())
         return false;
+
+    for (auto iter = g_rosNodesArray.begin(); iter != g_rosNodesArray.end(); iter++)
+    {
+         RosNodes node = iter->second;
+         std::string node_name = iter->first;
+         if(node.use_button)
+         {
+              QPushButton * button = new QPushButton(ui.scrollArea_customizeButtons);
+              button->setCheckable(true);
+              button->setObjectName(QString("customized_button_%1").arg(node_name.c_str()));
+              button->setText(QString::fromStdString(node_name));
+              ui.customizeButtonsLayout->addWidget(button);
+              connect(button,SIGNAL(clicked(bool)),this, SLOT(customizeButtonsClicked(bool)));
+         }
+    }
+    QSpacerItem* spacerItem = new QSpacerItem(10,10,QSizePolicy::Minimum, QSizePolicy::Expanding);
+    ui.customizeButtonsLayout->addItem(spacerItem);
 
     m_splash->showMessage("Preparing  driverless ...", Qt::AlignCenter|Qt::AlignBottom);
 
@@ -68,8 +104,9 @@ bool MainWindow::initDriverlessSystem()
         return false;
     }
 
-    m_splash->showMessage("Initializing complete!",Qt::AlignCenter|Qt::AlignBottom, Qt::green);
+    qnode.start();
 
+    m_splash->showMessage("Initializing complete!",Qt::AlignCenter|Qt::AlignBottom, Qt::green);
 
     return true;
 }
@@ -90,7 +127,6 @@ void MainWindow::initSensorStatusWidget()
         m_sensorStatusWidgets[i]->configButton(ImageSwitch::ButtonStyle_4);
         m_sensorStatusWidgets[i]->setClickedDisable();
     }
-
     connect(&qnode,SIGNAL(sensorStatusChanged(int,bool)),this,SLOT(sensorStatusChanged(int,bool)));
 }
 
@@ -102,7 +138,7 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         //确保qnode已经初始化
         if(!qnode.initialed())
         {
-            onTaskStateChanged(qnode.Idle);
+            onTaskStateChanged(qnode.Driverless_Idle);
             QMessageBox msgBox(this);
             msgBox.setIcon(QMessageBox::Warning);
             msgBox.setText("Please Connect Firstly.");
@@ -115,7 +151,7 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
             //this->showMessgeInStatusBar("driverless server is not connected! restarting driverless program...", true);
             qnode.stampedLog(qnode.Info, "driverless server is not connected!\n automatic starting driverless program...");
             launchRosNodes("driverless");
-            onTaskStateChanged(qnode.Idle);
+            onTaskStateChanged(qnode.Driverless_Idle);
             return;
         }
 
@@ -127,7 +163,7 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
             QMessageBox msgBox(this);
             msgBox.setText("No Roadnet File.");
             msgBox.exec();
-            onTaskStateChanged(qnode.Idle);
+            onTaskStateChanged(qnode.Driverless_Idle);
             return;
         }
 
@@ -148,7 +184,7 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         //std::cout  << std::hex << button << std::endl;
         if(button == QMessageBox::Cancel)
         {
-            onTaskStateChanged(qnode.Idle);
+            onTaskStateChanged(qnode.Driverless_Idle);
             return;
         }
         else if(button == QMessageBox::YesAll) // saveLog
@@ -171,7 +207,7 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
                 QMessageBox msgBox;
                 msgBox.setText(QString("Load goal pose from %1 failed!").arg(roadnet_file));
                 msgBox.exec();
-                onTaskStateChanged(qnode.Idle);
+                onTaskStateChanged(qnode.Driverless_Idle);
                 return;
             }
             const Pose goal_pose = path.poses[0];
@@ -182,7 +218,7 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         else
         {
             QMessageBox::warning(this,"Unknown Road Type!", "Unknown Road Type!");
-            onTaskStateChanged(qnode.Idle);
+            onTaskStateChanged(qnode.Driverless_Idle);
             return;
         }
         //任务类型
@@ -203,7 +239,7 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
     else
     {
         qnode.cancleAllGoals();
-        onTaskStateChanged(qnode.Idle);
+        onTaskStateChanged(qnode.Driverless_Idle);
     }
 }
 
@@ -215,45 +251,29 @@ void MainWindow::on_pushButton_connect_clicked()
 
 bool MainWindow::initQnode()
 {
-    if(ui.checkbox_use_environment->isChecked())
+    std::string master = "";
+    std::string host   = "";
+    if(!ui.checkbox_use_environment->isChecked())
     {
-        if (!qnode.init(5))
-        {
-            m_splash->showMessage("Detect rosmaster failed!",Qt::AlignCenter|Qt::AlignBottom, Qt::red);
-            return false;
-        }
-        qnode.start();
-        ui.pushButton_connect->setEnabled(false);
+        master = ui.line_edit_master->text().toStdString();
+        host   = ui.line_edit_host->text().toStdString();
     }
-    else
+    ui.pushButton_connect->setEnabled(false);
+
+    if (!qnode.init(5, master, host))
     {
-        if(!qnode.init(ui.line_edit_master->text().toStdString(),
-                   ui.line_edit_host->text().toStdString()))
-        {
-            return false;
-        }
-        else
-        {
-            ui.pushButton_connect->setEnabled(false);
-            ui.line_edit_master->setReadOnly(true);
-            ui.line_edit_host->setReadOnly(true);
-        }
+        m_splash->showMessage("Detect rosmaster failed!",Qt::AlignCenter|Qt::AlignBottom, Qt::red);
+        return false;
     }
+
     m_nodeInited = true;
     return true;
 }
 
 void MainWindow::on_checkbox_use_environment_stateChanged(int state)
 {
-	bool enabled;
-    if ( state == 0 )
-		enabled = true;
-    else
-		enabled = false;
-
-	ui.line_edit_master->setEnabled(enabled);
-	ui.line_edit_host->setEnabled(enabled);
-	//ui.line_edit_topic->setEnabled(enabled);
+    ui.line_edit_master->setReadOnly(state);
+    ui.line_edit_host->setReadOnly(state);
 }
 
 
@@ -351,39 +371,12 @@ void MainWindow::closeEvent(QCloseEvent *event)
         }
     }
 
-    launchRosNodes("kill_driverless");
+    launchRosNodes("driverless", true); //close driverless
     event->accept();
     QMainWindow::closeEvent(event);
 }
 
 }  // namespace av_console
-
-
-void av_console::MainWindow::on_pushButton_gps_clicked(bool checked)
-{
-    if(checked)
-    {
-      launchRosNodes("gps");
-    }
-    else
-    {
-      ui.pushButton_gps->setChecked(true);
-    }
-}
-
-void av_console::MainWindow::on_pushButton_rtk_clicked(bool checked)
-{
-    if(checked)
-    {
-      changeToCmdDir();
-      system("gnome-terminal -e ./rtk.sh");
-      ui.lineEdit_rtk->setText("ok");
-    }
-    else
-    {
-      ui.lineEdit_rtk->setText("");
-    }
-}
 
 //mode=true  ros 工作空间目录
 //mode=false 应用程序所在目录 default
@@ -547,9 +540,15 @@ void av_console::MainWindow::on_tabWidget_currentChanged(int index)
     last_index = index;
 }
 
-void av_console::MainWindow::onTaskStateChanged(int state)
+void av_console::MainWindow::onTaskStateChanged(int state, const QString& info)
 {
-    if(state == qnode.Idle)
+    if(!info.isEmpty())
+    {
+        AutoDisapperDialog* dialog =
+                new AutoDisapperDialog(this, QMessageBox::Information,info,2000);
+    }
+
+    if(state == qnode.Driverless_Idle)
     {
         ui.pushButton_driverlessStart->setChecked(false);
         ui.pushButton_driverlessStart->setText("Start");
@@ -568,6 +567,36 @@ void av_console::MainWindow::onTaskStateChanged(int state)
     {
         ui.pushButton_driverlessStart->setChecked(false);
         ui.pushButton_driverlessStart->setText("Start");
+    }
+    else if(state == qnode.Driverless_Offline)
+    {
+        //QObject::disconnect(&qnode, SIGNAL(taskStateChanged(int)), this, SLOT(onTaskStateChanged(int)));
+        static bool showing = false;
+
+        //若提示弹窗正在显示，直接返回，防止多次弹出
+        if(showing) return;
+        showing = true;
+
+        ui.pushButton_driverlessStart->setChecked(false);
+        ui.pushButton_driverlessStart->setText("Start");
+
+        QMessageBox msgBox(QMessageBox::Warning, tr("Driverless Server Offline!"), tr("Close Application or Restart?"),
+                           QMessageBox::Yes|QMessageBox::Cancel);
+
+        msgBox.button(QMessageBox::Yes)->setText(tr("restart"));
+        msgBox.button(QMessageBox::Cancel)->setText(tr("close"));
+
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+
+        int button = msgBox.exec();
+
+        //点击叉号或者Cancel均返回QMessageBox::Cancel
+        if(button == QMessageBox::Yes)
+            qApp->exit(777); //restart
+        else
+            qApp->exit(0);
+
+        showing = false;
     }
 }
 
@@ -618,15 +647,10 @@ void av_console::MainWindow::showEvent(QShowEvent* event)
  */
 void av_console::MainWindow::setPushButtonStylesheet(const QString& style)
 {
-    ui.pushButton_camera->setStyleSheet(style);
     ui.pushButton_connect->setStyleSheet(style);
     ui.pushButton_driverlessStart->setStyleSheet(style);
-    ui.pushButton_esrRadar->setStyleSheet(style);
-    ui.pushButton_gps->setStyleSheet(style);
-    ui.pushButton_lidar->setStyleSheet(style);
     ui.pushButton_openRoadNet->setStyleSheet(style);
     ui.pushButton_pathPlanning->setStyleSheet(style);
-    ui.pushButton_rtk->setStyleSheet(style);
     ui.pushButton_selectRecordFile->setStyleSheet(style);
     ui.pushButton_startRecordData->setStyleSheet(style);
 
@@ -770,12 +794,13 @@ bool av_console::MainWindow::loadRosNodesArrayInfo()
     }
     tinyxml2::XMLElement *pRoot = Doc.RootElement();
 
-    //第一个子节点 RosNodes
+    //第一个子节点 Nodes
     const tinyxml2::XMLElement *pRosNodes = pRoot->FirstChildElement();
     while(pRosNodes)
     {
         std::string ros_nodes_name(pRosNodes->Attribute("name"));
         RosNodes & ros_nodes = g_rosNodesArray[ros_nodes_name];
+        ros_nodes.use_button = pRosNodes->BoolAttribute("use_botton");
 
         const tinyxml2::XMLElement *pChild = pRosNodes->FirstChildElement();
         while(pChild)
@@ -785,6 +810,10 @@ bool av_console::MainWindow::loadRosNodesArrayInfo()
             {
                 std::string launch_cmd(pChild->GetText());
                 ros_nodes.launch_cmd = launch_cmd;
+            }
+            else if(child_name == "CloseCommand")
+            {
+                ros_nodes.close_cmd = std::string(pChild->GetText());
             }
             else if(child_name == "Topic")
             {
@@ -798,7 +827,7 @@ bool av_console::MainWindow::loadRosNodesArrayInfo()
         pRosNodes = pRosNodes->NextSiblingElement();//转到下一子节点，链表结构
     }
 
-    //this->displayRosNodesArrayInfo();
+    this->displayRosNodesArrayInfo();
     return true;
 }
 
@@ -807,23 +836,17 @@ void av_console::MainWindow::displayRosNodesArrayInfo()
     for(RosNodesArray::iterator iter=g_rosNodesArray.begin(); iter!=g_rosNodesArray.end(); ++iter)
     {
         std::string name = iter->first;
-        RosNodes& rosNodes = iter->second;
-        std::cout << name << " cmd: " << rosNodes.launch_cmd << std::endl;
+        RosNodes& nodes = iter->second;
+        std::cout << "nodes name: " << name << "\t" << "use_button:" << nodes.use_button << std::endl;
+        std::cout << "launch cmd: " << nodes.launch_cmd << std::endl;
+        std::cout << "close  cmd: " << nodes.close_cmd << std::endl;
 
-        for(std::unordered_map<std::string, std::string>::iterator it=rosNodes.topics.begin();
-            it != rosNodes.topics.end(); ++it)
-            std::cout << "topic name: " << it->first << "\ttopic value: " << it->second << std::endl;
+        for(auto it=nodes.topics.begin(); it != nodes.topics.end(); ++it)
+            std::cout << "topic[" << it->first << "]: " << it->second << std::endl;
         std::cout << "--------------------\r\n";
     }
 }
 
-void av_console::MainWindow::on_pushButton_lidar_clicked(bool checked)
-{
-  if(checked)
-  {
-    launchRosNodes("lidar");
-  }
-}
 
 void av_console::MainWindow::on_pushButton_setPathWidth_clicked()
 {
@@ -950,4 +973,43 @@ void av_console::MainWindow::on_actionReinstall_triggered()
 void av_console::MainWindow::on_pushButton_setTrafficLightPoint_clicked()
 {
     m_pathRecorder->setTrafficLightPoint();
+}
+
+void av_console::MainWindow::onShowDiagnosticMsg(const QString& device, int level,const QString& msg)
+{
+    static int cnt = 1;
+    static const std::vector<QString> levelVector = {"INFO", "WARN", "ERROR", "STALE"};
+    if(level >= levelVector.size())
+    {
+        qDebug() << "Diagnostic level error!";
+        return;
+    }
+
+    int currentIndex = ui.treeWidget_diagnosics->topLevelItemCount();
+    /*
+    if(currentIndex > 800)
+    {
+        for(int i=0; i<400; ++i)
+            delete ui.treeWidget_diagnosics->topLevelItem(0);
+    }
+    */
+
+    QStringList list; list << QString::number(cnt++) << device << levelVector[level] << msg;
+    qDebug() << list;
+
+    QTreeWidgetItem* item = new QTreeWidgetItem(list);
+
+    if(level == 2)
+    {
+        item->setTextColor(2,Qt::red);
+        item->setTextColor(3,Qt::red);
+    }
+    else if(level == 1)
+    {
+        //item->setBackgroundColor();
+        item->setBackgroundColor(2,Qt::yellow);
+        item->setBackgroundColor(3,Qt::yellow);
+    }
+    ui.treeWidget_diagnosics->addTopLevelItem(item);
+    ui.treeWidget_diagnosics->scrollToBottom();
 }
