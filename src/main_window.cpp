@@ -49,6 +49,8 @@ MainWindow::MainWindow(int argc, char** argv, QSplashScreen* splash, QWidget *pa
     //如设置为根据文本内容调整尺寸，将导致加载速度变慢
     //ui.treeWidget_diagnosics->header()->setResizeMode(QHeaderView::ResizeToContents); //根据内容调整尺寸
     ui.treeWidget_diagnosics->setUniformRowHeights(true); //使用同一高度，防止每次加载新数据都计算行高，以加快载入
+    ui.splitter_driverlessLog->setStretchFactor(0,1);
+    ui.splitter_driverlessLog->setStretchFactor(1,3);
 
     if(!initDriverlessSystem())
     {
@@ -309,6 +311,17 @@ void MainWindow::on_actionAbout_triggered()
     QMessageBox::about(this, tr("About ..."),tr("SEU Automatic Vehicle Console."));
 }
 
+void MainWindow::on_actionEditCommandFile_triggered()
+{
+    if(mCmdFileName.isEmpty())
+    {
+        QMessageBox::critical(this,"Error","Command File Not Exist!");
+        return ;
+    }
+    QString cmd = QString("gedit ") + mCmdFileName + "&";
+    system(cmd.toStdString().c_str());
+
+}
 
 void MainWindow::ReadSettings() {
     //目录,文件名,linux保存在~/.config
@@ -776,6 +789,7 @@ void av_console::MainWindow::on_pushButton_selectRecordFile_clicked()
 bool av_console::MainWindow::loadRosNodesArrayInfo()
 {
     QString file = QCoreApplication::applicationDirPath() + "/../cmd/cmd.xml";
+    mCmdFileName = file;
 
     tinyxml2::XMLDocument Doc;   //定义xml文件对象
     tinyxml2::XMLError res = Doc.LoadFile(file.toStdString().c_str());
@@ -985,31 +999,90 @@ void av_console::MainWindow::onShowDiagnosticMsg(const QString& device, int leve
         return;
     }
 
-    int currentIndex = ui.treeWidget_diagnosics->topLevelItemCount();
-    /*
-    if(currentIndex > 800)
+    int index_of_realtime = m_realtimeDeviceList.indexOf(device);
+    if(index_of_realtime != -1) //device 在实时列表中，使数据显示于
     {
-        for(int i=0; i<400; ++i)
+        QTreeWidgetItem* item = ui.treeWidget_fixedDiagnostic->topLevelItem(index_of_realtime);
+        setWidgetItemColorByMsgLevel(item, level);
+        int seq = item->text(0).toInt()+1;
+        item->setText(0,QString::number(seq));
+        item->setText(1,device);
+        item->setText(2,levelVector[level]);
+        item->setText(3,msg);
+
+        return ;
+        //ui.treeWidget_fixedDiagnostic->header()
+    }
+
+    int rows = ui.treeWidget_diagnosics->topLevelItemCount();
+    //当超过m行后删除n行
+    if(rows > 800)
+    {
+        for(int i=0; i<200; ++i)
             delete ui.treeWidget_diagnosics->topLevelItem(0);
     }
-    */
 
     QStringList list; list << QString::number(cnt++) << device << levelVector[level] << msg;
-    qDebug() << list;
+    //qDebug() << list;
 
     QTreeWidgetItem* item = new QTreeWidgetItem(list);
+    setWidgetItemColorByMsgLevel(item, level);
 
-    if(level == 2)
+    ui.treeWidget_diagnosics->addTopLevelItem(item);
+    ui.treeWidget_diagnosics->scrollToBottom();
+}
+
+//根据诊断信息的级别设置item的颜色
+void av_console::MainWindow::setWidgetItemColorByMsgLevel(QTreeWidgetItem* item, int level)
+{
+    if(level == 2) //ERROR
     {
         item->setTextColor(2,Qt::red);
         item->setTextColor(3,Qt::red);
     }
-    else if(level == 1)
+    else if(level == 1) //WARN
     {
-        //item->setBackgroundColor();
-        item->setBackgroundColor(2,Qt::yellow);
-        item->setBackgroundColor(3,Qt::yellow);
+        //item->setBackgroundColor(2,Qt::yellow);
+        //item->setBackgroundColor(3,Qt::yellow);
+        item->setTextColor(2,Qt::blue);
+        item->setTextColor(3,Qt::blue);
     }
-    ui.treeWidget_diagnosics->addTopLevelItem(item);
-    ui.treeWidget_diagnosics->scrollToBottom();
+}
+
+//滚动诊断数据双击槽函数，当某个device被双击时，加入表单以显示于固定的诊断数据窗口
+void av_console::MainWindow::on_treeWidget_diagnosics_itemDoubleClicked(QTreeWidgetItem *item, int column)
+{
+    if(column == 1) //(Device被双击)
+    {
+        //qDebug() << item->text(0) << " " << item->text(1) << " " << item->text(2);
+        QString deviceName = item->text(column); //被双击的设备名称
+        if(m_realtimeDeviceList.indexOf(deviceName) == -1) //设备不在实时显示列表，则添加进列表
+        {
+            m_realtimeDeviceList << deviceName;
+            QStringList list;
+            for(int i=0; i<item->columnCount(); ++i)
+                list << item->text(i);
+
+            //拷贝滚动显示列表信息到实时列表，
+            //不能直接使用指针进行拷贝，否则导致无法显示，估计是同一个item只能添加到一个tree
+            QTreeWidgetItem* new_item = new QTreeWidgetItem(list);
+            ui.treeWidget_fixedDiagnostic->addTopLevelItem(new_item);
+        }
+    }
+}
+
+void av_console::MainWindow::on_treeWidget_fixedDiagnostic_itemDoubleClicked(QTreeWidgetItem *item, int column)
+{
+    if(column == 1) //Device被双击,从实时列表中删除，重新显示于滚动列表
+    {
+        QString deviceName = item->text(column); //被双击的设备名称
+        int index_of_realtime = m_realtimeDeviceList.indexOf(deviceName);
+        if(index_of_realtime == -1)
+        {
+            qDebug() << "Error! " << deviceName << " Must in m_realtimeDeviceList!";
+            return;
+        }
+        delete ui.treeWidget_fixedDiagnostic->topLevelItem(index_of_realtime);
+        m_realtimeDeviceList.removeAt(index_of_realtime);
+    }
 }

@@ -22,6 +22,19 @@
 
 namespace av_console {
 
+class SensorDiagnostic
+{
+  public:
+    typedef struct Sensor
+    {
+        QString name;
+        bool scrol_view;
+    }Sensor_t;
+
+private:
+
+};
+
 class MainWindow : public QMainWindow {
 Q_OBJECT
     enum stackWidgetIndex
@@ -52,6 +65,7 @@ public:
 public Q_SLOTS:
     void on_actionAbout_triggered();
     void on_actionReinstall_triggered();
+    void on_actionEditCommandFile_triggered();
 	void on_checkbox_use_environment_stateChanged(int state);
     void on_pushButton_connect_clicked();
     void updateLoggingView(); // no idea why this can't connect automatically
@@ -84,8 +98,12 @@ private Q_SLOTS:
     void on_pushButton_setRoadMaxSpeed_clicked(bool checked);
     void customizeButtonsClicked(bool checked);
     void on_pushButton_setTrafficLightPoint_clicked();
+    void on_treeWidget_diagnosics_itemDoubleClicked(QTreeWidgetItem *item, int column);
+
+    void on_treeWidget_fixedDiagnostic_itemDoubleClicked(QTreeWidgetItem *item, int column);
 
 private:
+    void setWidgetItemColorByMsgLevel(QTreeWidgetItem* item, int level);
     QObjectList getAllLeafChilds(QObject* object);
     void disableRecordDataConfigure(bool flag);
     bool loadRosNodesArrayInfo();
@@ -104,11 +122,11 @@ private:
 
     bool m_forceExit; //强制退出，无需确认
     QTimer mTimer;
-    //CustomTaskDialog* m_customDialog;
+    QString mCmdFileName;
     bool m_rosNodesArrayInvalid;
     QSplashScreen *m_splash;
     std::vector<ImageSwitch *> m_sensorStatusWidgets;
-
+    QStringList m_realtimeDeviceList;
 };
 
 }  // namespace av_console

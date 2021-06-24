@@ -5,11 +5,23 @@
 ```bash
 git clone https://github.com/leethomason/tinyxml2.git
 cd tinyxml2 && sudo make install
+//#include<tinyxml2.h>
 ```
 
-```c++
-#include<tinyxml2.h>
-```
+## functions
+### 可编辑的[指令文件](cmd.xml)
+1. 指令文件包含了一系列子程序信息(名称/启动指令/关闭指令/按键控制等)
+2. 当Nodes的属性use_botton为true时，界面将自动生成控制按钮并关联LaunchCommand和CloseCommand
+
+### 诊断消息输出功能
+1. 滚动显示诊断信息，包括设备名称/诊断级别/诊断信息
+2. 在[滚动输出栏]中<双击>设备名称可使其加入[实时覆盖式输出栏]
+3. 在[实时覆盖式输出栏]中<双击>设备名称可使其返回[滚动输出栏]
+[滚动输出栏]: 新的诊断信息以新行的形式加入到表格
+[实时覆盖式输出栏]: 同一设备的诊断信息仅显示一行，新消息覆盖旧消息
+
+### 自动驾驶服务器检测
+UI启动时，自动检测自动驾驶服务器，若服务器不在线则自动启动，其中启动指令位于[指令文件]中的driverless节点
 
 
 2020.6.25 添加传感器状态指示灯

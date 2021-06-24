@@ -84,6 +84,9 @@ padding: 0 3px 0 3px;
              <string>Logging</string>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_7">
+             <property name="bottomMargin">
+              <number>9</number>
+             </property>
              <item>
               <widget class="QSplitter" name="splitter_driverlessLog">
                <property name="orientation">
@@ -97,6 +100,9 @@ padding: 0 3px 0 3px;
                </property>
                <widget class="QListView" name="view_logging"/>
                <widget class="QTreeWidget" name="treeWidget_diagnosics">
+                <property name="indentation">
+                 <number>0</number>
+                </property>
                 <property name="columnCount">
                  <number>4</number>
                 </property>
@@ -111,6 +117,55 @@ padding: 0 3px 0 3px;
                 </attribute>
                 <attribute name="headerHighlightSections">
                  <bool>false</bool>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string/>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Device</string>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>10</pointsize>
+                  </font>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Level</string>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>10</pointsize>
+                  </font>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Message</string>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>10</pointsize>
+                  </font>
+                 </property>
+                </column>
+               </widget>
+               <widget class="QTreeWidget" name="treeWidget_fixedDiagnostic">
+                <property name="indentation">
+                 <number>0</number>
+                </property>
+                <property name="headerHidden">
+                 <bool>true</bool>
+                </property>
+                <attribute name="headerVisible">
+                 <bool>false</bool>
+                </attribute>
+                <attribute name="headerDefaultSectionSize">
+                 <number>60</number>
                 </attribute>
                 <column>
                  <property name="text">
@@ -1676,7 +1731,14 @@ padding: 0 3px 0 3px;
     <addaction name="separator"/>
     <addaction name="action_Quit"/>
    </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionEditCommandFile"/>
+   </widget>
    <addaction name="menu_File"/>
+   <addaction name="menuTools"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="action_Quit">
@@ -1703,6 +1765,11 @@ padding: 0 3px 0 3px;
   <action name="actionReinstall">
    <property name="text">
     <string>&amp;Reinstall</string>
+   </property>
+  </action>
+  <action name="actionEditCommandFile">
+   <property name="text">
+    <string>Edit command file</string>
    </property>
   </action>
  </widget>

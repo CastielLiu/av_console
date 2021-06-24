@@ -51,5 +51,6 @@
         <LaunchCommand>rosrun turtlesim  turtlesim_node &</LaunchCommand>
         <CloseCommand>rosnode kill /turtlesim &</CloseCommand>
     </Nodes>
+    
 
 </NodesArray>
