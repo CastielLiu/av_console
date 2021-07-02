@@ -2,7 +2,7 @@
 #Nodes 节点程序信息
 # -name 节点名称
 # -use_botton 是否用于按键, true: UI自动生成按钮并关键启动和关闭指令
-# -show_status 是否在UI显示其状态
+# -show_status 是否在UI通过LED显示其工作状态
 #   LaunchCommand 启动指令
 #   CloseCommand  关闭指令
 #   Topic 节点话题名称, 程序订阅特定话题以检测状态
@@ -14,7 +14,7 @@
     </Nodes>
     
     <Nodes name="rtk" show_status="true">
-        <LaunchCommand>rosrun rtk rtk_node /dev/ttyS3 &</LaunchCommand>
+        <LaunchCommand>roslaunch rtk rtk.launch &</LaunchCommand>
         <Topic name="status">/rtk_status</Topic>
     </Nodes>
 
