@@ -10,6 +10,7 @@ ImageSwitch::ImageSwitch(QWidget *parent) :
     useClick(true)
 {
     configButton(ButtonStyle_4);
+    setMinimumSize(20,20);
 }
 
 void ImageSwitch::mousePressEvent(QMouseEvent *event)

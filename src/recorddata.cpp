@@ -47,17 +47,17 @@ void RecordData::setRecordVehicleState(const std::string& topic, bool steerAngle
 
 }
 
-void RecordData::setRecordGps(const std::string &topic, bool yaw, bool wgs84)
+void RecordData::setRecordGps(const std::string &topic, bool yaw, bool wgs84, bool utm)
 {
-    if(yaw || wgs84)
-        m_sub_gps = nh.subscribe<gps_msgs::Inspvax>(topic, 1, &RecordData::inspvaxCallback, this);
+    if(yaw || wgs84 || utm)
+        m_sub_gps = nh.subscribe<nav_msgs::Odometry>(topic, 1, &RecordData::utmOdomCallback, this);
     else
         return;
     m_subscribers.emplace_back("m_sub_gps", &m_sub_gps);
     if(yaw)
     {
-        m_datas.push_back(&m_yaw_NED);
-        m_dataTitle += "yaw_NED(deg)\t";
+        m_datas.push_back(&m_yaw_ENU);
+        m_dataTitle += "m_yaw_ENU(deg)\t";
         m_data_formats.push_back("%.2f\t");
     }
 
@@ -69,22 +69,6 @@ void RecordData::setRecordGps(const std::string &topic, bool yaw, bool wgs84)
         m_dataTitle += "longitude\tlatitude\t";
         m_data_formats.push_back("%.7f\t");
         m_data_formats.push_back("%.7f\t");
-    }
-}
-
-void RecordData::setRecordUtm(const std::string &topic, bool yaw, bool utm)
-{
-    if(utm || yaw)
-        m_sub_utm = nh.subscribe<nav_msgs::Odometry>(topic, 1, &RecordData::utmOdomCallback, this);
-    else
-        return;
-    m_subscribers.emplace_back("m_sub_utm", &m_sub_utm);
-
-    if(yaw)
-    {
-        m_datas.push_back(&m_yaw_ENU);
-        m_dataTitle += "yaw_ENU(deg)\t";
-        m_data_formats.push_back("%.2f\t");
     }
 
     if(utm)
@@ -216,13 +200,6 @@ void RecordData::imuCallback(const sensor_msgs::Imu::ConstPtr& msg)
 
 }
 
-void RecordData::inspvaxCallback(const gps_msgs::Inspvax::ConstPtr& msg)
-{
-    std::lock_guard<std::mutex> lck(m_gps_mutex);
-    m_lon = msg->longitude;
-    m_lat = msg->latitude;
-    m_yaw_NED = msg->azimuth;
-}
 
 void RecordData::utmOdomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
@@ -233,6 +210,8 @@ void RecordData::utmOdomCallback(const nav_msgs::Odometry::ConstPtr& msg)
     m_y = position.y;
     m_z = position.z;
 
+    m_lon = msg->pose.covariance[1];
+    m_lat = msg->pose.covariance[2];
     m_yaw_ENU = msg->pose.covariance[0]*180.0/M_PI; //yaw
 }
 
@@ -247,7 +226,6 @@ void RecordData::recordTimerUpdate(const ros::TimerEvent &event)
             fprintf(m_fp, "%.3f\t", ros::Time::now().toSec());
 
         std::lock_guard<std::mutex> lck1(m_utm_mutex);
-        std::lock_guard<std::mutex> lck2(m_gps_mutex);
         std::lock_guard<std::mutex> lck3(m_imu_mutex);
         std::lock_guard<std::mutex> lck4(m_vehicle_state_mutex);
 

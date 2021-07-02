@@ -19,6 +19,14 @@
 #include <algorithm>
 #include <tinyxml2.h>
 #include <QSplashScreen>
+#include <unordered_map>
+#include "imageswitch.hpp"
+
+#define FontLevel1 16
+#define FontLevel2 14
+#define FontLevel3 12
+#define FontLevel4 10
+#define FontLevel5 9
 
 namespace av_console {
 
@@ -32,7 +40,6 @@ class SensorDiagnostic
     }Sensor_t;
 
 private:
-
 };
 
 class MainWindow : public QMainWindow {
@@ -106,7 +113,6 @@ private:
     void setWidgetItemColorByMsgLevel(QTreeWidgetItem* item, int level);
     QObjectList getAllLeafChilds(QObject* object);
     void disableRecordDataConfigure(bool flag);
-    bool loadRosNodesArrayInfo();
     void displayRosNodesArrayInfo();
     bool initDriverlessSystem();
     bool initQnode();
@@ -125,7 +131,9 @@ private:
     QString mCmdFileName;
     bool m_rosNodesArrayInvalid;
     QSplashScreen *m_splash;
-    std::vector<ImageSwitch *> m_sensorStatusWidgets;
+
+    std::unordered_map<int, ImageSwitch *> m_sensorStatusWidgets; //id,widget
+
     QStringList m_realtimeDeviceList;
 };
 

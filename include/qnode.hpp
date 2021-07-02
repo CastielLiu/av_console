@@ -9,20 +9,31 @@
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/server/simple_action_server.h>
 #include <driverless_actions/DoDriverlessTaskAction.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/Image.h>
+#include <diagnostic_msgs/DiagnosticStatus.h>
 #include <nav_msgs/Odometry.h>
 #endif
 
+#include <unordered_map>
 #include "utils.hpp"
 #include <thread>
 #include <string>
 #include <QThread>
 #include <QDebug>
 #include <QStringListModel>
-#include <sensor_msgs/NavSatFix.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <diagnostic_msgs/DiagnosticStatus.h>
 
 namespace av_console {
+
+class Sensor
+{
+public:
+    bool status = false;
+    double last_update_time = 0;
+    std::string name;
+    std::string topic;
+    int id;
+};
 
 class QNode : public QThread {
     Q_OBJECT
@@ -53,10 +64,16 @@ public:
     bool serverConnected();
     void requestDriverlessTask(const driverless_actions::DoDriverlessTaskGoal& goal);
     void cancleAllGoals();
+    bool addSensor(int id, const std::string& name, const std::string& topic)
+    {
+        sensors[id].id = id; sensors[id].name = name;
+        sensors[id].topic = topic;
+    }
 
 private:
-    void gpsOdom_callback(const nav_msgs::Odometry::ConstPtr& odom);
-    void lidar_callback(const sensor_msgs::PointCloud2::ConstPtr& );
+    void gps_callback(const nav_msgs::Odometry::ConstPtr& odom, int sensor_id);
+    void lidar_callback(const sensor_msgs::PointCloud2::ConstPtr& , int sensor_id);
+    void image_callback(const sensor_msgs::Image::ConstPtr& , int sensor_id);
     void diagnostic_callback(const diagnostic_msgs::DiagnosticStatus::ConstPtr& msg);
     void sensorStatusTimer_callback(const ros::TimerEvent& );
 
@@ -79,7 +96,10 @@ private:
     QStringListModel logging_model;
 	bool is_init;
 
-    std::vector<Sensor> sensors;
+    std::unordered_map<int, Sensor> sensors;
+    const float sensor_detect_interval = 0.5;
+
+    std::vector<ros::Subscriber> subs;
     ros::Subscriber gps_sub;
     ros::Subscriber lidar_sub;
     ros::Subscriber diagnostic_sub;
@@ -88,7 +108,6 @@ private:
     DoDriverlessTaskClient* ac_;
     bool as_online_;
     int task_state_;
-
 };
 
 }  // namespace av_console

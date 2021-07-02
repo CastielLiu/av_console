@@ -2,38 +2,12 @@
 #define STRUCTS_HPP
 #include <string>
 #include <vector>
+#include <iostream>
+#include <fstream>
+#include <QString>
 #include <unordered_map>
 
 namespace av_console {
-
-class Sensor
-{
-public:
-
-    bool status;
-    double last_update_time;
-    Sensor()
-    {
-        status = false;
-        last_update_time = 0;
-    }
-
-    int id;
-    //传感器枚举类型，从0开始顺序排列
-    enum ID
-    {
-        Gps    = 0,
-        Lidar  = 1,
-        Esr    = 2,
-        Camera1= 3,
-        Rtk    = 4,
-
-        TotalCount = 5, //传感器的个数
-    };
-    std::vector<std::string> names = {"gps","lidar","esr","camera1","rtk"};
-};
-
-
 
 typedef struct _Pose
 {
@@ -51,7 +25,9 @@ typedef struct _RosNodes
     std::string name;
     std::string launch_cmd;
     std::string close_cmd;
-    bool use_button;  //是否使用按钮，若使用，则在UI界面自动生成按钮
+    bool use_button;  //是否使用按钮，true: 在UI界面自动生成按钮
+    bool show_status; //是否显示状态，true: 在UI界面自动生成状态显示按钮
+    uint8_t id;       //节点Id, 根据载入顺序
 
     //topic_name, topic_value
     std::unordered_map<std::string, std::string> topics;
@@ -59,6 +35,58 @@ typedef struct _RosNodes
 
 //rosNode_name, rosNodes
 typedef std::unordered_map<std::string, RosNodes> RosNodesArray;
+
+class Logg
+{
+public:
+    Logg(){}
+    ~Logg()
+    {
+        if(log_f.is_open())
+            log_f.close();
+    }
+    bool init(const QString& log_file)
+    {
+        log_f.open(log_file.toStdString().c_str());
+        if(!log_f.is_open())
+        {
+            std::cout << "Open log file: " << log_file.toStdString() << " failed!" << std::endl;
+            return false;
+        }
+        return true;
+    }
+
+    bool check()
+    {
+        if(!log_f.is_open())
+        {
+            std::cout << "Logg is not ready!" << std::endl;
+            return false;
+        }
+        return true;
+    }
+
+    Logg& operator<<(const QString& qstr)
+    {
+        if(!check()) return *this;
+        log_f << qstr.toStdString();
+        log_f.flush();
+        return *this;
+    }
+
+    template <class T>
+    Logg& operator<<(const T& what)
+    {
+        if(!check()) return *this;
+        log_f << what;
+        log_f.flush();
+        return *this;
+    }
+
+
+private:
+    std::ofstream log_f;
+};
 
 }
 

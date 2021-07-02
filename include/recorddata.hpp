@@ -49,8 +49,7 @@ public:
     void setRecordFrequency(int hz);
     void setLaunchSensorWaitTime(float t);
     void setRecordVehicleState(const std::string &topic, bool steerAngle, bool speed);
-    void setRecordGps(const std::string &topic, bool yaw, bool wgs84);
-    void setRecordUtm(const std::string &topic, bool yaw, bool utm);
+    void setRecordGps(const std::string &topic, bool yaw, bool wgs84, bool utm);
     void setRecordStamp(bool stamp);
     void setRecordImu(const std::string &topic, bool angular_v, bool accel);
     void setDisable(bool flag){m_disable = flag;}

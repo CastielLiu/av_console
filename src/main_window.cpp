@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <iostream>
+#include <QFont>
 #include "../include/main_window.hpp"
 #include "unistd.h"
 #include "iostream"
@@ -49,8 +50,6 @@ MainWindow::MainWindow(int argc, char** argv, QSplashScreen* splash, QWidget *pa
     //如设置为根据文本内容调整尺寸，将导致加载速度变慢
     //ui.treeWidget_diagnosics->header()->setResizeMode(QHeaderView::ResizeToContents); //根据内容调整尺寸
     ui.treeWidget_diagnosics->setUniformRowHeights(true); //使用同一高度，防止每次加载新数据都计算行高，以加快载入
-    ui.splitter_driverlessLog->setStretchFactor(0,1);
-    ui.splitter_driverlessLog->setStretchFactor(1,3);
 
     if(!initDriverlessSystem())
     {
@@ -75,27 +74,6 @@ void MainWindow::customizeButtonsClicked(bool checked)
 
 bool MainWindow::initDriverlessSystem()
 {
-    //载入RosNodesArray信息
-    if(!loadRosNodesArrayInfo())
-        return false;
-
-    for (auto iter = g_rosNodesArray.begin(); iter != g_rosNodesArray.end(); iter++)
-    {
-         RosNodes node = iter->second;
-         std::string node_name = iter->first;
-         if(node.use_button)
-         {
-              QPushButton * button = new QPushButton(ui.scrollArea_customizeButtons);
-              button->setCheckable(true);
-              button->setObjectName(QString("customized_button_%1").arg(node_name.c_str()));
-              button->setText(QString::fromStdString(node_name));
-              ui.customizeButtonsLayout->addWidget(button);
-              connect(button,SIGNAL(clicked(bool)),this, SLOT(customizeButtonsClicked(bool)));
-         }
-    }
-    QSpacerItem* spacerItem = new QSpacerItem(10,10,QSizePolicy::Minimum, QSizePolicy::Expanding);
-    ui.customizeButtonsLayout->addItem(spacerItem);
-
     m_splash->showMessage("Preparing  driverless ...", Qt::AlignCenter|Qt::AlignBottom);
 
     if(!initQnode()) return false;
@@ -116,19 +94,61 @@ bool MainWindow::initDriverlessSystem()
 /*初始化传感器状态显示控件*/
 void MainWindow::initSensorStatusWidget()
 {
-    m_sensorStatusWidgets.resize(Sensor::TotalCount);
-    m_sensorStatusWidgets[Sensor::Camera1] = ui.widget_camera1Status;
-    m_sensorStatusWidgets[Sensor::Gps] = ui.widget_gpsStatus;
-    m_sensorStatusWidgets[Sensor::Rtk] = ui.widget_rtkStatus;
-    m_sensorStatusWidgets[Sensor::Esr] = ui.widget_esrStatus;
-    m_sensorStatusWidgets[Sensor::Lidar] = ui.widget_lidarStatus;
-
-    for(size_t i=0; i<m_sensorStatusWidgets.size(); ++i)
+    //+ 添加自定义按钮
+    for (auto iter = g_rosNodesArray.begin(); iter != g_rosNodesArray.end(); iter++)
     {
-        m_sensorStatusWidgets[i]->setChecked(false);
-        m_sensorStatusWidgets[i]->configButton(ImageSwitch::ButtonStyle_4);
-        m_sensorStatusWidgets[i]->setClickedDisable();
+         RosNodes node = iter->second;
+         std::string node_name = iter->first;
+         if(node.use_button)
+         {
+              QPushButton * button = new QPushButton(ui.scrollArea_customizeButtons);
+              button->setCheckable(true);
+              button->setObjectName(QString("customized_button_%1").arg(node_name.c_str()));
+              button->setText(QString::fromStdString(node_name));
+              ui.customizeButtonsLayout->addWidget(button);
+              connect(button,SIGNAL(clicked(bool)),this, SLOT(customizeButtonsClicked(bool)));
+         }
     }
+    QSpacerItem* spacerItem = new QSpacerItem(10,10,QSizePolicy::Minimum, QSizePolicy::Expanding);
+    ui.customizeButtonsLayout->addItem(spacerItem);
+    //- 添加自定义按钮
+
+    //+ 添加传感器状态显示
+    bool is_first_sensor = true;
+    for (auto iter = g_rosNodesArray.begin(); iter != g_rosNodesArray.end(); iter++)
+    {
+         const RosNodes& node = iter->second;
+         const std::string& node_name = iter->first;
+         int node_id = node.id;
+         if(node.show_status)
+         {
+             //label
+             QLabel * statusLabel = new QLabel(node_name.c_str(), this);
+             QFont font; font.setPointSize(FontLevel3);
+             statusLabel->setFont(font);
+             //led
+             ImageSwitch* statusWidget = new ImageSwitch(ui.groupBox_sensorStatus);
+             statusWidget->setObjectName(QString("widgetImageSwitch_")+node_name.c_str());
+             statusWidget->setChecked(false);
+             statusWidget->configButton(ImageSwitch::ButtonStyle_4);
+             statusWidget->setClickedDisable();
+
+             if(!is_first_sensor)
+             {
+                 QSpacerItem* spacerItem = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+                 ui.horizontalLayout_sensorStatus->addItem(spacerItem);
+             }
+             is_first_sensor = false;
+
+             ui.horizontalLayout_sensorStatus->addWidget(statusWidget);
+             ui.horizontalLayout_sensorStatus->addWidget(statusLabel);
+
+             m_sensorStatusWidgets[node_id] = statusWidget;
+             qnode.addSensor(node_id, node_name, node.topics.begin()->second);
+         }
+    }
+    //- 添加传感器状态显示
+
     connect(&qnode,SIGNAL(sensorStatusChanged(int,bool)),this,SLOT(sensorStatusChanged(int,bool)));
 }
 
@@ -159,7 +179,7 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
 
         bool ok;
         float speed = ui.comboBox_driverSpeed->currentText().toFloat(&ok);
-        QString roadnet_file = ui.lineEdit_roadNet->text();
+        QString roadnet_file = m_roadNetFileDir; //ui.lineEdit_roadNet->text();
         if(roadnet_file.isEmpty())
         {
             QMessageBox msgBox(this);
@@ -313,6 +333,7 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionEditCommandFile_triggered()
 {
+    mCmdFileName = QCoreApplication::applicationDirPath() + "/../cmd/cmd.xml";
     if(mCmdFileName.isEmpty())
     {
         QMessageBox::critical(this,"Error","Command File Not Exist!");
@@ -324,8 +345,11 @@ void MainWindow::on_actionEditCommandFile_triggered()
 }
 
 void MainWindow::ReadSettings() {
-    //目录,文件名,linux保存在~/.config
-    QSettings settings("av_console", "av_console");
+    QString app_dir = QCoreApplication::applicationDirPath();
+    QString cfg_file = app_dir + "/../cfg/cfg.ini";
+
+    QSettings settings(cfg_file, QSettings::IniFormat);
+
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("windowState").toByteArray());
     QString master_url = settings.value("master_url",QString("http://127.0.0.1:11311/")).toString();
@@ -343,7 +367,7 @@ void MainWindow::ReadSettings() {
     	//ui.line_edit_topic->setEnabled(false);
     }
     m_roadNetFileDir = settings.value("roadNetFileDir","").toString();
-    ui.lineEdit_roadNet->setText(m_roadNetFileDir);
+    ui.lineEdit_roadNet->setText(getShortFileName(m_roadNetFileDir));
 
     int speedIndex = settings.value("speedIndex","0").toInt();
     ui.comboBox_driverSpeed->setCurrentIndex(speedIndex);
@@ -353,7 +377,10 @@ void MainWindow::ReadSettings() {
 }
 
 void MainWindow::WriteSettings() {
-    QSettings settings("av_console", "av_console");
+    QString app_dir = QCoreApplication::applicationDirPath();
+    QString cfg_file = app_dir + "/../cfg/cfg.ini";
+
+    QSettings settings(cfg_file, QSettings::IniFormat);
 
     settings.setValue("master_url",ui.line_edit_master->text());
     settings.setValue("host_url",ui.line_edit_host->text());
@@ -412,7 +439,6 @@ bool av_console::MainWindow::changeToCmdDir(bool mode)
       pclose(fp);
       if(std::string(buf).find("home") == std::string::npos)
       {
-          //qnode.stampedLog(qnode.Error, std::string(buf));
           qnode.stampedLog(qnode.Error,"change to cmd directory failed!");
           return false;
       }
@@ -429,7 +455,6 @@ bool av_console::MainWindow::changeToCmdDir(bool mode)
   cmdDir.cd(cmdPath);      //修改目录，仅修改了目录名，未切换
   cmdDir.cd("../cmd");
   QDir::setCurrent(cmdDir.absolutePath()); //切换目录
-  qnode.stampedLog(qnode.Info,cmdDir.absolutePath().toStdString());
 
   parsed = true;
   return true;
@@ -461,13 +486,13 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
           return ;
         }
 
-        if(m_roadNetFileDir.isEmpty())
-            m_roadNetFileDir = "./";
+        if(m_recordFileDir.isEmpty())
+            m_recordFileDir = "./";
 
         while(true)
         {
             QString fileName = QFileDialog::getSaveFileName(this,
-                                        "save path points", m_roadNetFileDir, "TXT(*txt)");
+                                        "save path points", m_recordFileDir, "TXT(*txt)");
             if(fileName.isEmpty())
             {
                 int Abandon =
@@ -489,7 +514,6 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
             m_pathRecorder->savePathPoints(fileName.toStdString());
             delete m_pathRecorder;
             m_pathRecorder = NULL;
-            m_roadNetFileDir = fileName;
             break;
         }
         ui.pushButton_pathPlanning->setText("Start");
@@ -507,14 +531,11 @@ void av_console::MainWindow::on_pushButton_openRoadNet_clicked()
                                 "open roadnet file", m_roadNetFileDir, "TXT(*txt)");
     if(fileName.isEmpty())
         return;
-/*
-    QStringList list = fileName.split('/');
-    QString name = *(list.end()-1);
-    qDebug() << fileName << "\t" << name;
-    ui.lineEdit_roadNet->setText(name);
-*/
-    ui.lineEdit_roadNet->setText(fileName);
+
     m_roadNetFileDir = fileName;
+
+    //qDebug() << fileName << "\t" << name;
+    ui.lineEdit_roadNet->setText(getShortFileName(m_roadNetFileDir));
 }
 
 void av_console::MainWindow::on_tabWidget_currentChanged(int index)
@@ -526,7 +547,8 @@ void av_console::MainWindow::on_tabWidget_currentChanged(int index)
         if(index != stackWidgetIndex_driverless)
         {
             showMessgeInStatusBar("please connect to master firstly!", true);
-            qnode.log("please connect to master firstly!");
+            g_logg << "qnode not initial!\n";
+            //qnode.log("please connect to master firstly!");
             ui.tabWidget->setCurrentIndex(stackWidgetIndex_driverless);
         }
         return;
@@ -667,11 +689,13 @@ void av_console::MainWindow::setPushButtonStylesheet(const QString& style)
     ui.pushButton_selectRecordFile->setStyleSheet(style);
     ui.pushButton_startRecordData->setStyleSheet(style);
 
+    ui.groupBox_sensorStatus->setTitle("");
     //设置等高
     ui.pushButton_quit->setFixedHeight(ui.groupBox_sensorStatus->height());
     ui.pushButton_startRecordData->setCheckable(true);
 }
 
+//获取QObject控件下的所有子控件
 QObjectList av_console::MainWindow::getAllLeafChilds(QObject* object)
 {
     QObjectList result;
@@ -735,16 +759,13 @@ void av_console::MainWindow::on_pushButton_startRecordData_clicked(bool checked)
         m_dataRecorder->setLaunchSensorWaitTime(ui.lineEdit_recorderWaitTime->text().toInt());
 
         std::string vehicle_state_topic = g_rosNodesArray["base_control"].topics["vehicle_state"];
-        std::string gps_topic = g_rosNodesArray["gps"].topics["inspvax"];
-        std::string utm_topic = g_rosNodesArray["gps"].topics["utm"];
+        std::string gps_topic = g_rosNodesArray["gps"].topics["odom"];
         std::string imu_topic = g_rosNodesArray["imu"].topics["corr_imu"];
 
         m_dataRecorder->setRecordVehicleState(vehicle_state_topic, ui.checkBox_recordRoadwheelAngle->isChecked(),
                                               ui.checkBox_recordSpeed->isChecked());
         m_dataRecorder->setRecordGps(gps_topic, ui.checkBox_recordYaw->isChecked(),
-                                     ui.checkBox_recordWGS84->isChecked());
-        m_dataRecorder->setRecordUtm(utm_topic, ui.checkBox_recordYaw->isChecked(),
-                                     ui.checkBox_recordUTM->isChecked());
+                                     ui.checkBox_recordWGS84->isChecked(), ui.checkBox_recordUTM->isChecked());
         m_dataRecorder->setRecordImu(imu_topic, ui.checkBox_recordAnglularVel->isChecked(),
                                      ui.checkBox_recordAccel->isChecked());
 
@@ -785,82 +806,6 @@ void av_console::MainWindow::on_pushButton_selectRecordFile_clicked()
     ui.lineEdit_recordFileName->setText(fileName);
     m_recordFileDir = fileName;
 }
-
-bool av_console::MainWindow::loadRosNodesArrayInfo()
-{
-    QString file = QCoreApplication::applicationDirPath() + "/../cmd/cmd.xml";
-    mCmdFileName = file;
-
-    tinyxml2::XMLDocument Doc;   //定义xml文件对象
-    tinyxml2::XMLError res = Doc.LoadFile(file.toStdString().c_str());
-
-    if(tinyxml2::XML_ERROR_FILE_NOT_FOUND == res)
-    {
-        QString fatalMsg = QString("No ") + file + "!";
-        QMessageBox::critical(this,"Fatal", fatalMsg);
-        return false;
-    }
-    else if(tinyxml2::XML_SUCCESS != res)
-    {
-        QString fatalMsg = QString("Parse ") + file + "failed!";
-        QMessageBox::critical(this,"Fatal", fatalMsg);
-        return false;
-    }
-    tinyxml2::XMLElement *pRoot = Doc.RootElement();
-
-    //第一个子节点 Nodes
-    const tinyxml2::XMLElement *pRosNodes = pRoot->FirstChildElement();
-    while(pRosNodes)
-    {
-        std::string ros_nodes_name(pRosNodes->Attribute("name"));
-        RosNodes & ros_nodes = g_rosNodesArray[ros_nodes_name];
-        ros_nodes.use_button = pRosNodes->BoolAttribute("use_botton");
-
-        const tinyxml2::XMLElement *pChild = pRosNodes->FirstChildElement();
-        while(pChild)
-        {
-            std::string child_name(pChild->Name());
-            if(child_name == "LaunchCommand")
-            {
-                std::string launch_cmd(pChild->GetText());
-                ros_nodes.launch_cmd = launch_cmd;
-            }
-            else if(child_name == "CloseCommand")
-            {
-                ros_nodes.close_cmd = std::string(pChild->GetText());
-            }
-            else if(child_name == "Topic")
-            {
-                std::string topic_name(pChild->Attribute("name"));
-                std::string topic_val(pChild->GetText());
-
-                ros_nodes.topics[topic_name] = topic_val;
-            }
-            pChild = pChild->NextSiblingElement();//转到下一子节点
-        }
-        pRosNodes = pRosNodes->NextSiblingElement();//转到下一子节点，链表结构
-    }
-
-    this->displayRosNodesArrayInfo();
-    return true;
-}
-
-void av_console::MainWindow::displayRosNodesArrayInfo()
-{
-    for(RosNodesArray::iterator iter=g_rosNodesArray.begin(); iter!=g_rosNodesArray.end(); ++iter)
-    {
-        std::string name = iter->first;
-        RosNodes& nodes = iter->second;
-        std::cout << "nodes name: " << name << "\t" << "use_button:" << nodes.use_button << std::endl;
-        std::cout << "launch cmd: " << nodes.launch_cmd << std::endl;
-        std::cout << "close  cmd: " << nodes.close_cmd << std::endl;
-
-        for(auto it=nodes.topics.begin(); it != nodes.topics.end(); ++it)
-            std::cout << "topic[" << it->first << "]: " << it->second << std::endl;
-        std::cout << "--------------------\r\n";
-    }
-}
-
 
 void av_console::MainWindow::on_pushButton_setPathWidth_clicked()
 {
@@ -996,6 +941,7 @@ void av_console::MainWindow::onShowDiagnosticMsg(const QString& device, int leve
     if(level >= levelVector.size())
     {
         qDebug() << "Diagnostic level error!";
+        g_logg << "Diagnostic level error!\n";
         return;
     }
 
@@ -1023,6 +969,7 @@ void av_console::MainWindow::onShowDiagnosticMsg(const QString& device, int leve
     }
 
     QStringList list; list << QString::number(cnt++) << device << levelVector[level] << msg;
+    g_logg << device << ": " << levelVector[level] << "  " << msg << "\n";
     //qDebug() << list;
 
     QTreeWidgetItem* item = new QTreeWidgetItem(list);
@@ -1080,6 +1027,7 @@ void av_console::MainWindow::on_treeWidget_fixedDiagnostic_itemDoubleClicked(QTr
         if(index_of_realtime == -1)
         {
             qDebug() << "Error! " << deviceName << " Must in m_realtimeDeviceList!";
+            g_logg << "Error! " << deviceName << " Must in m_realtimeDeviceList!\n";
             return;
         }
         delete ui.treeWidget_fixedDiagnostic->topLevelItem(index_of_realtime);

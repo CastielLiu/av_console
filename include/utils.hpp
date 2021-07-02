@@ -7,6 +7,7 @@
 #include "globalvariables.hpp"
 #include <sstream>
 #include <thread>
+#include <QStringList>
 
 namespace av_console {
 
@@ -60,6 +61,31 @@ static bool loadPathPoints(std::string file_path,PoseArray& path)
     }
     return true;
 }
+
+static void displayRosNodesArrayInfo()
+{
+    for(RosNodesArray::iterator iter=g_rosNodesArray.begin(); iter!=g_rosNodesArray.end(); ++iter)
+    {
+        std::string name = iter->first;
+        RosNodes& nodes = iter->second;
+        std::cout << "nodes name: " << name << "\t" << "use_button:" << nodes.use_button << std::endl;
+        std::cout << "launch cmd: " << nodes.launch_cmd << std::endl;
+        std::cout << "close  cmd: " << nodes.close_cmd << std::endl;
+
+        for(auto it=nodes.topics.begin(); it != nodes.topics.end(); ++it)
+            std::cout << "topic[" << it->first << "]: " << it->second << std::endl;
+        std::cout << "--------------------\r\n";
+    }
+}
+
+static QString getShortFileName(const QString& long_name)
+{
+    QStringList list1 = long_name.split('/');
+    QString rel_name = list1.back();
+    QStringList list2 = rel_name.split('.');
+    return list2.front();
+}
+
 
 
 }

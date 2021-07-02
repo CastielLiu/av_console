@@ -1,25 +1,30 @@
 <?xml version="1.0"?>
 #Nodes 节点程序信息
-#   name 节点名称   use_botton 是否用于按键,true: UI自动生成按钮并关键启动和关闭指令
+# -name 节点名称
+# -use_botton 是否用于按键, true: UI自动生成按钮并关键启动和关闭指令
+# -show_status 是否在UI显示其状态
 #   LaunchCommand 启动指令
 #   CloseCommand  关闭指令
 #   Topic 节点话题名称, 程序订阅特定话题以检测状态
 #   
 <NodesArray>
-    <Nodes name="gps">
+    <Nodes name="gps" show_status="true">
         <LaunchCommand>roslaunch novatel novatel.launch &</LaunchCommand>
-        <Topic name="inspvax">/gps</Topic>
         <Topic name="odom">/gps_odom</Topic>
     </Nodes>
     
-    <Nodes name="rtk">
+    <Nodes name="rtk" show_status="true">
         <LaunchCommand>rosrun rtk rtk_node /dev/ttyS3 &</LaunchCommand>
         <Topic name="status">/rtk_status</Topic>
     </Nodes>
 
-    <Nodes name="lidar">
+    <Nodes name="lidar" show_status="true">
         <LaunchCommand>roslaunch hesai_lidar p40p.launch &</LaunchCommand>
         <Topic name="points">/pandar_points</Topic>
+    </Nodes>
+    
+    <Nodes name="camera" show_status="true">
+        <Topic name="img">/image_left</Topic>
     </Nodes>
 
     <Nodes name="imu">

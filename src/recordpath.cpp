@@ -20,7 +20,12 @@ bool RecordPath::start()
 
     private_nh.param<float>("sample_distance",sample_distance_,0.1);
     
-    odom_topic_ = g_rosNodesArray["gps"].topics["utm"];
+    odom_topic_ = g_rosNodesArray["gps"].topics["odom"];
+    if(odom_topic_.empty())
+    {
+//
+    }
+
     sub_gps_ = nh.subscribe(odom_topic_ ,1,&RecordPath::gps_callback,this);
 
     connect(&wait_gps_topic_timer_, SIGNAL(timeout()), this, SLOT(waitGpsTopicTimeout()));

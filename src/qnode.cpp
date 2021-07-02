@@ -16,7 +16,6 @@ QNode::QNode(int argc, char** argv ) :
     task_state_(Driverless_Idle),
     ac_(nullptr)
 {
-    sensors.resize(Sensor::TotalCount);
 }
 
 QNode::~QNode()
@@ -57,8 +56,20 @@ bool QNode::init(int try_num, const std::string &master_url, const std::string &
 
     //subscribe sensor msg to listen its status.
     ros::NodeHandle nh;
-    gps_sub = nh.subscribe(g_rosNodesArray["gps"].topics["odom"],1,&QNode::gpsOdom_callback,this);
-    lidar_sub =  nh.subscribe(g_rosNodesArray["lidar"].topics["points"],1,&QNode::lidar_callback,this);
+    for(auto iter=sensors.begin(); iter!=sensors.end(); ++iter)
+    {
+        const Sensor& sensor = iter->second;
+        std::string sensor_name = iter->second.name;
+        if(sensor_name=="gps")
+            subs.push_back(nh.subscribe<nav_msgs::Odometry>(sensor.topic,1,boost::bind(&QNode::gps_callback,this,_1,sensor.id)));
+        else if(sensor_name.find("lidar") != std::string::npos)
+            subs.push_back(nh.subscribe<sensor_msgs::PointCloud2>(sensor.topic,1,boost::bind(&QNode::lidar_callback,this,_1,sensor.id)));
+        else if(sensor_name.find("cam") != std::string::npos)
+            subs.push_back(nh.subscribe<sensor_msgs::Image>(sensor.topic,1,boost::bind(&QNode::image_callback,this,_1,sensor.id)));
+
+
+    }
+
     diagnostic_sub = nh.subscribe("/driverless/diagnostic",10,&QNode::diagnostic_callback,this);
     sensorStatus_timer = nh.createTimer(ros::Duration(1), &QNode::sensorStatusTimer_callback,this);
 
@@ -155,33 +166,65 @@ void QNode::taskActivedCallback()
 
 /*===================传感器状态监测相关函数================*/
 /*官方驱动则使用消息回调检测，用户自定义驱动则使用故障诊断消息检测*/
-void QNode::gpsOdom_callback(const nav_msgs::Odometry::ConstPtr& odom)
+void QNode::gps_callback(const nav_msgs::Odometry::ConstPtr& odom, int sensor_id)
 {
-    //qDebug() << "gpsOdom_callback ";
-    static int i = 0;
-    if((++i)%10 != 0) //降低更新时间覆盖频率
-        return ;
+    static int show_rtk = -1; //unknown
+    static int rtk_id = -1 ; //unknown
 
+    static double last_time = 0;
     double time = ros::Time::now().toSec();
+    if(time - last_time < sensor_detect_interval)
+        return;
+    last_time = time;
+
+    //判断是否需要显示rtk状态，仅需判断一次
+    //如果需要，标记rtk_id
+    if(show_rtk == -1)
+    {
+        show_rtk = 0;
+        for(auto iter=sensors.begin(); iter!=sensors.end(); ++iter)
+        {
+            if(iter->second.name == "rtk")
+            {
+                show_rtk = 1;
+                rtk_id = iter->first;
+            }
+        }
+    }
 
     int location_type = odom->pose.covariance[4];
     int satellite_num = odom->pose.covariance[3];
 
     if(location_type == 1 || location_type == 2)
-        sensors[Sensor::Gps].last_update_time = time;
+        sensors[sensor_id].last_update_time = time;
     if(location_type ==4 || location_type == 5 || location_type==9)
     {
-        sensors[Sensor::Gps].last_update_time = time;
-        sensors[Sensor::Rtk].last_update_time = time;
+        sensors[sensor_id].last_update_time = time;
+        if(show_rtk)
+            sensors[rtk_id].last_update_time = time;
     }
 }
 
-void QNode::lidar_callback(const sensor_msgs::PointCloud2::ConstPtr& )
+void QNode::lidar_callback(const sensor_msgs::PointCloud2::ConstPtr& , int sensor_id)
 {
-    //qDebug() << "lidar_callback ";
-    static int i = 0;
-    if((++i)%5 == 0) //降低更新时间覆盖频率
-        sensors[Sensor::Lidar].last_update_time = ros::Time::now().toSec();
+    static double last_time = 0;
+    double time = ros::Time::now().toSec();
+    if(time - last_time < sensor_detect_interval)
+        return;
+    last_time = time;
+
+    sensors[sensor_id].last_update_time = ros::Time::now().toSec();
+}
+
+void QNode::image_callback(const sensor_msgs::Image::ConstPtr& , int sensor_id)
+{
+    static double last_time = 0;
+    double time = ros::Time::now().toSec();
+    if(time - last_time < sensor_detect_interval)
+        return;
+    last_time = time;
+
+    sensors[sensor_id].last_update_time = ros::Time::now().toSec();
 }
 
 void QNode::diagnostic_callback(const diagnostic_msgs::DiagnosticStatus::ConstPtr& msg)
@@ -189,10 +232,8 @@ void QNode::diagnostic_callback(const diagnostic_msgs::DiagnosticStatus::ConstPt
     //ros消息中的字符串需要通过字符串流取出
     std::string hardware_id, message; char level;
     std::stringstream ss1; ss1 << msg->hardware_id; ss1 >> hardware_id;
-    std::stringstream ss2; ss2 << msg->level; ss2 >> level;  //std::cout << ss2.str() << std::endl;
+    std::stringstream ss2; ss2 << msg->level; ss2 >> level;
     std::stringstream ss3; ss3 << msg->message; ss3 >> message;
-
-    //std::cout << hardware_id << " " <<  level << " " << message << std::endl;
 
     Q_EMIT showDiagnosticMsg(QString::fromStdString(hardware_id),level,QString::fromStdString(msg->message));
 }
