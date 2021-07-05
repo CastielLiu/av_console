@@ -17,11 +17,11 @@ int main(int argc, char **argv)
 
     //初始化日志输出
     if(!g_logg.init(appDir + "/../log/log.txt"))
-        return false;
+        return 0;
 
     //载入RosNodesArray信息
     if(!loadRosNodesArrayInfo(appDir + "/../cmd/cmd.xml"))
-        return false;
+        return 0;
 
     //程序启动画面
     QSplashScreen splash_screen;
@@ -76,8 +76,11 @@ bool loadRosNodesArrayInfo(const QString& file)
     {
         RosNodes ros_nodes;
         ros_nodes.name = pRosNodes->Attribute("name");
+        if(const char* t = pRosNodes->Attribute("show_status"))
+            ros_nodes.show_status = t;
+
+        qDebug() << pRosNodes->Attribute("show_status");
         ros_nodes.use_button = pRosNodes->BoolAttribute("use_botton");
-        ros_nodes.show_status = pRosNodes->BoolAttribute("show_status");
         ros_nodes.id = node_id++;
 
         const tinyxml2::XMLElement *pChild = pRosNodes->FirstChildElement();

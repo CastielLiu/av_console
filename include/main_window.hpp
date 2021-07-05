@@ -73,6 +73,8 @@ public Q_SLOTS:
     void on_actionAbout_triggered();
     void on_actionReinstall_triggered();
     void on_actionEditCommandFile_triggered();
+    void on_actionHelp_triggered();
+
 	void on_checkbox_use_environment_stateChanged(int state);
     void on_pushButton_connect_clicked();
     void updateLoggingView(); // no idea why this can't connect automatically
@@ -80,6 +82,7 @@ public Q_SLOTS:
     void sensorStatusChanged(int,bool);
     void closeEvent(QCloseEvent *event);
     void showEvent(QShowEvent* event) override;
+    void onDriverlessStatusChanged(const driverless_common::SystemState state);
 
 Q_SIGNALS:
     void restart();
@@ -106,8 +109,9 @@ private Q_SLOTS:
     void customizeButtonsClicked(bool checked);
     void on_pushButton_setTrafficLightPoint_clicked();
     void on_treeWidget_diagnosics_itemDoubleClicked(QTreeWidgetItem *item, int column);
-
     void on_treeWidget_fixedDiagnostic_itemDoubleClicked(QTreeWidgetItem *item, int column);
+    void onDiagnosticsWidgetHeaderResize(int idx,int old_w,int new_w);
+    void onDiagnosticsWidgetHeaderDoubleClicked(int index);
 
 private:
     void setWidgetItemColorByMsgLevel(QTreeWidgetItem* item, int level);
@@ -134,7 +138,9 @@ private:
 
     std::unordered_map<int, ImageSwitch *> m_sensorStatusWidgets; //id,widget
 
-    QStringList m_realtimeDeviceList;
+    //诊断信息包含两个窗口，一个滚动窗口，一个实时更新窗口(每个设备仅显示一行)
+    QStringList m_realtimeDeviceList; //诊断信息窗口中，需要实时更新的设备列表
+    bool m_diagnosticsAntoScroll = true;
 };
 
 }  // namespace av_console

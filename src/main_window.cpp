@@ -9,8 +9,8 @@
 #include "iostream"
 #include "cstdio"
 #include <QDir>
+#include <QMetaType>
 #include "autodisapperdialog.hpp"
-
 
 namespace av_console {
 using namespace Qt;
@@ -25,7 +25,7 @@ MainWindow::MainWindow(int argc, char** argv, QSplashScreen* splash, QWidget *pa
     m_splash(splash)
 {
     //注册信号槽数据类型
-    qRegisterMetaType<std::string>("std_string");
+//    qRegisterMetaType<driverlessState_t>("driverlessState_t");
 
     ui.setupUi(this);
 
@@ -34,7 +34,7 @@ MainWindow::MainWindow(int argc, char** argv, QSplashScreen* splash, QWidget *pa
 
     ReadSettings();
     //setWindowIcon(QIcon(":/images/icon.png"));
-    ui.tabWidget->setCurrentIndex(0);
+    ui.tabWidget->setCurrentIndex(stackWidgetIndex_driverless);
 
     ui.view_logging->setModel(qnode.loggingModel());
     QObject::connect(&qnode, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
@@ -43,6 +43,28 @@ MainWindow::MainWindow(int argc, char** argv, QSplashScreen* splash, QWidget *pa
     QObject::connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
     QObject::connect(&qnode, SIGNAL(showDiagnosticMsg(const QString&,int,const QString&)),
                      this, SLOT(onShowDiagnosticMsg(const QString&,int,const QString&)));
+    QObject::connect(&qnode, SIGNAL(driverlessStatusChanged(const driverless_common::SystemState)),
+                     this,   SLOT(onDriverlessStatusChanged(const driverless_common::SystemState)));
+
+#if(DEVICE == DEVICE_LOGISTICS)
+    //移除下述tab
+    for(int idx=0; idx<ui.tabWidget->count(); ++ idx)
+    {
+        const QString& tabName = ui.tabWidget->widget(idx)->objectName();
+        if(tabName == "tab_recorder" || tabName == "tab_sensors")
+        {
+            ui.tabWidget->removeTab(idx);
+            idx = 0; //tab删除后，tabWidget的索引发生变化，从头查找
+        }
+    }
+    //
+    ui.widget_speedDial->hide();
+    ui.groupBox_pathPlanConfig->hide(); //隐藏路径记录配置界面
+    ui.groupBox_rosmaster->hide();      //隐藏rosmaster
+    ui.comboBox_driverSpeed->insertItems(0,QStringList() << "3" << "5" << "8" << "10" << "12" << "15" << "18");
+#elif(DEVICE == DEVICE_ANT)
+    ui.comboBox_driverSpeed->insertItems(0,QStringList() << "3" << "5" << "10" << "15" << "20" << "25" << "30" << "35" << "40");
+#endif
 
     this->initSensorStatusWidget(); //初始化传感器状态widget
 
@@ -50,6 +72,10 @@ MainWindow::MainWindow(int argc, char** argv, QSplashScreen* splash, QWidget *pa
     //如设置为根据文本内容调整尺寸，将导致加载速度变慢
     //ui.treeWidget_diagnosics->header()->setResizeMode(QHeaderView::ResizeToContents); //根据内容调整尺寸
     ui.treeWidget_diagnosics->setUniformRowHeights(true); //使用同一高度，防止每次加载新数据都计算行高，以加快载入
+    connect(ui.treeWidget_diagnosics->header(),SIGNAL(sectionResized(int,int,int)),
+            this,SLOT(onDiagnosticsWidgetHeaderResize( int,int,int)));
+    connect(ui.treeWidget_diagnosics->header(),SIGNAL(sectionDoubleClicked(int)),
+            this,SLOT(onDiagnosticsWidgetHeaderDoubleClicked(int)));
 
     if(!initDriverlessSystem())
     {
@@ -114,16 +140,16 @@ void MainWindow::initSensorStatusWidget()
     //- 添加自定义按钮
 
     //+ 添加传感器状态显示
-    bool is_first_sensor = true;
+    bool is_first_sensor = true; //添加第一个传感器时不加QSpacerItem
     for (auto iter = g_rosNodesArray.begin(); iter != g_rosNodesArray.end(); iter++)
     {
          const RosNodes& node = iter->second;
          const std::string& node_name = iter->first;
          int node_id = node.id;
-         if(node.show_status)
+         if(!node.show_status.empty())
          {
              //label
-             QLabel * statusLabel = new QLabel(node_name.c_str(), this);
+             QLabel * statusLabel = new QLabel(node.show_status.c_str(), this);
              QFont font; font.setPointSize(FontLevel3);
              statusLabel->setFont(font);
              //led
@@ -213,7 +239,7 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         {
         }
 
-        driverless_actions::DoDriverlessTaskGoal goal;
+        driverless_common::DoDriverlessTaskGoal goal;
         goal.roadnet_file = roadnet_file.toStdString();
         goal.expect_speed = speed;
 
@@ -374,6 +400,16 @@ void MainWindow::ReadSettings() {
 
     m_recordFileDir = settings.value("recordDataFileDir","").toString();
     ui.lineEdit_recordFileName->setText(m_recordFileDir);
+
+    m_realtimeDeviceList = settings.value("diagnostics_realtime_devices").toStringList();
+    for(int i=0; i<m_realtimeDeviceList.size(); ++i)
+    {
+        const QString& device = m_realtimeDeviceList[i];
+        QStringList info_list;
+        info_list << QString::number(i) << device << " " << " ";
+        QTreeWidgetItem* new_item = new QTreeWidgetItem(info_list);
+        ui.treeWidget_fixedDiagnostic->addTopLevelItem(new_item);
+    }
 }
 
 void MainWindow::WriteSettings() {
@@ -392,6 +428,7 @@ void MainWindow::WriteSettings() {
     settings.setValue("speedIndex",QString::number(ui.comboBox_driverSpeed->currentIndex()));
 
     settings.setValue("recordDataFileDir",m_recordFileDir);
+    settings.setValue("diagnostics_realtime_devices", m_realtimeDeviceList);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -401,7 +438,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     if(!m_forceExit)
     {
         int button = QMessageBox::question(this,"Confirm Exit",
-                                       "Are you sure to exit??",
+                                       "Click Yes to exit.",
                                        QMessageBox::Yes|QMessageBox::No,
                                        QMessageBox::No);
         if(button != QMessageBox::Yes)
@@ -506,11 +543,13 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
                 }
                 else
                     continue;
-
             }
+#if(DEVICE == DEVICE_LOGISTICS)
+#elif
             std::string pathInfoFile =
-            fileName.toStdString().substr(0,fileName.toStdString().find_last_of(".")) + "_info.xml";
+                fileName.toStdString().substr(0,fileName.toStdString().find_last_of(".")) + "_info.xml";
             m_pathRecorder->generatePathInfoFile(pathInfoFile);
+#endif
             m_pathRecorder->savePathPoints(fileName.toStdString());
             delete m_pathRecorder;
             m_pathRecorder = NULL;
@@ -691,6 +730,7 @@ void av_console::MainWindow::setPushButtonStylesheet(const QString& style)
 
     ui.groupBox_sensorStatus->setTitle("");
     //设置等高
+    ui.pushButton_quit->setFixedHeight(ui.lineEdit_roadNet->height());
     ui.pushButton_quit->setFixedHeight(ui.groupBox_sensorStatus->height());
     ui.pushButton_startRecordData->setCheckable(true);
 }
@@ -948,8 +988,10 @@ void av_console::MainWindow::onShowDiagnosticMsg(const QString& device, int leve
     int index_of_realtime = m_realtimeDeviceList.indexOf(device);
     if(index_of_realtime != -1) //device 在实时列表中，使数据显示于
     {
+        //m_realtimeDeviceList与ui.treeWidget_fixedDiagnostic表格行数一一对应
         QTreeWidgetItem* item = ui.treeWidget_fixedDiagnostic->topLevelItem(index_of_realtime);
         setWidgetItemColorByMsgLevel(item, level);
+
         int seq = item->text(0).toInt()+1;
         item->setText(0,QString::number(seq));
         item->setText(1,device);
@@ -976,7 +1018,8 @@ void av_console::MainWindow::onShowDiagnosticMsg(const QString& device, int leve
     setWidgetItemColorByMsgLevel(item, level);
 
     ui.treeWidget_diagnosics->addTopLevelItem(item);
-    ui.treeWidget_diagnosics->scrollToBottom();
+    if(m_diagnosticsAntoScroll)
+        ui.treeWidget_diagnosics->scrollToBottom();
 }
 
 //根据诊断信息的级别设置item的颜色
@@ -1013,6 +1056,9 @@ void av_console::MainWindow::on_treeWidget_diagnosics_itemDoubleClicked(QTreeWid
             //拷贝滚动显示列表信息到实时列表，
             //不能直接使用指针进行拷贝，否则导致无法显示，估计是同一个item只能添加到一个tree
             QTreeWidgetItem* new_item = new QTreeWidgetItem(list);
+            for(int col=0; col<item->columnCount(); ++col)
+                new_item->setTextColor(col,item->textColor(col));
+
             ui.treeWidget_fixedDiagnostic->addTopLevelItem(new_item);
         }
     }
@@ -1033,4 +1079,53 @@ void av_console::MainWindow::on_treeWidget_fixedDiagnostic_itemDoubleClicked(QTr
         delete ui.treeWidget_fixedDiagnostic->topLevelItem(index_of_realtime);
         m_realtimeDeviceList.removeAt(index_of_realtime);
     }
+}
+
+//诊断窗口宽度跟随变化
+void av_console::MainWindow::onDiagnosticsWidgetHeaderResize(int idx, int old_w, int new_w)
+{
+    ui.treeWidget_fixedDiagnostic->header()->resizeSection(idx, new_w);
+}
+
+//诊断窗口表头双击
+void av_console::MainWindow::onDiagnosticsWidgetHeaderDoubleClicked(int index)
+{
+    if(index == 3) //message
+    {
+        m_diagnosticsAntoScroll = !m_diagnosticsAntoScroll; //自动滚动切换
+    }
+}
+
+void av_console::MainWindow::on_actionHelp_triggered()
+{
+    static const QString helpMsg = QString::fromUtf8(
+        "一 日志消息\n"
+        "1. 双击设备名可将其移入/移出实时覆盖更新栏\n"
+        "2. 双击表头Message可暂停/继续日志消息滚动");
+
+    QMessageBox::information(this,"Help",helpMsg);
+}
+
+QString to_qstring(float val, int precision)
+{
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(precision) << val;
+    return  QString(ss.str().c_str());
+}
+
+void av_console::MainWindow::onDriverlessStatusChanged(const driverless_common::SystemState state)
+{
+    ui.label_cmdSpeed->setText(to_qstring(state.command_speed,1));
+    ui.label_trueSpeed->setText(to_qstring(state.vehicle_speed,1));
+    ui.label_steerAngle->setText(to_qstring(state.roadwheel_angle,1));
+    ui.label_laterr->setText(to_qstring(state.lateral_error,2));
+
+    ui.widget_speedDial->updateValue(state.vehicle_speed);
+
+    if(state.state == state.STATE_IDLE)
+        ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/av_console/telectrl_mode.png);"));
+    else
+        ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/av_console/driverless_ing.png);"));
+
+    //ui.lineEdit_obstacleDis->setText(to_qstring(state.nearest_object_distance,2));
 }

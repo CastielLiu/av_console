@@ -37,8 +37,6 @@
   <run_depend>diagnostic_msgs</run_depend>
   <build_depend>ant_msgs</build_depend>
   <run_depend>ant_msgs</run_depend>
-  <build_depend>driverless_actions</build_depend>
-  <run_depend>driverless_actions</run_depend>
   <build_depend>driverless_common</build_depend>
   <run_depend>driverless_common</run_depend>
   

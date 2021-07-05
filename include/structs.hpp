@@ -26,7 +26,7 @@ typedef struct _RosNodes
     std::string launch_cmd;
     std::string close_cmd;
     bool use_button;  //是否使用按钮，true: 在UI界面自动生成按钮
-    bool show_status; //是否显示状态，true: 在UI界面自动生成状态显示按钮
+    std::string show_status; //是否显示状态，非空: 在UI界面自动生成状态显示按钮，并作为显示名
     uint8_t id;       //节点Id, 根据载入顺序
 
     //topic_name, topic_value

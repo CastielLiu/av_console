@@ -8,11 +8,12 @@
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/server/simple_action_server.h>
-#include <driverless_actions/DoDriverlessTaskAction.h>
+#include <driverless_common/DoDriverlessTaskAction.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/Image.h>
 #include <diagnostic_msgs/DiagnosticStatus.h>
 #include <nav_msgs/Odometry.h>
+#include <driverless_common/SystemState.h>
 #endif
 
 #include <unordered_map>
@@ -21,6 +22,7 @@
 #include <string>
 #include <QThread>
 #include <QDebug>
+#include <QMetaType>
 #include <QStringListModel>
 
 namespace av_console {
@@ -38,7 +40,7 @@ public:
 class QNode : public QThread {
     Q_OBJECT
 public:
-    typedef actionlib::SimpleActionClient<driverless_actions::DoDriverlessTaskAction> DoDriverlessTaskClient;
+    typedef actionlib::SimpleActionClient<driverless_common::DoDriverlessTaskAction> DoDriverlessTaskClient;
 
 	QNode(int argc, char** argv );
 	virtual ~QNode();
@@ -62,7 +64,7 @@ public:
     void stampedLog( const LogLevel &level, const std::string &msg);
     bool initialed(){return is_init&&ros::master::check() ;}
     bool serverConnected();
-    void requestDriverlessTask(const driverless_actions::DoDriverlessTaskGoal& goal);
+    void requestDriverlessTask(const driverless_common::DoDriverlessTaskGoal& goal);
     void cancleAllGoals();
     bool addSensor(int id, const std::string& name, const std::string& topic)
     {
@@ -76,10 +78,11 @@ private:
     void image_callback(const sensor_msgs::Image::ConstPtr& , int sensor_id);
     void diagnostic_callback(const diagnostic_msgs::DiagnosticStatus::ConstPtr& msg);
     void sensorStatusTimer_callback(const ros::TimerEvent& );
+    void driverlessStatus_callback(const driverless_common::SystemState::ConstPtr& msg);
 
-    void taskFeedbackCallback(const driverless_actions::DoDriverlessTaskFeedbackConstPtr& fd);
+    void taskFeedbackCallback(const driverless_common::DoDriverlessTaskFeedbackConstPtr& fd);
     void taskDoneCallback(const actionlib::SimpleClientGoalState& state,
-                                 const driverless_actions::DoDriverlessTaskResultConstPtr& res);
+                                 const driverless_common::DoDriverlessTaskResultConstPtr& res);
     void taskActivedCallback();
 
 Q_SIGNALS:
@@ -88,6 +91,7 @@ Q_SIGNALS:
   void taskStateChanged(int state, const QString& info="");
   void rosmasterOffline();
   void showDiagnosticMsg(const QString& device, int level,const QString& msg);
+  void driverlessStatusChanged(const driverless_common::SystemState state);
 
 private:
 	int init_argc;
@@ -100,9 +104,8 @@ private:
     const float sensor_detect_interval = 0.5;
 
     std::vector<ros::Subscriber> subs;
-    ros::Subscriber gps_sub;
-    ros::Subscriber lidar_sub;
     ros::Subscriber diagnostic_sub;
+    ros::Subscriber status_sub;
     ros::Timer      sensorStatus_timer;
 
     DoDriverlessTaskClient* ac_;

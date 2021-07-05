@@ -16,6 +16,8 @@ QNode::QNode(int argc, char** argv ) :
     task_state_(Driverless_Idle),
     ac_(nullptr)
 {
+    //注册信号槽数据类型
+    qRegisterMetaType<driverless_common::SystemState>("driverless_common::SystemState");
 }
 
 QNode::~QNode()
@@ -56,6 +58,7 @@ bool QNode::init(int try_num, const std::string &master_url, const std::string &
 
     //subscribe sensor msg to listen its status.
     ros::NodeHandle nh;
+    //开启传感器数据订阅
     for(auto iter=sensors.begin(); iter!=sensors.end(); ++iter)
     {
         const Sensor& sensor = iter->second;
@@ -66,11 +69,10 @@ bool QNode::init(int try_num, const std::string &master_url, const std::string &
             subs.push_back(nh.subscribe<sensor_msgs::PointCloud2>(sensor.topic,1,boost::bind(&QNode::lidar_callback,this,_1,sensor.id)));
         else if(sensor_name.find("cam") != std::string::npos)
             subs.push_back(nh.subscribe<sensor_msgs::Image>(sensor.topic,1,boost::bind(&QNode::image_callback,this,_1,sensor.id)));
-
-
     }
 
     diagnostic_sub = nh.subscribe("/driverless/diagnostic",10,&QNode::diagnostic_callback,this);
+    status_sub     = nh.subscribe("/driverless/state",1,&QNode::driverlessStatus_callback,this);
     sensorStatus_timer = nh.createTimer(ros::Duration(1), &QNode::sensorStatusTimer_callback,this);
 
     if(ac_ != nullptr)
@@ -138,20 +140,20 @@ void QNode::cancleAllGoals()
     ac_->cancelAllGoals();
 }
 
-void QNode::requestDriverlessTask(const driverless_actions::DoDriverlessTaskGoal& goal)
+void QNode::requestDriverlessTask(const driverless_common::DoDriverlessTaskGoal& goal)
 {
     ac_->sendGoal(goal, boost::bind(&QNode::taskDoneCallback,this,_1,_2),
                         boost::bind(&QNode::taskActivedCallback,this),
                         boost::bind(&QNode::taskFeedbackCallback,this,_1));
 }
 
-void QNode::taskFeedbackCallback(const driverless_actions::DoDriverlessTaskFeedbackConstPtr& fd)
+void QNode::taskFeedbackCallback(const driverless_common::DoDriverlessTaskFeedbackConstPtr& fd)
 {
     qDebug() << "taskFeedbackCallback ";
 }
 
 void QNode::taskDoneCallback(const actionlib::SimpleClientGoalState& state,
-                             const driverless_actions::DoDriverlessTaskResultConstPtr& res)
+                             const driverless_common::DoDriverlessTaskResultConstPtr& res)
 {
     std::cout << "taskDoneCallback " << state.toString().c_str() << std::endl;
 
@@ -304,6 +306,11 @@ void QNode::stampedLog( const LogLevel &level, const std::string &msg) {
 	QVariant new_row(QString(logging_model_msg.str().c_str()));
 	logging_model.setData(logging_model.index(logging_model.rowCount()-1),new_row);
 	Q_EMIT loggingUpdated(); // used to readjust the scrollbar
+}
+
+void QNode::driverlessStatus_callback(const driverless_common::SystemState::ConstPtr& msg)
+{
+    Q_EMIT driverlessStatusChanged(*msg);
 }
 
 }  // namespace av_console

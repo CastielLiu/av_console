@@ -1,5 +1,9 @@
 <RCC>
     <qresource prefix="/av_console">
         <file>av_console/splash_screen.jpg</file>
+        <file>av_console/cmdspeed.png</file>
+        <file>av_console/truespeed.png</file>
+        <file>av_console/driverless_ing.png</file>
+        <file>av_console/telectrl_mode.png</file>
     </qresource>
 </RCC>
