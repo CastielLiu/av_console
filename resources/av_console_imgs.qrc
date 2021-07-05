@@ -5,5 +5,10 @@
         <file>av_console/truespeed.png</file>
         <file>av_console/driverless_ing.png</file>
         <file>av_console/telectrl_mode.png</file>
+        <file>av_console/diagnostics.png</file>
+        <file>av_console/home.png</file>
+        <file>av_console/custom.png</file>
+        <file>av_console/record.png</file>
+        <file>av_console/pathplan.png</file>
     </qresource>
 </RCC>

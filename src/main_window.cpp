@@ -34,7 +34,6 @@ MainWindow::MainWindow(int argc, char** argv, QSplashScreen* splash, QWidget *pa
 
     ReadSettings();
     //setWindowIcon(QIcon(":/images/icon.png"));
-    ui.tabWidget->setCurrentIndex(stackWidgetIndex_driverless);
 
     ui.view_logging->setModel(qnode.loggingModel());
     QObject::connect(&qnode, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
@@ -46,22 +45,30 @@ MainWindow::MainWindow(int argc, char** argv, QSplashScreen* splash, QWidget *pa
     QObject::connect(&qnode, SIGNAL(driverlessStatusChanged(const driverless_common::SystemState)),
                      this,   SLOT(onDriverlessStatusChanged(const driverless_common::SystemState)));
 
-#if(DEVICE == DEVICE_LOGISTICS)
-    //移除下述tab
-    for(int idx=0; idx<ui.tabWidget->count(); ++ idx)
-    {
-        const QString& tabName = ui.tabWidget->widget(idx)->objectName();
-        if(tabName == "tab_recorder" || tabName == "tab_sensors")
-        {
-            ui.tabWidget->removeTab(idx);
-            idx = 0; //tab删除后，tabWidget的索引发生变化，从头查找
-        }
-    }
-    //
+    //利用按钮组切换staticWidget,按钮id需与page一致，直接绑定切换槽函数
+    m_btnGroupChangeWidget = new QButtonGroup(this);
+    ui.pushButton_goHome->setIcon(QIcon(":/av_console/av_console/home.png"));
+    m_btnGroupChangeWidget->addButton(ui.pushButton_goHome,0);
+    ui.pushButton_goDiagnostic->setIcon(QIcon(":/av_console/av_console/diagnostics.png"));
+    m_btnGroupChangeWidget->addButton(ui.pushButton_goDiagnostic,1);
+    ui.pushButton_goPlanning->setIcon(QIcon(":/av_console/av_console/pathplan.png"));
+    m_btnGroupChangeWidget->addButton(ui.pushButton_goPlanning,2);
+    ui.pushButton_goCustom->setIcon(QIcon(":/av_console/av_console/custom.png"));
+    m_btnGroupChangeWidget->addButton(ui.pushButton_goCustom,3);
+    ui.pushButton_goRecorder->setIcon(QIcon(":/av_console/av_console/record.png"));
+    m_btnGroupChangeWidget->addButton(ui.pushButton_goRecorder,4);
+    connect(m_btnGroupChangeWidget,SIGNAL(buttonClicked(int)),ui.stackedWidget_driverless,SLOT(setCurrentIndex(int)));
+    ui.pushButton_goHome->setChecked(true);           //默认为home页
+    ui.stackedWidget_driverless->setCurrentIndex(0);  //默认为home页
+
     ui.widget_speedDial->hide();
+#if(DEVICE == DEVICE_LOGISTICS)
+    ui.pushButton_goCustom->hide();
+    ui.pushButton_goRecorder->hide();
     ui.groupBox_pathPlanConfig->hide(); //隐藏路径记录配置界面
     ui.groupBox_rosmaster->hide();      //隐藏rosmaster
     ui.comboBox_driverSpeed->insertItems(0,QStringList() << "3" << "5" << "8" << "10" << "12" << "15" << "18");
+    ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/av_console/telectrl_mode.png);"));
 #elif(DEVICE == DEVICE_ANT)
     ui.comboBox_driverSpeed->insertItems(0,QStringList() << "3" << "5" << "10" << "15" << "20" << "25" << "30" << "35" << "40");
 #endif
@@ -545,7 +552,8 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
                     continue;
             }
 #if(DEVICE == DEVICE_LOGISTICS)
-#elif
+
+#else
             std::string pathInfoFile =
                 fileName.toStdString().substr(0,fileName.toStdString().find_last_of(".")) + "_info.xml";
             m_pathRecorder->generatePathInfoFile(pathInfoFile);
@@ -575,43 +583,6 @@ void av_console::MainWindow::on_pushButton_openRoadNet_clicked()
 
     //qDebug() << fileName << "\t" << name;
     ui.lineEdit_roadNet->setText(getShortFileName(m_roadNetFileDir));
-}
-
-void av_console::MainWindow::on_tabWidget_currentChanged(int index)
-{
-    static int last_index = 0;
-
-    if(!qnode.initialed())
-    {
-        if(index != stackWidgetIndex_driverless)
-        {
-            showMessgeInStatusBar("please connect to master firstly!", true);
-            g_logg << "qnode not initial!\n";
-            //qnode.log("please connect to master firstly!");
-            ui.tabWidget->setCurrentIndex(stackWidgetIndex_driverless);
-        }
-        return;
-    }
-    if(index == stackWidgetIndex_recorder)
-    {
-        bool ok;
-        QString text = QInputDialog::getText(this, "Infomation", "This feature is under development",
-                                                     QLineEdit::Normal,
-                                                     "",&ok);
-
-        if(m_dataRecorder == nullptr)
-        {
-            //实例化数据记录器
-            m_dataRecorder = new RecordData();
-        }
-
-        if(text == "seucar")
-            m_dataRecorder->setDisable(false);
-        else
-            m_dataRecorder->setDisable(true);
-    }
-
-    last_index = index;
 }
 
 void av_console::MainWindow::onTaskStateChanged(int state, const QString& info)
@@ -784,6 +755,25 @@ void av_console::MainWindow::on_pushButton_startRecordData_clicked(bool checked)
 {
     if(checked)
     {
+        if(m_dataRecorder == nullptr)
+        {
+            bool ok;
+            QString text = QInputDialog::getText(this, "Infomation", "Please input password",
+                                                         QLineEdit::PasswordEchoOnEdit,
+                                                         "",&ok);
+            if(text == "seucar")
+            {
+                m_dataRecorder = new RecordData();
+                m_dataRecorder->setDisable(false);
+            }
+            else
+            {
+                QMessageBox::warning(this,"Warning","Password error!");
+                ui.pushButton_startRecordData->setChecked(false);
+                return;
+            }
+        }
+
         static bool listview_inited  = false;
 
         if(!listview_inited)
@@ -823,7 +813,8 @@ void av_console::MainWindow::on_pushButton_startRecordData_clicked(bool checked)
     }
     else
     {
-        m_dataRecorder->stop();
+        if(m_dataRecorder)
+            m_dataRecorder->stop();
         disableRecordDataConfigure(false);
         ui.pushButton_startRecordData->setText(QString("Start"));
     }

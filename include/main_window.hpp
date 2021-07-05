@@ -20,6 +20,7 @@
 #include <tinyxml2.h>
 #include <QSplashScreen>
 #include <unordered_map>
+#include <QButtonGroup>
 #include "imageswitch.hpp"
 
 #define FontLevel1 16
@@ -44,13 +45,6 @@ private:
 
 class MainWindow : public QMainWindow {
 Q_OBJECT
-    enum stackWidgetIndex
-    {
-      stackWidgetIndex_driverless = 0,
-      stackWidgetIndex_planning   = 1,
-      stackWidgetIndex_sensors    = 2,
-      stackWidgetIndex_recorder   = 3,
-    };
 
 public:
     MainWindow(int argc, char** argv, QSplashScreen* splash, QWidget *parent = 0);
@@ -91,7 +85,6 @@ private Q_SLOTS:
     void on_pushButton_pathPlanning_clicked(bool checked);
     void on_pushButton_openRoadNet_clicked();
     void on_pushButton_driverlessStart_clicked(bool checked);
-    void on_tabWidget_currentChanged(int index);
     void on_comboBox_taskType_activated(const QString &arg1);
     void onTaskStateChanged(int state, const QString &info="");
     void onRosmasterOffline();
@@ -141,6 +134,8 @@ private:
     //诊断信息包含两个窗口，一个滚动窗口，一个实时更新窗口(每个设备仅显示一行)
     QStringList m_realtimeDeviceList; //诊断信息窗口中，需要实时更新的设备列表
     bool m_diagnosticsAntoScroll = true;
+
+    QButtonGroup* m_btnGroupChangeWidget;
 };
 
 }  // namespace av_console
