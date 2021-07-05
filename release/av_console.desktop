@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Exec=bash -i -c /home/ubuntu/projects/littleAnt_ws/src/av_console/release/app/av_console
-Name=av_console
-GenericName=av_console
-Icon=/home/ubuntu/projects/littleAnt_ws/src/av_console/release/icon/icon.jpg
-Terminal=false
-Categories=Development
