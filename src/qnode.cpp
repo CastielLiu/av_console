@@ -94,8 +94,6 @@ bool QNode::waitForDriverlessServer(float timeout)
     if(this->serverConnected())
         return true;
 
-    launchRosNodes("driverless");
-
     while(!this->serverConnected())
     {
         QThread::msleep(300);

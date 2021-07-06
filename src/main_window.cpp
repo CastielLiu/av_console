@@ -68,9 +68,10 @@ MainWindow::MainWindow(int argc, char** argv, QSplashScreen* splash, QWidget *pa
     ui.groupBox_pathPlanConfig->hide(); //隐藏路径记录配置界面
     ui.groupBox_rosmaster->hide();      //隐藏rosmaster
     ui.comboBox_driverSpeed->insertItems(0,QStringList() << "3" << "5" << "8" << "10" << "12" << "15" << "18");
-    ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/av_console/telectrl_mode.png);"));
+    ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/logistics_manual_mode);"));
 #elif(DEVICE == DEVICE_ANT)
     ui.comboBox_driverSpeed->insertItems(0,QStringList() << "3" << "5" << "10" << "15" << "20" << "25" << "30" << "35" << "40");
+    ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/ant_manual_mode);"));
 #endif
 
     this->initSensorStatusWidget(); //初始化传感器状态widget
@@ -111,16 +112,37 @@ bool MainWindow::initDriverlessSystem()
 
     if(!initQnode()) return false;
 
+    launchRosNodes("driverless");  //启动自动驾驶服务器
+
     if(!qnode.waitForDriverlessServer(3.0))
     {
         m_splash->showMessage("Connect to driverless server failed!",Qt::AlignCenter|Qt::AlignBottom, Qt::red);
         return false;
+        /*//欲实现启动driverless失败后在终端启动以查看错误信息，但terminal闪退
+        QMessageBox msgBox(QMessageBox::Critical, tr("launch driverless server failed"),
+                           "click 'Debug' to relaunch in terminal.\nclick 'Ignore' to ignore error\nclick 'Exit' to close.",
+                           QMessageBox::YesAll|QMessageBox::Yes|QMessageBox::Cancel, this);
+
+        msgBox.button(QMessageBox::YesAll)->setText(tr("Debug"));
+        msgBox.button(QMessageBox::Yes)->setText(tr("Ignore"));
+        msgBox.button(QMessageBox::Cancel)->setText(tr("Exit"));
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+        int button = msgBox.exec();
+        //若点击了叉号，则放弃操作 Cancel
+        if(button == QMessageBox::Cancel)
+            return false;
+        else if(button == QMessageBox::YesAll)
+        {
+            launchRosNodes("driverless", false, true);
+        }
+        ui.pushButton_driverlessStart->setDisabled(true);
+        return true;
+        */
     }
 
     qnode.start();
 
     m_splash->showMessage("Initializing complete!",Qt::AlignCenter|Qt::AlignBottom, Qt::green);
-
     return true;
 }
 
@@ -181,7 +203,6 @@ void MainWindow::initSensorStatusWidget()
          }
     }
     //- 添加传感器状态显示
-
     connect(&qnode,SIGNAL(sensorStatusChanged(int,bool)),this,SLOT(sensorStatusChanged(int,bool)));
 }
 
@@ -203,8 +224,8 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
 
         if(!qnode.serverConnected())
         {
-            //this->showMessgeInStatusBar("driverless server is not connected! restarting driverless program...", true);
-            qnode.stampedLog(qnode.Info, "driverless server is not connected!\n automatic starting driverless program...");
+            this->showMessgeInStatusBar("driverless server is not connected! restarting driverless program...", true);
+            //qnode.stampedLog(qnode.Info, "driverless server is not connected!\n automatic starting driverless program...");
             launchRosNodes("driverless");
             onTaskStateChanged(qnode.Driverless_Idle);
             return;
@@ -221,7 +242,7 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
             onTaskStateChanged(qnode.Driverless_Idle);
             return;
         }
-
+    /*
         //询问是否保存日志文件
         QFileInfo roadnetFileInfo(roadnet_file);
         QDir roadnetDir(roadnetFileInfo.absolutePath());//文件所在目录
@@ -244,6 +265,13 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         }
         else if(button == QMessageBox::YesAll) // saveLog
         {
+        }
+    */
+        int button = QMessageBox::question(this,"Confirm Start Task","Click Yes To Start.",QMessageBox::Yes|QMessageBox::Cancel,QMessageBox::Yes);
+        if(button == QMessageBox::Cancel)
+        {
+            onTaskStateChanged(qnode.Driverless_Idle);
+            return;
         }
 
         driverless_common::DoDriverlessTaskGoal goal;
@@ -589,8 +617,7 @@ void av_console::MainWindow::onTaskStateChanged(int state, const QString& info)
 {
     if(!info.isEmpty())
     {
-        AutoDisapperDialog* dialog =
-                new AutoDisapperDialog(this, QMessageBox::Information,info,2000);
+        new AutoDisapperDialog(this, QMessageBox::Information,info,2000);
     }
 
     if(state == qnode.Driverless_Idle)
@@ -1090,7 +1117,7 @@ void av_console::MainWindow::onDiagnosticsWidgetHeaderDoubleClicked(int index)
 void av_console::MainWindow::on_actionHelp_triggered()
 {
     static const QString helpMsg = QString::fromUtf8(
-        "一 日志消息\n"
+        "一 诊断信息\n"
         "1. 双击设备名可将其移入/移出实时覆盖更新栏\n"
         "2. 双击表头Message可暂停/继续日志消息滚动");
 
@@ -1112,11 +1139,16 @@ void av_console::MainWindow::onDriverlessStatusChanged(const driverless_common::
     ui.label_laterr->setText(to_qstring(state.lateral_error,2));
 
     ui.widget_speedDial->updateValue(state.vehicle_speed);
-
+#if(DEVICE == DEVICE_LOGISTICS)
     if(state.state == state.STATE_IDLE)
-        ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/av_console/telectrl_mode.png);"));
+        ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/logistics_manual_mode);"));
     else
-        ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/av_console/driverless_ing.png);"));
-
+        ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/logistics_driverless_mode);"));
+#elif(DEVICE == DEVICE_ANT)
+    if(state.state == state.STATE_IDLE)
+        ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/ant_manual_mode);"));
+    else
+        ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/ant_driverless_mode);"));
+#endif
     //ui.lineEdit_obstacleDis->setText(to_qstring(state.nearest_object_distance,2));
 }

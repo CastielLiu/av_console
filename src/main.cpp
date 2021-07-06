@@ -37,7 +37,9 @@ int main(int argc, char **argv)
     w.setFixedSize(737,548);
 #endif
 
-    w.show(); splash_screen.finish(&w);
+    w.show();
+
+    splash_screen.finish(&w);
 
     app.connect(&app, SIGNAL(lastWindowClosed()), &app, SLOT(quit()));
 

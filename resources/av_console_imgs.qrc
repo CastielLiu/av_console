@@ -3,12 +3,14 @@
         <file>av_console/splash_screen.jpg</file>
         <file>av_console/cmdspeed.png</file>
         <file>av_console/truespeed.png</file>
-        <file>av_console/driverless_ing.png</file>
-        <file>av_console/telectrl_mode.png</file>
         <file>av_console/diagnostics.png</file>
         <file>av_console/home.png</file>
         <file>av_console/custom.png</file>
         <file>av_console/record.png</file>
         <file>av_console/pathplan.png</file>
+        <file alias="logistics_driverless_mode">av_console/logistics/driverless_ing.png</file>
+        <file alias="logistics_manual_mode">av_console/logistics/telectrl_mode.png</file>
+        <file alias="ant_driverless_mode">av_console/ant/driverless_ing.png</file>
+        <file alias="ant_manual_mode">av_console/ant/manual_mode.png</file>
     </qresource>
 </RCC>

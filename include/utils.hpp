@@ -26,13 +26,23 @@ static void execute_process_detached(const std::string& cmd)
  *@param  nodes_name 节点名称
  *@param  is_close 是否关闭(默认为启动)
  */
-static bool launchRosNodes(const std::string& nodes_name, bool is_close=false)
+static bool launchRosNodes(const std::string& nodes_name, bool is_close=false, bool terminal=false)
 {
     std::string cmd;
     if(is_close) cmd = g_rosNodesArray[nodes_name].close_cmd;
     else         cmd = g_rosNodesArray[nodes_name].launch_cmd;
 
     if(cmd.empty()) return false;
+
+    if(terminal)
+    {
+        cmd = std::string("gnome-terminal -x ") + cmd;
+        int pos = cmd.find_last_of('&');
+        if(pos != std::string::npos)
+            cmd = cmd.substr(0,pos); //删除后台运行标识符
+
+        std::cout << cmd << std::endl;
+    }
 
     system(cmd.c_str());
     //std::cout <<"run: [" << cmd << "]" << std::endl;

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>972</width>
-    <height>708</height>
+    <width>970</width>
+    <height>683</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@
    <locale language="English" country="Australia"/>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_19">
+   <layout class="QVBoxLayout" name="verticalLayout_19" stretch="50,1">
     <item>
      <layout class="QVBoxLayout" name="verticalLayout_7" stretch="0,0">
       <property name="spacing">
@@ -1348,8 +1348,8 @@ padding: 0 3px 0 3px;
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>162</width>
-               <height>45</height>
+               <width>313</width>
+               <height>529</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_6" stretch="1,1000">
@@ -1841,7 +1841,7 @@ padding: 0 3px 0 3px;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>972</width>
+     <width>970</width>
      <height>22</height>
     </rect>
    </property>
