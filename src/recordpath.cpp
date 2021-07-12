@@ -1,4 +1,5 @@
 #include "../include/recordpath.hpp"
+#include <fstream>
 
 RecordPath::RecordPath():
     current_road_left_width_(0),
@@ -75,8 +76,33 @@ void RecordPath::gps_callback(const nav_msgs::Odometry::ConstPtr& msg)
   current_point_.leftWidth = current_road_left_width_;
   current_point_.rightWidth = current_road_right_width_;
 
+  int gps_state = msg->pose.covariance[4];
+  bool gpsValid = (gps_state == 1 || gps_state == 2 || gps_state==4 ||
+                   gps_state==5   || gps_state>=9 );
+
+  if(!gpsValid)
+  {
+    log("ERROR","STOP! No valid location! state: " + std::to_string(msg->pose.covariance[4]) );
+    return;
+  }
+
   if(sample_distance_*sample_distance_ <= dis2Points(current_point_,last_point_,false))
   {
+    static bool temp_file_opened = false;
+    static std::ofstream outTempFile;
+    if(!temp_file_opened)
+    {
+      auto file_name = QDir::current().absolutePath().toStdString() + "/backup_path.txt";
+      outTempFile.open(file_name.c_str());
+      log("INFO",file_name);
+      temp_file_opened = true;
+    }
+
+    outTempFile << std::fixed << std::setprecision(3)
+            << current_point_.x << "\t"
+            << current_point_.y << "\t"
+            << current_point_.yaw << std::endl;
+
     path_points_.push_back(current_point_);
     //fprintf(fp,"%.3f\t%.3f\t%.4f\n",current_point_.x,current_point_.y,current_point_.yaw);
     last_point_ = current_point_;

@@ -1152,3 +1152,4 @@ void av_console::MainWindow::onDriverlessStatusChanged(const driverless_common::
 #endif
     //ui.lineEdit_obstacleDis->setText(to_qstring(state.nearest_object_distance,2));
 }
+
