@@ -106,6 +106,9 @@ private Q_SLOTS:
     void onDiagnosticsWidgetHeaderResize(int idx,int old_w,int new_w);
     void onDiagnosticsWidgetHeaderDoubleClicked(int index);
 
+    void on_pushButton_cycleRunTask_clicked(bool checked);
+    void on_pushButton_flipPath_clicked(bool checked);
+
 private:
     void setWidgetItemColorByMsgLevel(QTreeWidgetItem* item, int level);
     QObjectList getAllLeafChilds(QObject* object);

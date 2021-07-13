@@ -63,10 +63,13 @@ MainWindow::MainWindow(int argc, char** argv, QSplashScreen* splash, QWidget *pa
 
     ui.widget_speedDial->hide();
 #if(DEVICE == DEVICE_LOGISTICS)
-    ui.pushButton_goCustom->hide();
-    ui.pushButton_goRecorder->hide();
+    ui.pushButton_goCustom->hide();     //隐藏用户自定义界面
+    ui.pushButton_goRecorder->hide();   //隐藏数据记录页面
     ui.groupBox_pathPlanConfig->hide(); //隐藏路径记录配置界面
     ui.groupBox_rosmaster->hide();      //隐藏rosmaster
+    ui.comboBox_taskType->setEnabled(false); //禁用任务类型切换
+    ui.comboBox_goalType->setEnabled(false); //禁用目标类型编辑
+    ui.pushButton_flipPath->setDisabled(true);//禁用路径翻转
     ui.comboBox_driverSpeed->insertItems(0,QStringList() << "3" << "5" << "8" << "10" << "12" << "15" << "18");
     ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/logistics_manual_mode);"));
 #elif(DEVICE == DEVICE_ANT)
@@ -89,7 +92,9 @@ MainWindow::MainWindow(int argc, char** argv, QSplashScreen* splash, QWidget *pa
     {
         //延时以充分显示错误信息
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        exit(0);
+        //exit(0);
+        m_forceExit = 0;
+        close();
     }
 }
 
@@ -308,13 +313,15 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         if(ui.comboBox_taskType->currentText() == "Drive") //前进
             goal.task  = goal.DRIVE_TASK;
         else if(ui.comboBox_taskType->currentText() == "Reverse")
-        {
             goal.task  = goal.REVERSE_TASK;
-            if(this->ui.checkBox_pathFilp->checkState() == Qt::Checked)
-                goal.path_filp = true;
-            else
-                goal.path_filp = false;
+        else
+        {
+            QMessageBox::warning(this,"Unknown Task Type!", "Unknown Task Type!");
+            onTaskStateChanged(qnode.Driverless_Idle);
+            return;
         }
+        goal.path_filp = this->ui.pushButton_flipPath->isChecked();
+        goal.cycle_run = this->ui.pushButton_cycleRunTask->isChecked();
 
         qnode.requestDriverlessTask(goal);
         onTaskStateChanged(qnode.Driverless_Starting);
@@ -666,7 +673,11 @@ void av_console::MainWindow::onTaskStateChanged(int state, const QString& info)
         if(button == QMessageBox::Yes)
             qApp->exit(777); //restart
         else
-            qApp->exit(0);
+        {
+            m_forceExit = true;
+            close();
+            //qApp->exit(0);
+        }
 
         showing = false;
     }
@@ -1153,3 +1164,30 @@ void av_console::MainWindow::onDriverlessStatusChanged(const driverless_common::
     //ui.lineEdit_obstacleDis->setText(to_qstring(state.nearest_object_distance,2));
 }
 
+void av_console::MainWindow::on_pushButton_cycleRunTask_clicked(bool checked)
+{
+    if(checked)
+    {
+        ui.pushButton_cycleRunTask->setStyleSheet(QString::fromUtf8("font: 12pt \"Sans Serif\";\n"
+                                                "color: rgb(255, 0, 0);"));
+    }
+    else
+    {
+        ui.pushButton_cycleRunTask->setStyleSheet(QString::fromUtf8("font: 12pt \"Sans Serif\";\n"
+                                                "color: rgb(0, 0, 0);"));
+    }
+}
+
+void av_console::MainWindow::on_pushButton_flipPath_clicked(bool checked)
+{
+    if(checked)
+    {
+        ui.pushButton_flipPath->setStyleSheet(QString::fromUtf8("font: 12pt \"Sans Serif\";\n"
+                                                "color: rgb(255, 0, 0);"));
+    }
+    else
+    {
+        ui.pushButton_flipPath->setStyleSheet(QString::fromUtf8("font: 12pt \"Sans Serif\";\n"
+                                                "color: rgb(0, 0, 0);"));
+    }
+}
