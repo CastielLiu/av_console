@@ -21,21 +21,22 @@ bool RecordPath::start()
 
     private_nh.param<float>("sample_distance",sample_distance_,0.1);
     
-    odom_topic_ = g_rosNodesArray["gps"].topics["odom"];
+    odom_topic_ = g_rosNodesArray["location"].topics["odom"];
     if(odom_topic_.empty())
     {
-//
+      std::cout << "No odom topic in Node['location']" << std::endl;
+      odom_topic_ = "/error/record_path/location/odom_topic";
     }
 
-    sub_gps_ = nh.subscribe(odom_topic_ ,1,&RecordPath::gps_callback,this);
+    sub_location_odom_ = nh.subscribe(odom_topic_ ,1,&RecordPath::odomCallback,this);
 
-    connect(&wait_gps_topic_timer_, SIGNAL(timeout()), this, SLOT(waitGpsTopicTimeout()));
+    connect(&wait_topic_timer_, SIGNAL(timeout()), this, SLOT(waitTopicTimeout()));
 
     path_points_.clear();
     path_points_.reserve(5000);
     ros::Duration(0.5).sleep();  //等待订阅器初始化完成，否则即使存在发布者，也有可能被漏检
 
-    if(sub_gps_.getNumPublishers() == 0) //检测发布者是否存在
+    if(sub_location_odom_.getNumPublishers() == 0) //检测发布者是否存在
     {
         std::string info = std::string("No ") + odom_topic_ + " publihser!\nPlease check the gps node!";
         this->log("WARN", info);
@@ -45,9 +46,9 @@ bool RecordPath::start()
     return true;
 }
 
-void RecordPath::waitGpsTopicTimeout()
+void RecordPath::waitTopicTimeout()
 {
-    if(sub_gps_.getNumPublishers() == 0)
+    if(sub_location_odom_.getNumPublishers() == 0)
     {
 
     }
@@ -55,7 +56,7 @@ void RecordPath::waitGpsTopicTimeout()
 
 void RecordPath::stop()
 {
-    sub_gps_.shutdown();
+    sub_location_odom_.shutdown();
 }
 
 void RecordPath::setRoadWidth(float left, float right)
@@ -66,7 +67,7 @@ void RecordPath::setRoadWidth(float left, float right)
     current_road_right_width_ = right;
 }
 
-void RecordPath::gps_callback(const nav_msgs::Odometry::ConstPtr& msg)
+void RecordPath::odomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
   std::lock_guard<std::mutex> lck(mutex_);
 
@@ -104,9 +105,9 @@ void RecordPath::gps_callback(const nav_msgs::Odometry::ConstPtr& msg)
             << current_point_.yaw << std::endl;
 
     path_points_.push_back(current_point_);
-    //fprintf(fp,"%.3f\t%.3f\t%.4f\n",current_point_.x,current_point_.y,current_point_.yaw);
     last_point_ = current_point_;
 
+    //log
     std::stringstream msg;
     msg << path_points_.size() << "  " << std::fixed << std::setprecision(2)
         << current_point_.x << "  "

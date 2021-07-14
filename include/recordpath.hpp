@@ -63,7 +63,7 @@ class RecordPath : public QObject
  Q_OBJECT
 private:
     float dis2Points(PathPoint& p1,PathPoint&p2,bool isSqrt);
-    void gps_callback(const nav_msgs::Odometry::ConstPtr& msg);
+    void odomCallback(const nav_msgs::Odometry::ConstPtr& msg);
     bool calPathCurvature(std::vector<PathPoint>& points);
 
     std::string file_path_;
@@ -71,14 +71,14 @@ private:
 
     PathPoint last_point_;
     float sample_distance_;
-    ros::Subscriber sub_gps_;
+    ros::Subscriber sub_location_odom_;
     std::string odom_topic_;
 
     PathPoint current_point_;
     std::vector<PathPoint> path_points_;
     QStringListModel logging_model;
 
-    QTimer  wait_gps_topic_timer_;
+    QTimer  wait_topic_timer_;
 
     std::mutex mutex_;
     float current_road_left_width_;
@@ -92,7 +92,7 @@ Q_SIGNALS:
     void loggingUpdated();
 
 public Q_SLOTS:
-    void waitGpsTopicTimeout();
+    void waitTopicTimeout();
 
 public:
     RecordPath();

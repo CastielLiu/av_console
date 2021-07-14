@@ -69,6 +69,8 @@ bool QNode::init(int try_num, const std::string &master_url, const std::string &
             subs.push_back(nh.subscribe<sensor_msgs::PointCloud2>(sensor.topic,1,boost::bind(&QNode::lidar_callback,this,_1,sensor.id)));
         else if(sensor_name.find("cam") != std::string::npos)
             subs.push_back(nh.subscribe<sensor_msgs::Image>(sensor.topic,1,boost::bind(&QNode::image_callback,this,_1,sensor.id)));
+        //else if(sensor_name.find("location") != std::string::npos)
+            //subs.push_back(nh.subscribe<sensor_msgs::Image>(sensor.topic,1,boost::bind(&QNode::image_callback,this,_1,sensor.id)));
     }
 
     diagnostic_sub = nh.subscribe("/driverless/diagnostic",10,&QNode::diagnostic_callback,this);

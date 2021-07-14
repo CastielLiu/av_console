@@ -624,7 +624,7 @@ void av_console::MainWindow::onTaskStateChanged(int state, const QString& info)
 {
     if(!info.isEmpty())
     {
-        new AutoDisapperDialog(this, QMessageBox::Information,info,2000);
+        new AutoDisapperDialog(this, QMessageBox::Information,info,3000);
     }
 
     if(state == qnode.Driverless_Idle)
@@ -1148,6 +1148,10 @@ void av_console::MainWindow::onDriverlessStatusChanged(const driverless_common::
     ui.label_trueSpeed->setText(to_qstring(state.vehicle_speed,1));
     ui.label_steerAngle->setText(to_qstring(state.roadwheel_angle,1));
     ui.label_laterr->setText(to_qstring(state.lateral_error,2));
+    if(state.location_source.empty())
+        ui.label_locationSrc->setText("unknown");
+    else
+        ui.label_locationSrc->setText(QString::fromStdString(state.location_source));
 
     ui.widget_speedDial->updateValue(state.vehicle_speed);
 #if(DEVICE == DEVICE_LOGISTICS)
