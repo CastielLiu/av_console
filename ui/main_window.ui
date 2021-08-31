@@ -99,7 +99,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidget_driverless">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="page_home">
          <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="4,1">
@@ -1027,7 +1027,7 @@ padding: 0 3px 0 3px;
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>0</height>
+               <height>80</height>
               </size>
              </property>
             </widget>

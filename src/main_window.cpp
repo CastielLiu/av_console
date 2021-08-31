@@ -622,6 +622,7 @@ void av_console::MainWindow::on_pushButton_openRoadNet_clicked()
 
 void av_console::MainWindow::onTaskStateChanged(int state, const QString& info)
 {
+    qnode.log(std::to_string(state)+info.toStdString());
     if(!info.isEmpty())
     {
         new AutoDisapperDialog(this, QMessageBox::Information,info,3000);

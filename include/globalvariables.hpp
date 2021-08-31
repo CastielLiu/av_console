@@ -5,7 +5,7 @@
 
 #define DEVICE_ANT          0  //小蚂蚁
 #define DEVICE_LOGISTICS    1  //物流车
-#define DEVICE DEVICE_LOGISTICS
+#define DEVICE DEVICE_ANT
 
 extern av_console::RosNodesArray g_rosNodesArray;
 extern av_console::Logg g_logg;
