@@ -23,46 +23,13 @@
 #include <mutex>
 #include <memory>
 
-struct PathPoint
-{
-  double x;
-  double y;
-  //double z;
-  double yaw;
-  float curvature;
-  float leftWidth;
-  float rightWidth;
-
-  PathPoint()
-  {
-    x = y = yaw = 0.0;
-    curvature = 0.0;
-    leftWidth = leftWidth = 0.0;
-  }
-};
-
-/*
-struct TurnRange
-{
-  TurnRange(int t, size_t s, size_t e): type(t), startIndex(s), endIndex(e){}
-  int type;
-  size_t startIndex, endIndex;
-};
-
-
-struct ParkPoint
-{
-    ParkPoint(size_t idx, size_t d): index(idx), duration(d){}
-    size_t index;
-    size_t duration; //s
-};
-*/
+typedef GpsPoint PathPoint;
 
 class RecordPath : public QObject
 {
  Q_OBJECT
 private:
-    float dis2Points(PathPoint& p1,PathPoint&p2,bool isSqrt);
+    float dis2Points(const PathPoint& p1, const PathPoint&p2,bool isSqrt);
     void odomCallback(const nav_msgs::Odometry::ConstPtr& msg);
     bool calPathCurvature(std::vector<PathPoint>& points);
 
@@ -76,9 +43,11 @@ private:
 
     PathPoint current_point_;
     std::vector<PathPoint> path_points_;
+    std::string points_title_;
     QStringListModel logging_model;
 
     QTimer  wait_topic_timer_;
+    bool recording_;
 
     std::mutex mutex_;
     float current_road_left_width_;
@@ -99,12 +68,10 @@ public:
     virtual ~RecordPath();
     bool start();
     void stop();
-    void RecordPathToFile();
     std::string odomTopic(){return odom_topic_;}
     QStringListModel* loggingModel() { return &logging_model; }
-    bool savePathPoints(const std::string& file_name);
-    bool generatePathInfoFile(const std::string& file_name);
-    size_t pathPointsSize(){return path_points_.size();}
+    void abandon();
+    bool save(const std::string& dir);
     void log( const std::string &level, const std::string &msg);
     void setRoadWidth(float left, float right);
     void setTurnRange(const std::string &type, size_t startIdx, size_t endIdx);
@@ -112,6 +79,10 @@ public:
     void setTrafficLightPoint();
     void setMaxSpeed(float speed, bool is_start);
     size_t getPointsSize() {std::lock_guard<std::mutex> lck(mutex_); return path_points_.size();}
+
+private:
+    bool savePathPoints(const std::string& );
+    bool saveExtendPathInfo(const std::string& file_name);
 };
 
 

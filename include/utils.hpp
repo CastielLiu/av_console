@@ -88,12 +88,19 @@ static void displayRosNodesArrayInfo()
     }
 }
 
-static QString getShortFileName(const QString& long_name)
+// 提取不带后缀的文件名
+static QString extractNoneSuffixFileName(const QString& long_name)
 {
     QStringList list1 = long_name.split('/');
     QString rel_name = list1.back();
     QStringList list2 = rel_name.split('.');
     return list2.front();
+}
+
+static QString extractLastLevelDirName(const QString& long_name)
+{
+    QStringList list1 = long_name.split('/');
+    return list1.back();
 }
 
 

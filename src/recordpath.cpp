@@ -5,7 +5,7 @@ RecordPath::RecordPath():
     current_road_left_width_(0),
     current_road_right_width_(0)
 {
-
+    recording_ = false;
 }
 
 RecordPath::~RecordPath()
@@ -16,6 +16,7 @@ RecordPath::~RecordPath()
 //若不存在发布者，返回错误，外部自主启动发布者
 bool RecordPath::start()
 {
+    recording_ = false;
     ros::NodeHandle nh;
     ros::NodeHandle private_nh("~");
 
@@ -32,8 +33,6 @@ bool RecordPath::start()
 
     connect(&wait_topic_timer_, SIGNAL(timeout()), this, SLOT(waitTopicTimeout()));
 
-    path_points_.clear();
-    path_points_.reserve(5000);
     ros::Duration(0.5).sleep();  //等待订阅器初始化完成，否则即使存在发布者，也有可能被漏检
 
     if(sub_location_odom_.getNumPublishers() == 0) //检测发布者是否存在
@@ -42,6 +41,12 @@ bool RecordPath::start()
         this->log("WARN", info);
         return false;
     }
+
+    // clear history data
+    path_points_.clear();
+    path_points_.reserve(5000);
+    current_point_ = last_point_ = PathPoint();
+    recording_ = true;
 
     return true;
 }
@@ -56,7 +61,9 @@ void RecordPath::waitTopicTimeout()
 
 void RecordPath::stop()
 {
+    std::lock_guard<std::mutex> lck(mutex_);
     sub_location_odom_.shutdown();
+    recording_ = false;
 }
 
 void RecordPath::setRoadWidth(float left, float right)
@@ -70,12 +77,17 @@ void RecordPath::setRoadWidth(float left, float right)
 void RecordPath::odomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
   std::lock_guard<std::mutex> lck(mutex_);
+  if(!recording_) return;
 
   current_point_.x = msg->pose.pose.position.x;
   current_point_.y = msg->pose.pose.position.y;
   current_point_.yaw = msg->pose.covariance[0];
-  current_point_.leftWidth = current_road_left_width_;
-  current_point_.rightWidth = current_road_right_width_;
+  current_point_.left_width = current_road_left_width_;
+  current_point_.right_width = current_road_right_width_;
+  current_point_.longitude = msg->pose.covariance[1];
+  current_point_.latitude = msg->pose.covariance[2];
+
+  // std::cout << current_point_.curvature << std::endl;
 
   int gps_state = msg->pose.covariance[4];
   bool gpsValid = (gps_state == 1 || gps_state == 2 || gps_state==4 ||
@@ -99,10 +111,8 @@ void RecordPath::odomCallback(const nav_msgs::Odometry::ConstPtr& msg)
       temp_file_opened = true;
     }
 
-    outTempFile << std::fixed << std::setprecision(3)
-            << current_point_.x << "\t"
-            << current_point_.y << "\t"
-            << current_point_.yaw << std::endl;
+    outTempFile << std::fixed << std::setprecision(3) << current_point_.x << "\t" << current_point_.y << "\t"
+                << current_point_.yaw << std::endl;
 
     path_points_.push_back(current_point_);
     last_point_ = current_point_;
@@ -113,8 +123,8 @@ void RecordPath::odomCallback(const nav_msgs::Odometry::ConstPtr& msg)
         << current_point_.x << "  "
         << current_point_.y << "  "
         << current_point_.yaw*180.0/M_PI << "  "
-        << current_point_.leftWidth << "  "
-        << current_point_.rightWidth;
+        << current_point_.left_width << "  "
+        << current_point_.right_width;
     log("INFO",msg.str());
   }
 }
@@ -135,6 +145,8 @@ bool RecordPath::calPathCurvature(std::vector<PathPoint>& points)
         //车辆转弯半径有限,路径曲率有限，若计算值超出阈值，将其饱和
         if(points[i].curvature>0.3) points[i].curvature = 0.3;
         else if(points[i].curvature<-0.3) points[i].curvature = -0.3;
+
+//        std::cout << delta_theta << "  " << arc_length << "  " << points[i].curvature << std::endl;
     }
 
     //均值滤波
@@ -148,10 +160,24 @@ bool RecordPath::calPathCurvature(std::vector<PathPoint>& points)
         {
             points[i-n/2].curvature = curvature_n_sum/n;
             curvature_n_sum += (points[i].curvature - points[i-n].curvature);
-            //std::cout << std::fixed << std::setprecision(2) << points[i].curvature << std::endl;
+//            std::cout << std::fixed << std::setprecision(2) << points[i].curvature << std::endl;
         }
     }
     return true;
+}
+
+void RecordPath::abandon()
+{
+    path_points_.clear();
+}
+
+bool RecordPath::save(const std::string& dir)
+{
+    std::string points_file = dir + "/points.txt";
+    std::string extend_info_file = dir + "/extend_info.xml";
+
+    this->saveExtendPathInfo(extend_info_file);
+    this->savePathPoints(points_file);
 }
 
 bool RecordPath::savePathPoints(const std::string& file_name)
@@ -167,17 +193,23 @@ bool RecordPath::savePathPoints(const std::string& file_name)
      return false;
    }
 
- #if 1  //cpp gen curvature
+   // points file title
+   out_file << "title: x    y    yaw    curvature    left_width    right_width    lng    lat\r\n";
+
+#if 1  //cpp gen curvature
    calPathCurvature(path_points_);
 
-   for(size_t i=0; i<path_points_.size(); ++i)
+   for(const PathPoint& point : path_points_)
    {
-     out_file << std::fixed << std::setprecision(3)
-              << path_points_[i].x << "\t" << path_points_[i].y << "\t"
-              << path_points_[i].yaw << "\t" << path_points_[i].curvature << "\t"
-              << path_points_[i].leftWidth << "\t" << path_points_[i].rightWidth
-              << "\r\n";
+       out_file << std::fixed << std::setprecision(3)
+                << point.x << "\t" << point.y << "\t"
+                << point.yaw << "\t" << point.curvature << "\t"
+                << point.left_width << "\t" << point.right_width << "\t"
+                << std::setprecision(6)
+                << point.longitude << "\t" << point.latitude
+                << "\r\n";
    }
+
    out_file.close();
 #else //py gen curveature
    for(size_t i=0; i<path_points_.size(); ++i)
@@ -214,7 +246,7 @@ bool RecordPath::savePathPoints(const std::string& file_name)
    return true;
 }
 
-float RecordPath::dis2Points(PathPoint& p1,PathPoint&p2,bool isSqrt)
+float RecordPath::dis2Points(const PathPoint &p1, const PathPoint &p2, bool isSqrt)
 {
   double dx = p1.x - p2.x;
   double dy = p1.y - p2.y;
@@ -247,7 +279,7 @@ void RecordPath::log( const std::string &level, const std::string &msg)
  *@param file_name 文件
  */
 #include<tinyxml2.h>
-bool RecordPath::generatePathInfoFile(const std::string& file_name)
+bool RecordPath::saveExtendPathInfo(const std::string& file_name)
 {
     tinyxml2::XMLDocument doc;
     //1.添加声明
@@ -444,6 +476,8 @@ void RecordPath::setTurnRange(const std::string& type, size_t startIdx, size_t e
 void RecordPath::setParkPoint(size_t duration)
 {
     std::lock_guard<std::mutex> lck(mutex_);
+
+    //当前路径点集为空，current_point_可能为默认无效点
     if(path_points_.empty())
     {
         log("WARN","[Parking Point] No Valid Path Points!");

@@ -56,17 +56,18 @@ bool loadRosNodesArrayInfo(const QString& file)
 {
     tinyxml2::XMLDocument Doc;   //定义xml文件对象
     tinyxml2::XMLError res = Doc.LoadFile(file.toStdString().c_str());
+    g_logg << "[INFO] loading ros nodes infomations from " << file.toStdString() << "\n";
 
     if(tinyxml2::XML_ERROR_FILE_NOT_FOUND == res)
     {
         QString fatalMsg = QString("No ") + file + "!";
-        g_logg << fatalMsg << "\n";
+        g_logg << "[FATAL]" << fatalMsg << "\n";
         return false;
     }
     else if(tinyxml2::XML_SUCCESS != res)
     {
         QString fatalMsg = QString("Parse ") + file + "failed!";
-        g_logg << fatalMsg << "\n";
+        g_logg << "[FATAL]" << fatalMsg << "\n";
         return false;
     }
     tinyxml2::XMLElement *pRoot = Doc.RootElement();
@@ -77,11 +78,16 @@ bool loadRosNodesArrayInfo(const QString& file)
     while(pRosNodes)
     {
         RosNodes ros_nodes;
-        ros_nodes.name = pRosNodes->Attribute("name");
-        if(const char* t = pRosNodes->Attribute("show_status"))
-            ros_nodes.show_status = t;
+        if(const char* t = pRosNodes->Attribute("name"))
+            ros_nodes.name = t;
+        else
+            continue;
 
-        qDebug() << pRosNodes->Attribute("show_status");
+        if(const char* t = pRosNodes->Attribute("show_status")){
+            ros_nodes.show_status = t;
+        }
+
+
         ros_nodes.use_button = pRosNodes->BoolAttribute("use_botton");
         ros_nodes.id = node_id++;
 

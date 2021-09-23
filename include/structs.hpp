@@ -56,6 +56,7 @@ public:
         return true;
     }
 
+    // 检验log文件是否已打开
     bool check()
     {
         if(!log_f.is_open())

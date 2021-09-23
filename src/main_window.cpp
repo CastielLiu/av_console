@@ -272,7 +272,8 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         {
         }
     */
-        int button = QMessageBox::question(this,"Confirm Start Task","Click Yes To Start.",QMessageBox::Yes|QMessageBox::Cancel,QMessageBox::Yes);
+        int button = QMessageBox::question(this,"Confirm Start Task","Click Yes To Start.",
+                                           QMessageBox::Yes|QMessageBox::Cancel,QMessageBox::Yes);
         if(button == QMessageBox::Cancel)
         {
             onTaskStateChanged(qnode.Driverless_Idle);
@@ -280,7 +281,8 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         }
 
         driverless_common::DoDriverlessTaskGoal goal;
-        goal.roadnet_file = roadnet_file.toStdString();
+        goal.roadnet_file = roadnet_file.toStdString() + "/points.txt";
+        goal.roadnet_ext_file = roadnet_file.toStdString() + "/extend_info.xml";
         goal.expect_speed = speed;
 
         //目标类型
@@ -435,7 +437,7 @@ void MainWindow::ReadSettings() {
     	//ui.line_edit_topic->setEnabled(false);
     }
     m_roadNetFileDir = settings.value("roadNetFileDir","").toString();
-    ui.lineEdit_roadNet->setText(getShortFileName(m_roadNetFileDir));
+    ui.lineEdit_roadNet->setText(extractLastLevelDirName(m_roadNetFileDir));
 
     int speedIndex = settings.value("speedIndex","0").toInt();
     ui.comboBox_driverSpeed->setCurrentIndex(speedIndex);
@@ -549,6 +551,7 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
         if(!m_pathRecorder->start())
         {
             ui.pushButton_pathPlanning->setChecked(false);
+//            delete m_pathRecorder; m_pathRecorder = NULL;
             return;
         }
         ui.pushButton_pathPlanning->setText("Stop And Save");
@@ -557,8 +560,8 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
     else
     {
         ui.groupBox_pathPlanConfig->setDisabled(true);
-        m_pathRecorder->stop();
-        if(m_pathRecorder->pathPointsSize() == 0)
+        m_pathRecorder->stop(); //停止记录
+        if(m_pathRecorder->getPointsSize() == 0)
         {
           m_pathRecorder->log("WARN","path points is too few !");
           ui.pushButton_pathPlanning->setText("Start");
@@ -570,32 +573,27 @@ void av_console::MainWindow::on_pushButton_pathPlanning_clicked(bool checked)
 
         while(true)
         {
-            QString fileName = QFileDialog::getSaveFileName(this,
-                                        "save path points", m_recordFileDir, "TXT(*txt)");
-            if(fileName.isEmpty())
+            QString dir = QFileDialog::getExistingDirectory(this, "Create New Dir for This Path and Select it", m_roadNetFileDir);
+//            QString fileName = QFileDialog::getSaveFileName(this,
+//                                        "save path points", m_recordFileDir, "TXT(*txt)");
+            if(dir.isEmpty())
             {
                 int Abandon =
                 QMessageBox::question(this,"question","Abandon this record?",
                                       QMessageBox::Yes | QMessageBox::No,QMessageBox::No);
                 if(Abandon == QMessageBox::Yes)
                 {
-                    delete m_pathRecorder;
-                    m_pathRecorder = NULL;
+                    m_pathRecorder->abandon();
+//                    delete m_pathRecorder; m_pathRecorder = NULL;
                     break;
                 }
                 else
                     continue;
             }
-#if(DEVICE == DEVICE_LOGISTICS)
+            m_roadNetFileDir = dir;
+            m_pathRecorder->save(dir.toStdString());
 
-#else
-            std::string pathInfoFile =
-                fileName.toStdString().substr(0,fileName.toStdString().find_last_of(".")) + "_info.xml";
-            m_pathRecorder->generatePathInfoFile(pathInfoFile);
-#endif
-            m_pathRecorder->savePathPoints(fileName.toStdString());
-            delete m_pathRecorder;
-            m_pathRecorder = NULL;
+//            delete m_pathRecorder; m_pathRecorder = NULL;
             break;
         }
         ui.pushButton_pathPlanning->setText("Start");
@@ -609,23 +607,29 @@ void av_console::MainWindow::updatePathPlanningLoggingView()
 
 void av_console::MainWindow::on_pushButton_openRoadNet_clicked()
 {
-    QString fileName = QFileDialog::getOpenFileName(this,
-                                "open roadnet file", m_roadNetFileDir, "TXT(*txt)");
-    if(fileName.isEmpty())
+    QString fileDir = QFileDialog::getExistingDirectory(this, "Select Nav Path Directory", m_roadNetFileDir);
+//    QString fileName = QFileDialog::getOpenFileName(this,
+//                                "open roadnet file", m_roadNetFileDir, "TXT(*txt)");
+    if(fileDir.isEmpty())
         return;
 
-    m_roadNetFileDir = fileName;
+    m_roadNetFileDir = fileDir;
 
     //qDebug() << fileName << "\t" << name;
-    ui.lineEdit_roadNet->setText(getShortFileName(m_roadNetFileDir));
+    ui.lineEdit_roadNet->setText(extractLastLevelDirName(m_roadNetFileDir));
 }
 
 void av_console::MainWindow::onTaskStateChanged(int state, const QString& info)
 {
-    qnode.log(std::to_string(state)+info.toStdString());
+    qnode.changeTaskState(state);
+
+    QString msg = QString("onTaskStateChanged: %1, info: %2").arg(state).arg(info);
+
+    qnode.log(msg.toStdString());
     if(!info.isEmpty())
     {
-        new AutoDisapperDialog(this, QMessageBox::Information,info,3000);
+        //自动消失的对话框,用于通知
+        new AutoDisapperDialog(this, QMessageBox::Information,info,5000);
     }
 
     if(state == qnode.Driverless_Idle)
@@ -1011,7 +1015,7 @@ void av_console::MainWindow::onShowDiagnosticMsg(const QString& device, int leve
     if(level >= levelVector.size())
     {
         qDebug() << "Diagnostic level error!";
-        g_logg << "Diagnostic level error!\n";
+        g_logg << "[WARN] Diagnostic level error!\n";
         return;
     }
 
@@ -1153,6 +1157,9 @@ void av_console::MainWindow::onDriverlessStatusChanged(const driverless_common::
         ui.label_locationSrc->setText("unknown");
     else
         ui.label_locationSrc->setText(QString::fromStdString(state.location_source));
+
+
+    ui.label_stateStr->setText(QString::fromStdString(state.task_state).section('_',1,1));
 
     ui.widget_speedDial->updateValue(state.vehicle_speed);
 #if(DEVICE == DEVICE_LOGISTICS)

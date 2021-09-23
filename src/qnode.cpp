@@ -74,7 +74,7 @@ bool QNode::init(int try_num, const std::string &master_url, const std::string &
     }
 
     diagnostic_sub = nh.subscribe("/driverless/diagnostic",10,&QNode::diagnostic_callback,this);
-    status_sub     = nh.subscribe("/driverless/state",1,&QNode::driverlessStatus_callback,this);
+    status_sub     = nh.subscribe("/driverless/system_state",1,&QNode::driverlessStatus_callback,this);
     sensorStatus_timer = nh.createTimer(ros::Duration(1), &QNode::sensorStatusTimer_callback,this);
 
     if(ac_ != nullptr)
@@ -149,7 +149,9 @@ void QNode::requestDriverlessTask(const driverless_common::DoDriverlessTaskGoal&
 
 void QNode::taskFeedbackCallback(const driverless_common::DoDriverlessTaskFeedbackConstPtr& fd)
 {
-    qDebug() << "taskFeedbackCallback ";
+    // qDebug() << "taskFeedbackCallback ";
+    if(task_state_ == Driverless_Starting) //task_state_由槽函数onTaskStateChanged修改
+        Q_EMIT taskStateChanged(Driverless_Running);
 }
 
 void QNode::taskDoneCallback(const actionlib::SimpleClientGoalState& state,
@@ -162,8 +164,10 @@ void QNode::taskDoneCallback(const actionlib::SimpleClientGoalState& state,
 
 void QNode::taskActivedCallback()
 {
+    //由于使用的是SimpleActionServer,在收到目标时已默认接受(accept),因此客户端的active_callback仅能表达请求消息已到达服务器
+    //并不能代表服务开始执行了请求, 服务器为通知任务开始执行事件，利用feedback进行通知
     qDebug() << "taskActivedCallback ";
-    Q_EMIT taskStateChanged(Driverless_Running);
+    // Q_EMIT taskStateChanged(Driverless_Running);
 }
 
 /*===================传感器状态监测相关函数================*/

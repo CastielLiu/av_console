@@ -58,7 +58,7 @@ public:
         Driverless_Complete,   //自动驾驶任务完成
         Driverless_Failed,     //自动驾驶失败
     };
-
+    void changeTaskState(int state) {task_state_ = state;}
 	QStringListModel* loggingModel() { return &logging_model; }
     void log(const std::string &msg);
     void stampedLog( const LogLevel &level, const std::string &msg);
