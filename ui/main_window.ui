@@ -99,7 +99,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidget_driverless">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="page_home">
          <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="4,1">
@@ -982,16 +982,16 @@ padding: 0 3px 0 3px;
               <number>4</number>
              </property>
              <attribute name="headerVisible">
-              <bool>false</bool>
+              <bool>true</bool>
              </attribute>
              <attribute name="headerCascadingSectionResizes">
               <bool>false</bool>
              </attribute>
              <attribute name="headerDefaultSectionSize">
-              <number>60</number>
+              <number>70</number>
              </attribute>
              <attribute name="headerHighlightSections">
-              <bool>false</bool>
+              <bool>true</bool>
              </attribute>
              <column>
               <property name="text">
@@ -1485,8 +1485,8 @@ padding: 0 3px 0 3px;
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>313</width>
-               <height>535</height>
+               <width>162</width>
+               <height>45</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_6" stretch="1,1000">

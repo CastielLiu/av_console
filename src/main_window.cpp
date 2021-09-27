@@ -239,7 +239,11 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         bool ok;
         float speed = ui.comboBox_driverSpeed->currentText().toFloat(&ok);
         QString roadnet_file = m_roadNetFileDir; //ui.lineEdit_roadNet->text();
-        if(roadnet_file.isEmpty())
+        const std::string points_file = roadnet_file.toStdString() + "/points.txt";
+        std::string extend_file = roadnet_file.toStdString() + "/extend_info.xml";
+
+
+        if(roadnet_file.isEmpty() || !fileExist(points_file))
         {
             QMessageBox msgBox(this);
             msgBox.setText("No Roadnet File.");
@@ -247,6 +251,9 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
             onTaskStateChanged(qnode.Driverless_Idle);
             return;
         }
+        if(!fileExist(extend_file))
+            extend_file = "";
+
     /*
         //询问是否保存日志文件
         QFileInfo roadnetFileInfo(roadnet_file);
@@ -281,8 +288,8 @@ void av_console::MainWindow::on_pushButton_driverlessStart_clicked(bool checked)
         }
 
         driverless_common::DoDriverlessTaskGoal goal;
-        goal.roadnet_file = roadnet_file.toStdString() + "/points.txt";
-        goal.roadnet_ext_file = roadnet_file.toStdString() + "/extend_info.xml";
+        goal.roadnet_file = points_file;
+        goal.roadnet_ext_file = extend_file;
         goal.expect_speed = speed;
 
         //目标类型

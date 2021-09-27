@@ -7,7 +7,9 @@
 #include "globalvariables.hpp"
 #include <sstream>
 #include <thread>
+#include <QFileInfo>
 #include <QStringList>
+#include <QDebug>
 
 namespace av_console {
 
@@ -101,6 +103,18 @@ static QString extractLastLevelDirName(const QString& long_name)
 {
     QStringList list1 = long_name.split('/');
     return list1.back();
+}
+
+static bool fileExist(const QString& path)
+{
+    QFileInfo file(path);
+//    qDebug() << path << " exists? " << file.exists() ;
+    return file.exists();
+}
+
+static bool fileExist(const std::string& path)
+{
+    return fileExist(QString::fromStdString(path));
 }
 
 
