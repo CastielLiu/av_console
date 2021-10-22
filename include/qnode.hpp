@@ -14,6 +14,7 @@
 #include <diagnostic_msgs/DiagnosticStatus.h>
 #include <nav_msgs/Odometry.h>
 #include <driverless_common/SystemState.h>
+#include <driverless_common/common.h>
 #endif
 
 #include <unordered_map>

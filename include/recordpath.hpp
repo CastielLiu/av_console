@@ -3,7 +3,7 @@
 
 #ifndef Q_MOC_RUN
 #include <ros/ros.h>
-#include <driverless_common/structs.h>
+#include <driverless_common/common.h>
 #endif
 
 #include <QObject>
@@ -84,20 +84,6 @@ private:
     bool savePathPoints(const std::string& );
     bool saveExtendPathInfo(const std::string& file_name);
 };
-
-
-/*@brief 角度归一化，(-pi, pi]
- */
-static double normalizeRadAngle(double angle)
-{
-    double res = angle;
-    while(res <= -M_PI)
-        res += 2*M_PI;
-
-    while(res > M_PI)
-        res -= 2*M_PI;
-    return res;
-}
 
 /*@brief 获取两点间的距离
  *@param point1 终点

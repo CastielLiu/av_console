@@ -1166,16 +1166,16 @@ void av_console::MainWindow::onDriverlessStatusChanged(const driverless_common::
         ui.label_locationSrc->setText(QString::fromStdString(state.location_source));
 
 
-    ui.label_stateStr->setText(QString::fromStdString(state.task_state).section('_',1,1));
+    ui.label_stateStr->setText(QString::fromStdString(DriverlessSystem::StateName[state.state]).section('_',1,1));
 
     ui.widget_speedDial->updateValue(state.vehicle_speed);
 #if(DEVICE == DEVICE_LOGISTICS)
-    if(state.state == state.STATE_IDLE)
+    if(state.state == DriverlessSystem::State_Idle)
         ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/logistics_manual_mode);"));
     else
         ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/logistics_driverless_mode);"));
 #elif(DEVICE == DEVICE_ANT)
-    if(state.state == state.STATE_IDLE)
+    if(state.state == DriverlessSystem::State_Idle)
         ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/ant_manual_mode);"));
     else
         ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/ant_driverless_mode);"));
