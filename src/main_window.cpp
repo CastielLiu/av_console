@@ -1154,28 +1154,28 @@ QString to_qstring(float val, int precision)
     return  QString(ss.str().c_str());
 }
 
-void av_console::MainWindow::onDriverlessStatusChanged(const driverless_common::SystemState state)
+void av_console::MainWindow::onDriverlessStatusChanged(const driverless_common::SystemState msg)
 {
-    ui.label_cmdSpeed->setText(to_qstring(state.command_speed,1));
-    ui.label_trueSpeed->setText(to_qstring(state.vehicle_speed,1));
-    ui.label_steerAngle->setText(to_qstring(state.roadwheel_angle,1));
-    ui.label_laterr->setText(to_qstring(state.lateral_error,2));
-    if(state.location_source.empty())
+    ui.label_cmdSpeed->setText(to_qstring(msg.control_cmd.speed, 1));
+    ui.label_trueSpeed->setText(to_qstring(msg.vehicle_state.speed,1));
+    ui.label_steerAngle->setText(to_qstring(msg.vehicle_state.roadwheel_angle,1));
+    ui.label_laterr->setText(to_qstring(msg.lateral_error,2));
+    if(msg.location_source.empty())
         ui.label_locationSrc->setText("unknown");
     else
-        ui.label_locationSrc->setText(QString::fromStdString(state.location_source));
+        ui.label_locationSrc->setText(QString::fromStdString(msg.location_source));
 
 
-    ui.label_stateStr->setText(QString::fromStdString(DriverlessSystem::StateName[state.state]).section('_',1,1));
+    ui.label_stateStr->setText(QString::fromStdString(DriverlessSystem::StateName[msg.state]).section('_',1,1));
 
-    ui.widget_speedDial->updateValue(state.vehicle_speed);
+    ui.widget_speedDial->updateValue(msg.vehicle_state.speed);
 #if(DEVICE == DEVICE_LOGISTICS)
-    if(state.state == DriverlessSystem::State_Idle)
+    if(msg.state == DriverlessSystem::State_Idle)
         ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/logistics_manual_mode);"));
     else
         ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/logistics_driverless_mode);"));
 #elif(DEVICE == DEVICE_ANT)
-    if(state.state == DriverlessSystem::State_Idle)
+    if(msg.state == DriverlessSystem::State_Idle)
         ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/ant_manual_mode);"));
     else
         ui.widget_systemStatus->setStyleSheet(QString::fromUtf8("image: url(:/av_console/ant_driverless_mode);"));
